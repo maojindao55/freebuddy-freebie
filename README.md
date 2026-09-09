@@ -1,19 +1,16 @@
 # FreeBuddy 白嫖专区页面
 
-[![Deploy to Cloudflare Pages](https://img.shields.io/badge/Deploy%20to-Cloudflare%20Pages-F38020?style=for-the-badge&logo=cloudflare&logoColor=white)](https://dash.cloudflare.com/?to=/:account/pages/new)
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/maojindao55/freebuddy-freebie)
 
-这是 FreeBuddy 侧栏「白嫖」入口内嵌的外部页面。它是一个无构建步骤的静态站点，部署在 Cloudflare Pages 上；修改 `providers.json` 并推送即可上线，不需要发布 FreeBuddy 新版本。
+这是 FreeBuddy 侧栏「白嫖」入口内嵌的外部页面。它是一个无构建步骤的静态站点，部署在 Cloudflare 上；修改 `providers.json` 并推送即可上线，不需要发布 FreeBuddy 新版本。
 
-## 导入与部署到 Cloudflare Pages
+## 一键导入 / 部署 (Deploy to Cloudflare)
 
-> [!NOTE]
-> 本项目是 **Cloudflare Pages（静态站点）** 项目。请通过 Cloudflare Pages 的 Git 集成进行导入与持续部署。
+点击下方按钮一键部署到 Cloudflare：
 
-点击下方按钮前往 Cloudflare Dashboard 导入本仓库：
+[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/maojindao55/freebuddy-freebie)
 
-[![Deploy to Cloudflare Pages](https://img.shields.io/badge/Deploy%20to-Cloudflare%20Pages-F38020?style=for-the-badge&logo=cloudflare&logoColor=white)](https://dash.cloudflare.com/?to=/:account/pages/new)
-
-### 导入步骤（Connect to Git）
+### 手动导入步骤（可选）
 
 1. 点击上方按钮或访问 [Cloudflare Dashboard](https://dash.cloudflare.com/) → **Workers & Pages（Workers 和 Pages）** → **Create（创建）**。
 2. 顶部选择 **Pages** 选项卡（**请注意：必须选 Pages，不要选 Worker**），点击 **Connect to Git（连接到 Git）**。
