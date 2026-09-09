@@ -13,7 +13,8 @@
       filterAll: "全部",
       filterCn: "国内直连",
       filterGlobal: "海外",
-      disclaimer: "免费政策随时变化，以各服务商官网为准。发现过期信息欢迎到 GitHub 提交 PR。",
+      disclaimer:
+        '免费政策随时变化，以各服务商官网为准。发现过期信息欢迎到 <a href="https://github.com/maojindao55/freebuddy-freebie/pulls" target="_blank" rel="noopener noreferrer">GitHub 提交 PR</a>。',
       statusConnecting: "正在连接 FreeBuddy…",
       statusConnected: "已连接 FreeBuddy，可以一键导入",
       statusStandalone: "在 FreeBuddy 侧栏的「白嫖」页打开本页，即可一键导入",
@@ -43,7 +44,8 @@
       filterAll: "All",
       filterCn: "China (direct)",
       filterGlobal: "Global",
-      disclaimer: "Free tiers change often; the provider's website is the source of truth. PRs with corrections are welcome on GitHub.",
+      disclaimer:
+        'Free tiers change often; the provider\'s website is the source of truth. PRs with corrections are welcome on <a href="https://github.com/maojindao55/freebuddy-freebie/pulls" target="_blank" rel="noopener noreferrer">GitHub</a>.',
       statusConnecting: "Connecting to FreeBuddy…",
       statusConnected: "Connected to FreeBuddy — one-click import is ready",
       statusStandalone: "Open this page from the Free Tier entry in FreeBuddy's sidebar to import with one click",
@@ -104,6 +106,12 @@
     document.documentElement.lang = state.locale;
     document.querySelectorAll("[data-i18n]").forEach((el) => {
       el.textContent = t(el.getAttribute("data-i18n"));
+    });
+    document.querySelectorAll("[data-i18n-html]").forEach((el) => {
+      el.innerHTML = t(el.getAttribute("data-i18n-html"));
+      el.querySelectorAll("a").forEach((link) => {
+        link.addEventListener("click", openLink);
+      });
     });
   }
 

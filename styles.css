@@ -315,6 +315,21 @@ a:hover { text-decoration: underline; }
   text-align: center;
 }
 
+.disclaimer a {
+  color: var(--brand-dark);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 0.15s ease;
+}
+
+:root[data-theme="dark"] .disclaimer a {
+  color: #34d399;
+}
+
+.disclaimer a:hover {
+  color: var(--brand);
+}
+
 .load-error {
   grid-column: 1 / -1;
   padding: 24px;
