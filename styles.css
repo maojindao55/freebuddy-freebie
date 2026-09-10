@@ -134,6 +134,12 @@ a:hover { text-decoration: underline; }
   letter-spacing: 0.01em;
 }
 
+.hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .hero-status {
   display: inline-flex;
   align-items: center;
@@ -160,6 +166,40 @@ a:hover { text-decoration: underline; }
 
 .hero-status[data-kind="connected"]::before { background: var(--brand); }
 .hero-status[data-kind="connecting"]::before { background: #f59e0b; }
+
+.refresh-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text-3);
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background-color 0.15s ease, transform 0.12s ease;
+}
+
+.refresh-btn:hover {
+  color: var(--text-2);
+  border-color: var(--border-strong);
+  background: var(--bg);
+}
+
+.refresh-btn:active {
+  transform: scale(0.92);
+}
+
+.refresh-btn.spinning .refresh-icon {
+  animation: spin 0.7s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
 
 .page { padding: 20px 24px 48px; }
 

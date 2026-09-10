@@ -38,6 +38,7 @@
       verified: "核验于 {date}",
       updated: "目录更新于 {date}",
       count: "{n} 家服务商",
+      refresh: "刷新目录",
       importFailed: "导入失败：{error}",
       loadFailed: "目录加载失败，请刷新重试。"
     },
@@ -70,6 +71,7 @@
       verified: "Verified {date}",
       updated: "Catalog updated {date}",
       count: "{n} providers",
+      refresh: "Refresh catalog",
       importFailed: "Import failed: {error}",
       loadFailed: "Could not load the catalog. Please refresh."
     }
@@ -112,6 +114,11 @@
     document.documentElement.lang = state.locale;
     document.querySelectorAll("[data-i18n]").forEach((el) => {
       el.textContent = t(el.getAttribute("data-i18n"));
+    });
+    document.querySelectorAll("[data-i18n-title]").forEach((el) => {
+      const text = t(el.getAttribute("data-i18n-title"));
+      el.setAttribute("title", text);
+      el.setAttribute("aria-label", text);
     });
     document.querySelectorAll("[data-i18n-html]").forEach((el) => {
       el.innerHTML = t(el.getAttribute("data-i18n-html"));
@@ -277,12 +284,13 @@
     renderCards();
   }
 
-  async function loadCatalog() {
+  async function loadCatalog(bustCache = false) {
     try {
-      const res = await fetch("./providers.json", { cache: "no-cache" });
+      const url = bustCache ? `./providers.json?t=${Date.now()}` : "./providers.json";
+      const res = await fetch(url, { cache: "no-cache" });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
-      state.providers = Array.isArray(data.providers) ? data.providers : [];
+      state.providers = Array.isArray(data.providers) ? data.providers.slice().reverse() : [];
       state.updatedAt = data.updatedAt || null;
     } catch (err) {
       console.error("[freebie] catalog load failed", err);
@@ -294,6 +302,18 @@
     renderCards();
   }
 
+  async function refreshCatalog() {
+    const btn = document.getElementById("refresh-btn");
+    if (btn) btn.classList.add("spinning");
+    try {
+      await loadCatalog(true);
+    } finally {
+      if (btn) {
+        setTimeout(() => btn.classList.remove("spinning"), 400);
+      }
+    }
+  }
+
   document.querySelectorAll(".filter").forEach((btn) => {
     btn.addEventListener("click", () => {
       state.region = btn.dataset.region;
@@ -301,6 +321,11 @@
       renderCards();
     });
   });
+
+  const refreshBtn = document.getElementById("refresh-btn");
+  if (refreshBtn) {
+    refreshBtn.addEventListener("click", refreshCatalog);
+  }
 
   bridge.onState(applyHostState);
   bridge.onState(renderCards);
