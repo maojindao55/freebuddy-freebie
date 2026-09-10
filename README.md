@@ -1,27 +1,8 @@
 # FreeBuddy 白嫖专区页面
 
-[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/maojindao55/freebuddy-freebie)
+这是 FreeBuddy 侧栏「白嫖」入口内嵌的外部页面。它是一个无构建步骤的静态站点，已部署在 Cloudflare 上；修改 `providers.json` 并推送到 `main` 分支即可自动触发构建上线，无需发布 FreeBuddy 新版本。
 
-这是 FreeBuddy 侧栏「白嫖」入口内嵌的外部页面。它是一个无构建步骤的静态站点，部署在 Cloudflare 上；修改 `providers.json` 并推送即可上线，不需要发布 FreeBuddy 新版本。
-
-## 一键导入 / 部署 (Deploy to Cloudflare)
-
-点击下方按钮一键部署到 Cloudflare：
-
-[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/maojindao55/freebuddy-freebie)
-
-### 手动导入步骤（可选）
-
-1. 点击上方按钮或访问 [Cloudflare Dashboard](https://dash.cloudflare.com/) → **Workers & Pages（Workers 和 Pages）** → **Create（创建）**。
-2. 顶部选择 **Pages** 选项卡（**请注意：必须选 Pages，不要选 Worker**），点击 **Connect to Git（连接到 Git）**。
-3. 授权并选择本仓库 `maojindao55/freebuddy-freebie`（或你的 Fork 仓库）。
-4. **Build settings（构建配置）**：
-   - **Framework preset**: `None`
-   - **Build command**: 留空（无构建命令）
-   - **Build output directory**: `.` 或 `/`（直接使用根目录）
-5. 点击 **Save and Deploy（保存并部署）** 即可完成上线！
-6. 部署完成后得到 `https://<project>.pages.dev/`。把这个地址写入 FreeBuddy 的 `src/config/freebie.ts` 中的 `DEFAULT_FREEBIE_PAGE_URL`（只需配置一次）。
-7. 之后每次向本仓库推送改动，Cloudflare Pages 都会自动重新部署。
+- **线上地址**：https://freebuddy-freebie.binbinzhaili.workers.dev/
 
 ## 目录
 
