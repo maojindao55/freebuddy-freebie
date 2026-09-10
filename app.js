@@ -3,6 +3,10 @@
 
   const bridge = window.FreeBuddyBridge;
   const params = new URLSearchParams(location.search);
+  const isEmbedded = (bridge && bridge.embedded) || params.get("embed") === "1" || window.parent !== window;
+  if (isEmbedded) {
+    document.documentElement.classList.add("embedded");
+  }
 
   const STRINGS = {
     "zh-CN": {

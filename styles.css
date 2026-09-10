@@ -52,9 +52,17 @@ a:hover { text-decoration: underline; }
   border-bottom: 1px solid var(--border);
 }
 
+:root.embedded .hero {
+  display: none !important;
+}
+
 .hero-inner, .page {
   max-width: 1120px;
   margin: 0 auto;
+}
+
+:root.embedded .page {
+  padding-top: 16px;
 }
 
 .hero-brand {

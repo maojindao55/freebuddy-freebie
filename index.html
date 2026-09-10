@@ -10,6 +10,11 @@
       content="汇总提供免费额度或免费模型的大模型服务商，一键导入 FreeBuddy 生成可直接使用的自定义 Agent。"
     />
     <link rel="stylesheet" href="./styles.css" />
+    <script>
+      if (window.parent !== window || new URLSearchParams(location.search).get("embed") === "1") {
+        document.documentElement.classList.add("embedded");
+      }
+    </script>
   </head>
   <body>
     <header class="hero">
