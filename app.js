@@ -145,6 +145,26 @@
     return summary[state.locale] || summary.en || Object.values(summary)[0] || "";
   }
 
+  function getFaviconFallback(provider) {
+    if (!provider || !provider.homepage) return "";
+    try {
+      const domain = new URL(provider.homepage).hostname;
+      return `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+    } catch {
+      return "";
+    }
+  }
+
+  function resolveIcon(provider) {
+    if (provider && provider.icon) {
+      if (provider.icon.startsWith("https://") || provider.icon.startsWith("/")) {
+        return provider.icon;
+      }
+      return `https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.95.0/icons/${provider.icon}.svg`;
+    }
+    return getFaviconFallback(provider);
+  }
+
   function openLink(event) {
     if (!state.connected) return; // standalone: let the browser handle target=_blank
     event.preventDefault();
@@ -178,15 +198,21 @@
 
         const iconEl = node.querySelector(".card-icon");
         if (iconEl) {
-          if (provider.icon) {
-            const iconUrl = provider.icon.startsWith("https://") || provider.icon.startsWith("/")
-              ? provider.icon
-              : `https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.95.0/icons/${provider.icon}.svg`;
-            iconEl.src = iconUrl;
+          const primarySrc = resolveIcon(provider);
+          if (primarySrc) {
+            iconEl.src = primarySrc;
             iconEl.alt = `${provider.name} icon`;
             iconEl.hidden = false;
             iconEl.onerror = () => {
-              iconEl.hidden = true;
+              const fallbackSrc = getFaviconFallback(provider);
+              if (fallbackSrc && iconEl.src !== fallbackSrc) {
+                iconEl.onerror = () => {
+                  iconEl.hidden = true;
+                };
+                iconEl.src = fallbackSrc;
+              } else {
+                iconEl.hidden = true;
+              }
             };
           } else {
             iconEl.hidden = true;
