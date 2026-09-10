@@ -24,6 +24,7 @@
 | --- | --- | --- | --- | --- |
 | `id` | `string` | **是** | 小写英文字母、数字、中划线，全局唯一，不可与已有条目重复 | `"b-ai"`、`"zhipu"` |
 | `name` | `string` | **是** | 服务商官方展示名称（1-80 字符） | `"B.AI"`、`"智谱 BigModel"` |
+| `icon` | `string` | 否 | [LobeHub Icons](https://lobehub.com/icons) 图标名（如 `"zhipu-color"`），没有可留空 | `"zhipu-color"`、`"deepseek-color"` |
 | `region` | `string` | 否 | 地区分类：`"cn"`（国内直连无需网络代理）或 `"global"`（海外） | `"cn"` |
 | `homepage` | `string` | 否 | 官方网站，必须为 `https://` 开头 | `"https://b.ai"` |
 | `consoleUrl` | `string` | 否 | 申请 API Key 或控制台直达链接，必须为 `https://` | `"https://b.ai/settings/api-keys"` |

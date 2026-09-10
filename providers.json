@@ -16,12 +16,31 @@
       "baseUrl": "https://open.bigmodel.cn/api/paas/v4",
       "envKey": "OPENAI_API_KEY",
       "models": [
-        { "id": "glm-4-flash", "name": "GLM-4-Flash", "contextWindow": 128000 },
-        { "id": "glm-4v-flash", "name": "GLM-4V-Flash", "contextWindow": 128000, "supportsVision": true },
-        { "id": "glm-z1-flash", "name": "GLM-Z1-Flash (思考推理)", "contextWindow": 128000 },
-        { "id": "glm-4.1v-thinking-flash", "name": "GLM-4.1V-Thinking-Flash", "contextWindow": 64000, "supportsVision": true }
+        {
+          "id": "glm-4-flash",
+          "name": "GLM-4-Flash",
+          "contextWindow": 128000
+        },
+        {
+          "id": "glm-4v-flash",
+          "name": "GLM-4V-Flash",
+          "contextWindow": 128000,
+          "supportsVision": true
+        },
+        {
+          "id": "glm-z1-flash",
+          "name": "GLM-Z1-Flash (思考推理)",
+          "contextWindow": 128000
+        },
+        {
+          "id": "glm-4.1v-thinking-flash",
+          "name": "GLM-4.1V-Thinking-Flash",
+          "contextWindow": 64000,
+          "supportsVision": true
+        }
       ],
-      "verifiedAt": "2026-09-10"
+      "verifiedAt": "2026-09-10",
+      "icon": "zhipu-color"
     },
     {
       "id": "deepseek",
@@ -37,10 +56,19 @@
       "baseUrl": "https://api.deepseek.com",
       "envKey": "DEEPSEEK_API_KEY",
       "models": [
-        { "id": "deepseek-chat", "name": "DeepSeek-V3 (Chat)", "contextWindow": 64000 },
-        { "id": "deepseek-reasoner", "name": "DeepSeek-R1 (推理思考)", "contextWindow": 64000 }
+        {
+          "id": "deepseek-chat",
+          "name": "DeepSeek-V3 (Chat)",
+          "contextWindow": 64000
+        },
+        {
+          "id": "deepseek-reasoner",
+          "name": "DeepSeek-R1 (推理思考)",
+          "contextWindow": 64000
+        }
       ],
-      "verifiedAt": "2026-09-10"
+      "verifiedAt": "2026-09-10",
+      "icon": "deepseek-color"
     },
     {
       "id": "siliconflow",
@@ -56,12 +84,29 @@
       "baseUrl": "https://api.siliconflow.cn/v1",
       "envKey": "OPENAI_API_KEY",
       "models": [
-        { "id": "Qwen/Qwen2.5-7B-Instruct", "name": "Qwen2.5-7B-Instruct", "contextWindow": 128000 },
-        { "id": "THUDM/glm-4-9b-chat", "name": "GLM-4-9B-Chat", "contextWindow": 32000 },
-        { "id": "internlm/internlm2_5-7b-chat", "name": "InternLM2.5-7B-Chat", "contextWindow": 32000 },
-        { "id": "deepseek-ai/DeepSeek-V3", "name": "DeepSeek-V3 (赠送额度)", "contextWindow": 64000 }
+        {
+          "id": "Qwen/Qwen2.5-7B-Instruct",
+          "name": "Qwen2.5-7B-Instruct",
+          "contextWindow": 128000
+        },
+        {
+          "id": "THUDM/glm-4-9b-chat",
+          "name": "GLM-4-9B-Chat",
+          "contextWindow": 32000
+        },
+        {
+          "id": "internlm/internlm2_5-7b-chat",
+          "name": "InternLM2.5-7B-Chat",
+          "contextWindow": 32000
+        },
+        {
+          "id": "deepseek-ai/DeepSeek-V3",
+          "name": "DeepSeek-V3 (赠送额度)",
+          "contextWindow": 64000
+        }
       ],
-      "verifiedAt": "2026-09-10"
+      "verifiedAt": "2026-09-10",
+      "icon": "siliconcloud-color"
     },
     {
       "id": "modelscope",
@@ -77,12 +122,29 @@
       "baseUrl": "https://api-inference.modelscope.cn/v1",
       "envKey": "OPENAI_API_KEY",
       "models": [
-        { "id": "Qwen/Qwen2.5-72B-Instruct", "name": "Qwen2.5-72B-Instruct", "contextWindow": 128000 },
-        { "id": "Qwen/Qwen2.5-Coder-32B-Instruct", "name": "Qwen2.5-Coder-32B-Instruct", "contextWindow": 128000 },
-        { "id": "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B", "name": "DeepSeek-R1-Distill-Qwen-32B", "contextWindow": 64000 },
-        { "id": "deepseek-ai/DeepSeek-V3", "name": "DeepSeek-V3", "contextWindow": 64000 }
+        {
+          "id": "Qwen/Qwen2.5-72B-Instruct",
+          "name": "Qwen2.5-72B-Instruct",
+          "contextWindow": 128000
+        },
+        {
+          "id": "Qwen/Qwen2.5-Coder-32B-Instruct",
+          "name": "Qwen2.5-Coder-32B-Instruct",
+          "contextWindow": 128000
+        },
+        {
+          "id": "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B",
+          "name": "DeepSeek-R1-Distill-Qwen-32B",
+          "contextWindow": 64000
+        },
+        {
+          "id": "deepseek-ai/DeepSeek-V3",
+          "name": "DeepSeek-V3",
+          "contextWindow": 64000
+        }
       ],
-      "verifiedAt": "2026-09-10"
+      "verifiedAt": "2026-09-10",
+      "icon": "modelscope-color"
     },
     {
       "id": "volcengine",
@@ -98,11 +160,25 @@
       "baseUrl": "https://ark.cn-beijing.volces.com/api/v3",
       "envKey": "OPENAI_API_KEY",
       "models": [
-        { "id": "doubao-1-5-lite-32k-250115", "name": "Doubao-1.5-Lite-32K", "contextWindow": 32768 },
-        { "id": "doubao-1-5-pro-32k-250115", "name": "Doubao-1.5-Pro-32K", "contextWindow": 32768, "supportsVision": true },
-        { "id": "doubao-1-5-thinking-pro", "name": "Doubao-1.5-Thinking-Pro", "contextWindow": 32768 }
+        {
+          "id": "doubao-1-5-lite-32k-250115",
+          "name": "Doubao-1.5-Lite-32K",
+          "contextWindow": 32768
+        },
+        {
+          "id": "doubao-1-5-pro-32k-250115",
+          "name": "Doubao-1.5-Pro-32K",
+          "contextWindow": 32768,
+          "supportsVision": true
+        },
+        {
+          "id": "doubao-1-5-thinking-pro",
+          "name": "Doubao-1.5-Thinking-Pro",
+          "contextWindow": 32768
+        }
       ],
-      "verifiedAt": "2026-09-10"
+      "verifiedAt": "2026-09-10",
+      "icon": "doubao-color"
     },
     {
       "id": "openrouter",
@@ -118,12 +194,29 @@
       "baseUrl": "https://openrouter.ai/api/v1",
       "envKey": "OPENAI_API_KEY",
       "models": [
-        { "id": "openrouter/free", "name": "Auto (free router)", "contextWindow": 128000 },
-        { "id": "meta-llama/llama-3.3-70b-instruct:free", "name": "Llama 3.3 70B Instruct (free)", "contextWindow": 131072 },
-        { "id": "google/gemma-2-9b-it:free", "name": "Gemma 2 9B (free)", "contextWindow": 8192 },
-        { "id": "qwen/qwen-2.5-coder-32b-instruct:free", "name": "Qwen 2.5 Coder 32B (free)", "contextWindow": 32768 }
+        {
+          "id": "openrouter/free",
+          "name": "Auto (free router)",
+          "contextWindow": 128000
+        },
+        {
+          "id": "meta-llama/llama-3.3-70b-instruct:free",
+          "name": "Llama 3.3 70B Instruct (free)",
+          "contextWindow": 131072
+        },
+        {
+          "id": "google/gemma-2-9b-it:free",
+          "name": "Gemma 2 9B (free)",
+          "contextWindow": 8192
+        },
+        {
+          "id": "qwen/qwen-2.5-coder-32b-instruct:free",
+          "name": "Qwen 2.5 Coder 32B (free)",
+          "contextWindow": 32768
+        }
       ],
-      "verifiedAt": "2026-09-10"
+      "verifiedAt": "2026-09-10",
+      "icon": "openrouter"
     },
     {
       "id": "google-ai-studio",
@@ -139,11 +232,27 @@
       "baseUrl": "https://generativelanguage.googleapis.com/v1beta/openai",
       "envKey": "OPENAI_API_KEY",
       "models": [
-        { "id": "gemini-2.5-flash", "name": "Gemini 2.5 Flash", "contextWindow": 1048576, "supportsVision": true },
-        { "id": "gemini-2.5-flash-lite", "name": "Gemini 2.5 Flash-Lite", "contextWindow": 1048576, "supportsVision": true },
-        { "id": "gemini-2.0-flash", "name": "Gemini 2.0 Flash", "contextWindow": 1048576, "supportsVision": true }
+        {
+          "id": "gemini-2.5-flash",
+          "name": "Gemini 2.5 Flash",
+          "contextWindow": 1048576,
+          "supportsVision": true
+        },
+        {
+          "id": "gemini-2.5-flash-lite",
+          "name": "Gemini 2.5 Flash-Lite",
+          "contextWindow": 1048576,
+          "supportsVision": true
+        },
+        {
+          "id": "gemini-2.0-flash",
+          "name": "Gemini 2.0 Flash",
+          "contextWindow": 1048576,
+          "supportsVision": true
+        }
       ],
-      "verifiedAt": "2026-09-10"
+      "verifiedAt": "2026-09-10",
+      "icon": "gemini-color"
     },
     {
       "id": "groq",
@@ -159,11 +268,24 @@
       "baseUrl": "https://api.groq.com/openai/v1",
       "envKey": "OPENAI_API_KEY",
       "models": [
-        { "id": "llama-3.3-70b-versatile", "name": "Llama 3.3 70B", "contextWindow": 131072 },
-        { "id": "llama-3.1-8b-instant", "name": "Llama 3.1 8B", "contextWindow": 131072 },
-        { "id": "qwen-2.5-32b", "name": "Qwen 2.5 32B", "contextWindow": 32768 }
+        {
+          "id": "llama-3.3-70b-versatile",
+          "name": "Llama 3.3 70B",
+          "contextWindow": 131072
+        },
+        {
+          "id": "llama-3.1-8b-instant",
+          "name": "Llama 3.1 8B",
+          "contextWindow": 131072
+        },
+        {
+          "id": "qwen-2.5-32b",
+          "name": "Qwen 2.5 32B",
+          "contextWindow": 32768
+        }
       ],
-      "verifiedAt": "2026-09-10"
+      "verifiedAt": "2026-09-10",
+      "icon": "groq"
     },
     {
       "id": "cerebras",
@@ -179,11 +301,24 @@
       "baseUrl": "https://api.cerebras.ai/v1",
       "envKey": "OPENAI_API_KEY",
       "models": [
-        { "id": "llama-3.3-70b", "name": "Llama 3.3 70B", "contextWindow": 8192 },
-        { "id": "llama3.1-8b", "name": "Llama 3.1 8B", "contextWindow": 8192 },
-        { "id": "llama3.1-70b", "name": "Llama 3.1 70B", "contextWindow": 8192 }
+        {
+          "id": "llama-3.3-70b",
+          "name": "Llama 3.3 70B",
+          "contextWindow": 8192
+        },
+        {
+          "id": "llama3.1-8b",
+          "name": "Llama 3.1 8B",
+          "contextWindow": 8192
+        },
+        {
+          "id": "llama3.1-70b",
+          "name": "Llama 3.1 70B",
+          "contextWindow": 8192
+        }
       ],
-      "verifiedAt": "2026-09-10"
+      "verifiedAt": "2026-09-10",
+      "icon": "cerebras-color"
     },
     {
       "id": "b-ai",
@@ -199,12 +334,39 @@
       "baseUrl": "https://api.b.ai/v1",
       "envKey": "BAI_API_KEY",
       "models": [
-        { "id": "glm-5.3-flash", "name": "GLM 5.3 Flash (限免)", "contextWindow": 1048576, "supportsVision": true },
-        { "id": "qwen3.8-flash", "name": "Qwen3.8 Flash (限免)", "contextWindow": 1048576, "supportsVision": true },
-        { "id": "hy3", "name": "Hy3 (限免)", "contextWindow": 256000 },
-        { "id": "mimo-2.5", "name": "Mimo2.5 (限免)", "contextWindow": 256000, "supportsVision": true },
-        { "id": "deepseek-chat", "name": "DeepSeek-V3", "contextWindow": 64000 },
-        { "id": "deepseek-reasoner", "name": "DeepSeek-R1 (推理思考)", "contextWindow": 64000 }
+        {
+          "id": "glm-5.3-flash",
+          "name": "GLM 5.3 Flash (限免)",
+          "contextWindow": 1048576,
+          "supportsVision": true
+        },
+        {
+          "id": "qwen3.8-flash",
+          "name": "Qwen3.8 Flash (限免)",
+          "contextWindow": 1048576,
+          "supportsVision": true
+        },
+        {
+          "id": "hy3",
+          "name": "Hy3 (限免)",
+          "contextWindow": 256000
+        },
+        {
+          "id": "mimo-2.5",
+          "name": "Mimo2.5 (限免)",
+          "contextWindow": 256000,
+          "supportsVision": true
+        },
+        {
+          "id": "deepseek-chat",
+          "name": "DeepSeek-V3",
+          "contextWindow": 64000
+        },
+        {
+          "id": "deepseek-reasoner",
+          "name": "DeepSeek-R1 (推理思考)",
+          "contextWindow": 64000
+        }
       ],
       "verifiedAt": "2026-09-10"
     },
@@ -222,10 +384,21 @@
       "baseUrl": "https://api.agnes-ai.cn/v1",
       "envKey": "AGNES_API_KEY",
       "models": [
-        { "id": "agnes-3.0-flash", "name": "Agnes 3.0 Flash (限免)", "contextWindow": 524288, "supportsVision": true },
-        { "id": "agnes-2.5-flash", "name": "Agnes 2.5 Flash (限免)", "contextWindow": 524288, "supportsVision": true }
+        {
+          "id": "agnes-3.0-flash",
+          "name": "Agnes 3.0 Flash (限免)",
+          "contextWindow": 524288,
+          "supportsVision": true
+        },
+        {
+          "id": "agnes-2.5-flash",
+          "name": "Agnes 2.5 Flash (限免)",
+          "contextWindow": 524288,
+          "supportsVision": true
+        }
       ],
-      "verifiedAt": "2026-09-10"
+      "verifiedAt": "2026-09-10",
+      "icon": "agnesai"
     },
     {
       "id": "sensenova",
@@ -241,11 +414,26 @@
       "baseUrl": "https://token.sensenova.cn/v1",
       "envKey": "SENSENOVA_API_KEY",
       "models": [
-        { "id": "sensenova-6.8-flash-lite", "name": "SenseNova 6.8 Flash-Lite", "contextWindow": 131072, "supportsVision": true },
-        { "id": "sensenova-6.7-flash-lite", "name": "SenseNova 6.7 Flash-Lite", "contextWindow": 131072, "supportsVision": true },
-        { "id": "deepseek-v4-flash", "name": "DeepSeek V4 Flash", "contextWindow": 65536 }
+        {
+          "id": "sensenova-6.8-flash-lite",
+          "name": "SenseNova 6.8 Flash-Lite",
+          "contextWindow": 131072,
+          "supportsVision": true
+        },
+        {
+          "id": "sensenova-6.7-flash-lite",
+          "name": "SenseNova 6.7 Flash-Lite",
+          "contextWindow": 131072,
+          "supportsVision": true
+        },
+        {
+          "id": "deepseek-v4-flash",
+          "name": "DeepSeek V4 Flash",
+          "contextWindow": 65536
+        }
       ],
-      "verifiedAt": "2026-09-10"
+      "verifiedAt": "2026-09-10",
+      "icon": "sensenova-color"
     }
   ]
 }

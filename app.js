@@ -176,6 +176,23 @@
 
         node.querySelector(".card-name").textContent = provider.name;
 
+        const iconEl = node.querySelector(".card-icon");
+        if (iconEl) {
+          if (provider.icon) {
+            const iconUrl = provider.icon.startsWith("https://") || provider.icon.startsWith("/")
+              ? provider.icon
+              : `https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.95.0/icons/${provider.icon}.svg`;
+            iconEl.src = iconUrl;
+            iconEl.alt = `${provider.name} icon`;
+            iconEl.hidden = false;
+            iconEl.onerror = () => {
+              iconEl.hidden = true;
+            };
+          } else {
+            iconEl.hidden = true;
+          }
+        }
+
         const tags = node.querySelector(".card-tags");
         if (provider.region) {
           const tag = document.createElement("span");
