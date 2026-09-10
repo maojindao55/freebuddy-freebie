@@ -207,6 +207,45 @@
         { "id": "deepseek-reasoner", "name": "DeepSeek-R1 (推理思考)", "contextWindow": 64000 }
       ],
       "verifiedAt": "2026-09-10"
+    },
+    {
+      "id": "agnes-ai",
+      "name": "Agnes AI",
+      "region": "cn",
+      "homepage": "https://agnes-ai.cn",
+      "consoleUrl": "https://platform.agnes-ai.cn",
+      "freeTierSummary": {
+        "zh-CN": "全新主力模型 Agnes 3.0 Flash 与 2.5 Flash 限免开放（输入与输出 Token 现价均为 ¥0），支持 512K 超长上下文与图像多模态理解。",
+        "en": "Flagship models Agnes 3.0 Flash and 2.5 Flash are currently free (¥0 for input & output), supporting 512K context and vision multimodal input."
+      },
+      "protocol": "openai-chat",
+      "baseUrl": "https://api.agnes-ai.cn/v1",
+      "envKey": "AGNES_API_KEY",
+      "models": [
+        { "id": "agnes-3.0-flash", "name": "Agnes 3.0 Flash (限免)", "contextWindow": 524288, "supportsVision": true },
+        { "id": "agnes-2.5-flash", "name": "Agnes 2.5 Flash (限免)", "contextWindow": 524288, "supportsVision": true }
+      ],
+      "verifiedAt": "2026-09-10"
+    },
+    {
+      "id": "sensenova",
+      "name": "商汤日日新 SenseNova",
+      "region": "cn",
+      "homepage": "https://platform.sensenova.cn",
+      "consoleUrl": "https://platform.sensenova.cn/console/keys",
+      "freeTierSummary": {
+        "zh-CN": "商汤 Token Plan 开放公测，实名认证后赠送高频免费额度，每 5 小时重置 1500 次 SenseNova Flash-Lite 调用，兼容 OpenAI 协议。",
+        "en": "SenseNova Token Plan offers free tiered quotas resetting every 5 hours with up to 1,500 free calls for SenseNova Flash-Lite."
+      },
+      "protocol": "openai-chat",
+      "baseUrl": "https://token.sensenova.cn/v1",
+      "envKey": "SENSENOVA_API_KEY",
+      "models": [
+        { "id": "sensenova-6.8-flash-lite", "name": "SenseNova 6.8 Flash-Lite", "contextWindow": 131072, "supportsVision": true },
+        { "id": "sensenova-6.7-flash-lite", "name": "SenseNova 6.7 Flash-Lite", "contextWindow": 131072, "supportsVision": true },
+        { "id": "deepseek-v4-flash", "name": "DeepSeek V4 Flash", "contextWindow": 65536 }
+      ],
+      "verifiedAt": "2026-09-10"
     }
   ]
 }

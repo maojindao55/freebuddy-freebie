@@ -11,14 +11,15 @@
   const STRINGS = {
     "zh-CN": {
       title: "白嫖兄弟",
-      subtitle: "免费模型 & 免费额度专区",
+      subtitle: "免费专区",
+      slogan: "不白嫖无兄弟，让穷兄弟也能用得上AI",
       lead:
         "这些服务商提供免费模型或新用户免费额度。点「一键导入」即可在 FreeBuddy 里生成一个 BYOK 自定义 Agent，API Key 只会在 FreeBuddy 的原生窗口里输入，不经过本页面。",
       filterAll: "全部",
       filterCn: "国内直连",
       filterGlobal: "海外",
       disclaimer:
-        '免费政策随时变化，以各服务商官网为准。发现过期信息欢迎到 <a href="https://github.com/maojindao55/freebuddy-freebie/pulls" target="_blank" rel="noopener noreferrer">GitHub 提交 PR</a>。',
+        '免费政策随时变化，以各服务商官网为准。发现过期信息欢迎到 <a href="https://github.com/maojindao55/freebuddy-freebie/pulls" target="_blank" rel="noopener noreferrer">GitHub 提交 PR</a>，或 <a href="https://qm.qq.com/q/Obv3kViheo" target="_blank" rel="noopener noreferrer">加入【FreeBuddy白嫖兄弟群】</a> 交流爆料。',
       statusConnecting: "正在连接 FreeBuddy…",
       statusConnected: "已连接 FreeBuddy，可以一键导入",
       statusStandalone: "在 FreeBuddy 侧栏的「白嫖」页打开本页，即可一键导入",
@@ -42,14 +43,15 @@
     },
     en: {
       title: "Freebie Buddies",
-      subtitle: "Free models & free-tier credits",
+      subtitle: "Free Models",
+      slogan: "No freebie, no buddy. Making AI accessible for everyone.",
       lead:
         "These providers offer free models or free credits for new accounts. Click Import to create a BYOK custom agent in FreeBuddy. Your API key is entered in FreeBuddy's native dialog and never touches this page.",
       filterAll: "All",
       filterCn: "China (direct)",
       filterGlobal: "Global",
       disclaimer:
-        'Free tiers change often; the provider\'s website is the source of truth. PRs with corrections are welcome on <a href="https://github.com/maojindao55/freebuddy-freebie/pulls" target="_blank" rel="noopener noreferrer">GitHub</a>.',
+        'Free tiers change often; the provider\'s website is the source of truth. PRs are welcome on <a href="https://github.com/maojindao55/freebuddy-freebie/pulls" target="_blank" rel="noopener noreferrer">GitHub</a>, or join our <a href="https://qm.qq.com/q/Obv3kViheo" target="_blank" rel="noopener noreferrer">QQ Group Chat</a>.',
       statusConnecting: "Connecting to FreeBuddy…",
       statusConnected: "Connected to FreeBuddy — one-click import is ready",
       statusStandalone: "Open this page from the Free Tier entry in FreeBuddy's sidebar to import with one click",

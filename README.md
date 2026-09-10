@@ -3,6 +3,7 @@
 这是 FreeBuddy 侧栏「白嫖」入口内嵌的外部页面。它是一个无构建步骤的静态站点，已部署在 Cloudflare 上；修改 `providers.json` 并推送到 `main` 分支即可自动触发构建上线，无需发布 FreeBuddy 新版本。
 
 - **线上地址**：https://freebuddy-freebie.binbinzhaili.workers.dev/
+- **交流群聊**：[点击链接加入群聊【FreeBuddy白嫖兄弟群】](https://qm.qq.com/q/Obv3kViheo)
 
 ## 目录
 
@@ -50,11 +51,13 @@
 
 无需自己阅读复杂规则，直接将你了解到的服务商信息和下方规则链接复制给你的 AI 助手（如 Cursor、Claude Code、GitHub Copilot、Cline、ChatGPT 等），让 Agent 自己读取规则并提交 PR：
 
-> **📋 复制给 AI Agent 的一句话提示：**
-> 
-> 我要爆料/更新免费服务商信息：[粘贴官网链接、模型名或活动内容]  
-> 规则与规范请直接读取：https://github.com/maojindao55/freebuddy-freebie/blob/main/CONTRIBUTING_AGENT.md  
-> 请按规则修改 `providers.json` 并帮我向 `maojindao55/freebuddy-freebie` 提交 Pull Request。
+**📋 复制给 AI Agent 的一句话提示（点击代码块右上角一键复制）：**
+
+```text
+我要爆料/更新免费服务商信息：[粘贴官网链接、模型名或活动内容]
+规则与规范请直接读取：https://github.com/maojindao55/freebuddy-freebie/blob/main/CONTRIBUTING_AGENT.md
+请按规则修改 providers.json 并帮我向 maojindao55/freebuddy-freebie 提交 Pull Request。
+```
 
 Agent 会自动根据 [CONTRIBUTING_AGENT.md](./CONTRIBUTING_AGENT.md) 与 `providers.schema.json` 完成查重、校验、更新 `providers.json` 并提交 PR。
 
@@ -66,6 +69,13 @@ Agent 会自动根据 [CONTRIBUTING_AGENT.md](./CONTRIBUTING_AGENT.md) 与 `prov
 2. 点击右上角的 🖊（Edit this file）铅笔图标。
 3. 参考 [CONTRIBUTING_AGENT.md](./CONTRIBUTING_AGENT.md) 字段规范，在 `providers` 列表中添加或修改你的服务商信息，并更新顶部的 `updatedAt` 日期。
 4. 页面底部填写 Commit 说明，选择 **Create a new branch for this commit and start a pull request** 并点击确认即可！
+
+---
+
+### 💬 方式三：进群交流与爆料
+
+如果你不想操作 GitHub，也可以直接加入群聊分享：  
+👉 [点击链接加入群聊【FreeBuddy白嫖兄弟群】](https://qm.qq.com/q/Obv3kViheo)
 
 
 
