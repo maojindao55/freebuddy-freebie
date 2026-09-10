@@ -378,13 +378,35 @@ a:hover { text-decoration: underline; }
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
 
-.import-btn:hover:not(:disabled) { background: var(--brand-dark); }
+.import-btn:hover:not(:disabled) {
+  background: var(--brand-dark);
+  color: #fff;
+}
 
 .import-btn.secondary {
-  background: transparent;
+  background: var(--brand-glow);
   color: var(--brand-dark);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+}
+
+:root[data-theme="dark"] .import-btn.secondary {
+  color: var(--brand);
+  border-color: rgba(16, 185, 129, 0.45);
+}
+
+.import-btn.secondary:hover:not(:disabled) {
+  background: var(--brand-dark);
+  color: #ffffff;
+  border-color: var(--brand-dark);
+}
+
+:root[data-theme="dark"] .import-btn.secondary:hover:not(:disabled) {
+  background: var(--brand);
+  color: #ffffff;
+  border-color: var(--brand);
 }
 
 .import-btn:disabled {
