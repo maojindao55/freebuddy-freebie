@@ -1,6 +1,6 @@
 {
   "$schema": "./providers.schema.json",
-  "updatedAt": "2026-09-10",
+  "updatedAt": "2026-09-11",
   "providers": [
     {
       "id": "zhipu",
@@ -434,6 +434,47 @@
       ],
       "verifiedAt": "2026-09-10",
       "icon": "sensenova-color"
+    },
+    {
+      "id": "aether-api",
+      "name": "Aether API",
+      "region": "global",
+      "homepage": "https://api.abnt.it/rankings?period=today",
+      "consoleUrl": "https://api.abnt.it/console/token",
+      "freeTierSummary": {
+        "zh-CN": "注册后可通过每日签到获取免费 Payload 额度；统一兼容 OpenAI / Anthropic 接口，提供 GPT、Claude、DeepSeek、Kimi、GLM 等聚合模型。",
+        "en": "Registered users can earn free Payload credits through daily check-ins; offers aggregated GPT, Claude, DeepSeek, Kimi, and GLM models via OpenAI- and Anthropic-compatible APIs."
+      },
+      "protocol": "openai-chat",
+      "baseUrl": "https://api.abnt.it/v1",
+      "envKey": "OPENAI_API_KEY",
+      "models": [
+        {
+          "id": "gpt-5.6-sol",
+          "name": "GPT-5.6 Sol"
+        },
+        {
+          "id": "gpt-5.6-luna",
+          "name": "GPT-5.6 Luna"
+        },
+        {
+          "id": "gpt-5.6-terra",
+          "name": "GPT-5.6 Terra"
+        },
+        {
+          "id": "DeepSeek-V4-Flash",
+          "name": "DeepSeek V4 Flash"
+        },
+        {
+          "id": "claude-opus-5",
+          "name": "Claude Opus 5"
+        },
+        {
+          "id": "glm-5.3",
+          "name": "GLM-5.3"
+        }
+      ],
+      "verifiedAt": "2026-09-11"
     }
   ]
 }
