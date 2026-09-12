@@ -85,6 +85,33 @@ async function verifyClientAuth(request, env) {
   return { ok: true, deviceId };
 }
 
+function findD1Database(env) {
+  if (!env || typeof env !== "object") return null;
+  const preferredKeys = [
+    "DB",
+    "db",
+    "freebie_db",
+    "freebie-db",
+    "FREEBIE_DB",
+    "d1",
+    "D1",
+    "database",
+    "DATABASE",
+    "DB_FREEBIE"
+  ];
+  for (const k of preferredKeys) {
+    if (env[k] && typeof env[k].prepare === "function") {
+      return env[k];
+    }
+  }
+  for (const [k, v] of Object.entries(env)) {
+    if (k !== "ASSETS" && v && typeof v.prepare === "function") {
+      return v;
+    }
+  }
+  return null;
+}
+
 async function handleApi(request, env) {
   const url = new URL(request.url);
 
@@ -92,7 +119,33 @@ async function handleApi(request, env) {
     return new Response(null, { status: 204, headers: CORS_HEADERS });
   }
 
-  const db = env?.DB;
+  const db = findD1Database(env);
+
+  // Diagnostic endpoint for verifying bindings
+  if (url.pathname === "/api/debug" && request.method === "GET") {
+    const keys = env ? Object.keys(env) : [];
+    let dbStatus = "none";
+    let reviewCount = null;
+    let dbError = null;
+    if (db) {
+      try {
+        const row = await db.prepare("SELECT COUNT(*) as c FROM reviews").first();
+        dbStatus = "connected";
+        reviewCount = row?.c;
+      } catch (e) {
+        dbStatus = "error";
+        dbError = e.message;
+      }
+    }
+    return jsonResponse({
+      ok: true,
+      envKeys: keys,
+      hasDb: !!db,
+      dbStatus,
+      reviewCount,
+      dbError
+    });
+  }
 
   // GET /api/summary
   if (url.pathname === "/api/summary" && request.method === "GET") {
@@ -219,7 +272,12 @@ async function handleApi(request, env) {
       return jsonResponse(auth, auth.status);
     }
     if (!db) {
-      return jsonResponse({ ok: false, error: "no_db", message: "数据库未配置，请在 Cloudflare 绑定 D1" }, 503);
+      const keys = env ? Object.keys(env).filter(k => k !== "ASSETS") : [];
+      return jsonResponse({
+        ok: false,
+        error: "no_db",
+        message: `数据库未绑定或变量名未对齐（检测到的变量: [${keys.join(", ") || "无"}]，请在 Cloudflare 绑定 D1 并将变量名设为 DB）`
+      }, 503);
     }
 
     try {
@@ -266,7 +324,12 @@ async function handleApi(request, env) {
       return jsonResponse(auth, auth.status);
     }
     if (!db) {
-      return jsonResponse({ ok: false, error: "no_db", message: "数据库未配置，请在 Cloudflare 绑定 D1" }, 503);
+      const keys = env ? Object.keys(env).filter(k => k !== "ASSETS") : [];
+      return jsonResponse({
+        ok: false,
+        error: "no_db",
+        message: `数据库未绑定或变量名未对齐（检测到的变量: [${keys.join(", ") || "无"}]，请在 Cloudflare 绑定 D1 并将变量名设为 DB）`
+      }, 503);
     }
 
     try {
