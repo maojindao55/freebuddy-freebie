@@ -226,10 +226,13 @@
           tag.textContent = provider.region === "cn" ? t("regionCn") : t("regionGlobal");
           tags.appendChild(tag);
         }
-        const proto = document.createElement("span");
-        proto.className = "tag protocol";
-        proto.textContent = protocolLabel(provider.protocol);
-        tags.appendChild(proto);
+        const protocols = provider.protocols && provider.protocols.length > 0 ? provider.protocols : [provider.protocol];
+        protocols.forEach((p) => {
+          const proto = document.createElement("span");
+          proto.className = "tag protocol";
+          proto.textContent = protocolLabel(p);
+          tags.appendChild(proto);
+        });
 
         const imported = state.importedProviderIds.has(provider.id);
         const badge = node.querySelector(".card-imported");
@@ -271,8 +274,10 @@
         const verified = node.querySelector(".card-verified");
         const notes = [];
         if (provider.verifiedAt) notes.push(t("verified", { date: provider.verifiedAt }));
-        if (state.runtimes && state.runtimes[runtimeKey(provider.protocol)] === false) {
-          notes.push(t("runtimeMissing", { runtime: RUNTIME_LABEL[runtimeKey(provider.protocol)] }));
+        const neededRuntimes = [...new Set(protocols.map(runtimeKey))];
+        const allMissing = state.runtimes && neededRuntimes.every((r) => state.runtimes[r] === false);
+        if (allMissing) {
+          notes.push(t("runtimeMissing", { runtime: neededRuntimes.map((r) => RUNTIME_LABEL[r] || r).join(" / ") }));
           node.classList.add("runtime-missing");
         }
         verified.textContent = notes.join(" · ");

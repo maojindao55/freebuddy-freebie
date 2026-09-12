@@ -53,6 +53,10 @@
         "en": "New accounts receive 5M free tokens (valid for 30 days), supporting DeepSeek-V3 and DeepSeek-R1 reasoning models."
       },
       "protocol": "deepseek",
+      "protocols": [
+        "deepseek",
+        "openai-chat"
+      ],
       "baseUrl": "https://api.deepseek.com",
       "envKey": "DEEPSEEK_API_KEY",
       "models": [
@@ -446,6 +450,10 @@
         "en": "Registered users can earn free Payload credits through daily check-ins; offers aggregated GPT, Claude, DeepSeek, Kimi, and GLM models via OpenAI- and Anthropic-compatible APIs."
       },
       "protocol": "openai-chat",
+      "protocols": [
+        "openai-chat",
+        "anthropic"
+      ],
       "baseUrl": "https://api.abnt.it/v1",
       "envKey": "OPENAI_API_KEY",
       "models": [
@@ -487,6 +495,10 @@
         "en": "Free monthly allowance after sign-up (resets each period) covering DeepSeek V4 Flash, DeepSeek V4.1 Flash, and MiMo V2.5, with promotional free models added over time. OpenAI- and Anthropic-compatible APIs."
       },
       "protocol": "openai-chat",
+      "protocols": [
+        "openai-chat",
+        "anthropic"
+      ],
       "baseUrl": "https://tokenharbor.ai/v1",
       "envKey": "OPENAI_API_KEY",
       "models": [
