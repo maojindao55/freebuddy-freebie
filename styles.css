@@ -1053,6 +1053,38 @@ a:hover { text-decoration: underline; }
   cursor: not-allowed;
 }
 
+.review-form-status {
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 1.4;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.review-form-status.error {
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+:root[data-theme="dark"] .review-form-status.error {
+  color: #f87171;
+  background: rgba(239, 68, 68, 0.2);
+}
+
+.review-form-status.success {
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+:root[data-theme="dark"] .review-form-status.success {
+  color: #34d399;
+}
+
 /* Reviews List in Modal */
 .modal-reviews-section {
   display: flex;

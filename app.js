@@ -450,7 +450,7 @@
 
   function renderModalReviews(providerId) {
     const modal = document.getElementById("detail-modal");
-    if (!modal || modal.hidden) return;
+    if (!modal) return;
 
     const inputZone = modal.querySelector(".modal-review-input-zone");
     const listZone = modal.querySelector(".modal-reviews-list");
@@ -492,6 +492,7 @@
           <span class="form-tip">每个设备对单服务商保留一条评测 · 提交后可随时修改</span>
           <button type="submit" class="review-form-submit">${escapeHtml(t("submitReview"))}</button>
         </div>
+        <div class="review-form-status" hidden></div>
       `;
 
       const starBtns = form.querySelectorAll(".star-btn");
@@ -509,12 +510,27 @@
         const contentInput = form.querySelector(".review-form-content");
         const authorInput = form.querySelector(".review-form-author");
         const submitBtn = form.querySelector(".review-form-submit");
+        const statusEl = form.querySelector(".review-form-status");
         const content = contentInput.value.trim();
         const author = authorInput.value.trim();
 
-        if (content.length < 2) return;
+        if (content.length < 2) {
+          if (statusEl) {
+            statusEl.textContent = "⚠️ 请输入至少 2 个字的评测内容";
+            statusEl.className = "review-form-status error";
+            statusEl.hidden = false;
+          }
+          contentInput.focus();
+          return;
+        }
+
         submitBtn.disabled = true;
         submitBtn.textContent = t("submitting");
+        if (statusEl) {
+          statusEl.textContent = "⏳ 正在提交评价...";
+          statusEl.className = "review-form-status";
+          statusEl.hidden = false;
+        }
 
         try {
           const res = await bridge.submitReview({
@@ -526,13 +542,27 @@
 
           if (res && res.ok) {
             contentInput.value = "";
+            if (statusEl) {
+              statusEl.textContent = "✅ 评价已发布！";
+              statusEl.className = "review-form-status success";
+              statusEl.hidden = false;
+            }
             fetchReviews(providerId);
             loadCommunitySummary();
           } else {
-            window.alert(t("reviewFailed", { error: res?.error || "unknown" }));
+            const errMsg = res?.error || "unknown";
+            if (statusEl) {
+              statusEl.textContent = "❌ " + t("reviewFailed", { error: errMsg });
+              statusEl.className = "review-form-status error";
+              statusEl.hidden = false;
+            }
           }
         } catch (err) {
-          window.alert(t("reviewFailed", { error: err?.message || String(err) }));
+          if (statusEl) {
+            statusEl.textContent = "❌ " + t("reviewFailed", { error: err?.message || String(err) });
+            statusEl.className = "review-form-status error";
+            statusEl.hidden = false;
+          }
         } finally {
           submitBtn.disabled = false;
           submitBtn.textContent = t("submitReview");
@@ -675,14 +705,14 @@
       voteFailedBtn.onclick = () => handleVote(provider.id, "failed");
     }
 
-    // Render reviews & fetch
-    renderModalReviews(provider.id);
-    fetchReviews(provider.id);
-
     // Show modal & prevent body scroll
     modal.hidden = false;
     modal.setAttribute("aria-hidden", "false");
     document.body.style.overflow = "hidden";
+
+    // Render reviews & fetch
+    renderModalReviews(provider.id);
+    fetchReviews(provider.id);
   }
 
   function closeProviderModal() {
