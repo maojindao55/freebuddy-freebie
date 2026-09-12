@@ -38,7 +38,7 @@
       verified: "核验于 {date}",
       updated: "目录更新于 {date}",
       count: "{n} 家服务商",
-      refresh: "刷新目录",
+      refresh: "刷新页面",
       importFailed: "导入失败：{error}",
       loadFailed: "目录加载失败，请刷新重试。"
     },
@@ -71,7 +71,7 @@
       verified: "Verified {date}",
       updated: "Catalog updated {date}",
       count: "{n} providers",
-      refresh: "Refresh catalog",
+      refresh: "Refresh page",
       importFailed: "Import failed: {error}",
       loadFailed: "Could not load the catalog. Please refresh."
     }
@@ -350,15 +350,15 @@
     renderCards();
   }
 
-  async function refreshCatalog() {
+  function refreshPage() {
     const btn = document.getElementById("refresh-btn");
     if (btn) btn.classList.add("spinning");
     try {
-      await loadCatalog(true);
-    } finally {
-      if (btn) {
-        setTimeout(() => btn.classList.remove("spinning"), 400);
-      }
+      const url = new URL(window.location.href);
+      url.searchParams.set("_t", Date.now().toString());
+      window.location.replace(url.toString());
+    } catch {
+      window.location.reload();
     }
   }
 
@@ -372,7 +372,7 @@
 
   const refreshBtn = document.getElementById("refresh-btn");
   if (refreshBtn) {
-    refreshBtn.addEventListener("click", refreshCatalog);
+    refreshBtn.addEventListener("click", refreshPage);
   }
 
   bridge.onState(applyHostState);
