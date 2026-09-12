@@ -128,6 +128,24 @@
       importAgent(preset) {
         return request({ type: "importAgent", preset });
       },
+      /** Submits a provider review via FreeBuddy client. Resolves `{ ok, error? }`. */
+      submitReview(review) {
+        return request({
+          type: "submitReview",
+          providerId: review.providerId,
+          rating: review.rating,
+          content: review.content,
+          author: review.author
+        });
+      },
+      /** Submits a provider availability vote ("working" | "failed") via FreeBuddy client. */
+      submitVote(voteData) {
+        return request({
+          type: "submitVote",
+          providerId: voteData.providerId,
+          vote: voteData.vote
+        });
+      },
       /** Opens an https URL in the user's system browser. */
       openExternal(url) {
         post({ type: "openExternal", url });

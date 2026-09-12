@@ -81,6 +81,36 @@
           </div>
           <button type="button" class="import-btn"></button>
         </footer>
+        <div class="card-community">
+          <div class="community-stats">
+            <div class="community-rating" title="综合评分">
+              <span class="star-icon">★</span>
+              <span class="rating-val">-.-</span>
+              <span class="rating-count">(0)</span>
+            </div>
+            <div class="community-avail" title="可用度反馈">
+              <span class="avail-dot">●</span>
+              <span class="avail-text">暂无反馈</span>
+            </div>
+          </div>
+          <div class="community-actions">
+            <div class="vote-group">
+              <button type="button" class="vote-btn vote-working" title="今天还能用" data-vote="working">
+                <span class="vote-icon">👍</span>
+                <span class="vote-count">0</span>
+              </button>
+              <button type="button" class="vote-btn vote-failed" title="已失效/不可用" data-vote="failed">
+                <span class="vote-icon">👎</span>
+                <span class="vote-count">0</span>
+              </button>
+            </div>
+            <button type="button" class="reviews-toggle-btn">
+              <span class="reviews-toggle-label">评价 (0)</span>
+              <span class="toggle-arrow">▾</span>
+            </button>
+          </div>
+        </div>
+        <div class="card-reviews-drawer" hidden></div>
         <p class="card-verified"></p>
       </article>
     </template>

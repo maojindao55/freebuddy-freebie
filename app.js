@@ -40,7 +40,24 @@
       count: "{n} 家服务商",
       refresh: "刷新页面",
       importFailed: "导入失败：{error}",
-      loadFailed: "目录加载失败，请刷新重试。"
+      loadFailed: "目录加载失败，请刷新重试。",
+      reviewsCount: "评价 ({n})",
+      working: "还能用",
+      failed: "已失效",
+      workingPercent: "{percent}% 可用",
+      noFeedback: "暂无反馈",
+      clientOnlyTitle: "仅支持在 FreeBuddy 客户端内打分与评价",
+      clientOnlyDesc: "所有评价均来自真实的客户端使用者。立即下载 FreeBuddy 体验完整套件与社区评测！",
+      downloadClient: "下载 FreeBuddy 客户端",
+      verifiedUser: "客户端实测",
+      authorPlaceholder: "你的昵称 (选填)",
+      contentPlaceholder: "说说你的使用体验、响应速度或避坑指南...",
+      submitReview: "发表评价",
+      submitting: "提交中…",
+      noReviewsYet: "暂无评价，快来抢先点评！",
+      clientOnlyVoteTip: "仅支持在 FreeBuddy 客户端内参与可用度投票",
+      reviewFailed: "评价提交失败：{error}",
+      voteFailed: "投票失败：{error}"
     },
     en: {
       title: "Freebie Buddies",
@@ -73,7 +90,24 @@
       count: "{n} providers",
       refresh: "Refresh page",
       importFailed: "Import failed: {error}",
-      loadFailed: "Could not load the catalog. Please refresh."
+      loadFailed: "Could not load the catalog. Please refresh.",
+      reviewsCount: "Reviews ({n})",
+      working: "Working",
+      failed: "Broken",
+      workingPercent: "{percent}% working",
+      noFeedback: "No feedback",
+      clientOnlyTitle: "Ratings & reviews only available in FreeBuddy",
+      clientOnlyDesc: "All reviews come from verified FreeBuddy client users. Download FreeBuddy to try models and join community feedback!",
+      downloadClient: "Download FreeBuddy",
+      verifiedUser: "Client Verified",
+      authorPlaceholder: "Your nickname (optional)",
+      contentPlaceholder: "Share your experience, speed, tips, or caveats...",
+      submitReview: "Submit Review",
+      submitting: "Submitting…",
+      noReviewsYet: "No reviews yet. Be the first to share your experience!",
+      clientOnlyVoteTip: "Voting is only available inside the FreeBuddy client",
+      reviewFailed: "Failed to submit review: {error}",
+      voteFailed: "Failed to vote: {error}"
     }
   };
 
@@ -88,7 +122,18 @@
     connected: false,
     importedProviderIds: new Set(),
     runtimes: null,
-    busy: new Set()
+    busy: new Set(),
+    summary: {},
+    openDrawers: new Set(),
+    reviewsCache: {},
+    submittingVote: new Set(),
+    userVotes: (() => {
+      try {
+        return JSON.parse(localStorage.getItem("fb_user_votes") || "{}");
+      } catch {
+        return {};
+      }
+    })()
   };
 
   function normalizeLocale(tag) {
@@ -104,6 +149,33 @@
       });
     }
     return text;
+  }
+
+  function escapeHtml(str) {
+    return String(str || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  function formatRelativeTime(ts) {
+    const diff = Date.now() - Number(ts);
+    if (diff < 60 * 1000) return state.locale === "zh-CN" ? "刚刚" : "just now";
+    if (diff < 60 * 60 * 1000)
+      return state.locale === "zh-CN"
+        ? `${Math.floor(diff / 60000)} 分钟前`
+        : `${Math.floor(diff / 60000)}m ago`;
+    if (diff < 24 * 60 * 60 * 1000)
+      return state.locale === "zh-CN"
+        ? `${Math.floor(diff / 3600000)} 小时前`
+        : `${Math.floor(diff / 3600000)}h ago`;
+    if (diff < 30 * 24 * 60 * 60 * 1000)
+      return state.locale === "zh-CN"
+        ? `${Math.floor(diff / 86400000)} 天前`
+        : `${Math.floor(diff / 86400000)}d ago`;
+    return new Date(Number(ts)).toISOString().slice(0, 10);
   }
 
   function applyTheme() {
@@ -184,6 +256,274 @@
     el.textContent = parts.join(" · ");
   }
 
+  function updateCardCommunity(node, providerId) {
+    const s = state.summary[providerId] || {
+      ratingAvg: 0,
+      reviewCount: 0,
+      workingVotes: 0,
+      failedVotes: 0,
+      availability: null
+    };
+
+    // 1. Rating
+    const ratingVal = node.querySelector(".rating-val");
+    const ratingCount = node.querySelector(".rating-count");
+    if (ratingVal && ratingCount) {
+      ratingVal.textContent = s.reviewCount > 0 ? s.ratingAvg.toFixed(1) : "-.-";
+      ratingCount.textContent = `(${s.reviewCount})`;
+    }
+
+    // 2. Availability
+    const availEl = node.querySelector(".community-avail");
+    const availText = node.querySelector(".avail-text");
+    if (availEl && availText) {
+      availEl.classList.remove("good", "warn", "bad");
+      if (s.availability !== null && s.availability !== undefined) {
+        availText.textContent = t("workingPercent", { percent: s.availability });
+        if (s.availability >= 80) availEl.classList.add("good");
+        else if (s.availability >= 50) availEl.classList.add("warn");
+        else availEl.classList.add("bad");
+      } else {
+        availText.textContent = t("noFeedback");
+      }
+    }
+
+    // 3. Vote counts & voted state
+    const voteWorkingBtn = node.querySelector(".vote-working");
+    const voteFailedBtn = node.querySelector(".vote-failed");
+    if (voteWorkingBtn) {
+      voteWorkingBtn.querySelector(".vote-count").textContent = String(s.workingVotes || 0);
+      voteWorkingBtn.classList.toggle("voted", state.userVotes[providerId] === "working");
+    }
+    if (voteFailedBtn) {
+      voteFailedBtn.querySelector(".vote-count").textContent = String(s.failedVotes || 0);
+      voteFailedBtn.classList.toggle("voted", state.userVotes[providerId] === "failed");
+    }
+
+    // 4. Reviews toggle label
+    const toggleLabel = node.querySelector(".reviews-toggle-label");
+    if (toggleLabel) {
+      toggleLabel.textContent = t("reviewsCount", { n: s.reviewCount || 0 });
+    }
+  }
+
+  function updateAllCardStats() {
+    document.querySelectorAll(".card[data-provider-id]").forEach((node) => {
+      const pid = node.dataset.providerId;
+      if (pid) updateCardCommunity(node, pid);
+    });
+  }
+
+  async function handleVote(providerId, voteType) {
+    if (!state.connected || !bridge || !bridge.embedded) {
+      window.alert(t("clientOnlyVoteTip"));
+      return;
+    }
+    if (state.submittingVote.has(providerId)) return;
+    state.submittingVote.add(providerId);
+
+    try {
+      const res = await bridge.submitVote({ providerId, vote: voteType });
+      if (res && res.ok) {
+        state.userVotes[providerId] = voteType;
+        try {
+          localStorage.setItem("fb_user_votes", JSON.stringify(state.userVotes));
+        } catch {
+          // ignore
+        }
+        // Optimistic count bump
+        const s = state.summary[providerId] || {
+          ratingAvg: 0,
+          reviewCount: 0,
+          workingVotes: 0,
+          failedVotes: 0,
+          availability: null
+        };
+        if (voteType === "working") s.workingVotes += 1;
+        else s.failedVotes += 1;
+        const total = s.workingVotes + s.failedVotes;
+        s.availability = Math.round((s.workingVotes / total) * 100);
+        state.summary[providerId] = s;
+        updateAllCardStats();
+      } else {
+        window.alert(t("voteFailed", { error: res?.error || "unknown" }));
+      }
+    } catch (err) {
+      window.alert(t("voteFailed", { error: err?.message || String(err) }));
+    } finally {
+      state.submittingVote.delete(providerId);
+    }
+  }
+
+  async function fetchReviews(providerId, drawer) {
+    try {
+      const res = await fetch(`./api/reviews?providerId=${encodeURIComponent(providerId)}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data && data.ok) {
+        state.reviewsCache[providerId] = data;
+        if (data.stats) {
+          state.summary[providerId] = data.stats;
+          updateAllCardStats();
+        }
+        const provider = state.providers.find((p) => p.id === providerId);
+        if (provider && !drawer.hidden) {
+          renderReviewsDrawer(provider, drawer);
+        }
+      }
+    } catch (err) {
+      console.warn("[freebie] fetch reviews failed", err);
+    }
+  }
+
+  function renderReviewsDrawer(provider, drawer) {
+    const cached = state.reviewsCache[provider.id];
+    const reviews = cached?.reviews || [];
+    drawer.innerHTML = "";
+
+    // 1. If not connected as FreeBuddy client -> show Lock Banner
+    if (!state.connected) {
+      const banner = document.createElement("div");
+      banner.className = "client-lock-banner";
+      banner.innerHTML = `
+        <h4 class="lock-title">🔒 ${escapeHtml(t("clientOnlyTitle"))}</h4>
+        <p class="lock-desc">${escapeHtml(t("clientOnlyDesc"))}</p>
+        <a class="download-link" href="https://github.com/maojindao55/freebuddy/releases" target="_blank" rel="noopener noreferrer">
+          ${escapeHtml(t("downloadClient"))} ➔
+        </a>
+      `;
+      drawer.appendChild(banner);
+    } else {
+      // 2. If connected -> render Review Form
+      let selectedRating = 5;
+      const form = document.createElement("form");
+      form.className = "review-form";
+      form.innerHTML = `
+        <div class="review-form-header">
+          <div class="stars-selector" role="radiogroup" aria-label="Rating">
+            ${[1, 2, 3, 4, 5]
+              .map(
+                (star) =>
+                  `<button type="button" class="star-btn ${star <= 5 ? "selected" : ""}" data-star="${star}">★</button>`
+              )
+              .join("")}
+          </div>
+          <span class="client-verified-tag">⚡️ FreeBuddy 客户端已认证</span>
+        </div>
+        <input type="text" class="review-form-author" maxlength="30" placeholder="${escapeHtml(t("authorPlaceholder"))}" />
+        <textarea class="review-form-content" required maxlength="300" placeholder="${escapeHtml(t("contentPlaceholder"))}"></textarea>
+        <div class="review-form-actions">
+          <span class="form-tip">1人1评 · 真实可靠</span>
+          <button type="submit" class="review-form-submit">${escapeHtml(t("submitReview"))}</button>
+        </div>
+      `;
+
+      // star buttons click
+      const starBtns = form.querySelectorAll(".star-btn");
+      starBtns.forEach((b) => {
+        b.addEventListener("click", () => {
+          selectedRating = parseInt(b.dataset.star, 10);
+          starBtns.forEach((sb) => {
+            sb.classList.toggle("selected", parseInt(sb.dataset.star, 10) <= selectedRating);
+          });
+        });
+      });
+
+      // submit review handler
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const contentInput = form.querySelector(".review-form-content");
+        const authorInput = form.querySelector(".review-form-author");
+        const submitBtn = form.querySelector(".review-form-submit");
+        const content = contentInput.value.trim();
+        const author = authorInput.value.trim();
+
+        if (content.length < 2) return;
+        submitBtn.disabled = true;
+        submitBtn.textContent = t("submitting");
+
+        try {
+          const res = await bridge.submitReview({
+            providerId: provider.id,
+            rating: selectedRating,
+            content,
+            author: author || undefined
+          });
+
+          if (res && res.ok) {
+            contentInput.value = "";
+            fetchReviews(provider.id, drawer);
+            loadCommunitySummary();
+          } else {
+            window.alert(t("reviewFailed", { error: res?.error || "unknown" }));
+          }
+        } catch (err) {
+          window.alert(t("reviewFailed", { error: err?.message || String(err) }));
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = t("submitReview");
+        }
+      });
+
+      drawer.appendChild(form);
+    }
+
+    // 3. Render Reviews List
+    const list = document.createElement("div");
+    list.className = "reviews-list";
+
+    if (reviews.length === 0) {
+      const empty = document.createElement("div");
+      empty.className = "reviews-empty";
+      empty.textContent = cached ? t("noReviewsYet") : "正在加载评价…";
+      list.appendChild(empty);
+    } else {
+      reviews.forEach((r) => {
+        const item = document.createElement("div");
+        item.className = "review-item";
+        const starsStr = "★".repeat(r.rating) + "☆".repeat(5 - r.rating);
+        const timeStr = formatRelativeTime(r.createdAt);
+
+        item.innerHTML = `
+          <div class="review-item-head">
+            <div class="review-item-user">
+              <span class="review-item-author">${escapeHtml(r.author || "FreeBuddy 网友")}</span>
+              <span class="review-item-badge">${escapeHtml(t("verifiedUser"))}</span>
+            </div>
+            <div class="review-item-meta">
+              <span class="review-item-stars">${starsStr}</span>
+              <span class="review-item-time">${timeStr}</span>
+            </div>
+          </div>
+          <p class="review-item-content">${escapeHtml(r.content)}</p>
+        `;
+        list.appendChild(item);
+      });
+    }
+
+    drawer.appendChild(list);
+  }
+
+  function toggleReviewsDrawer(provider, cardNode) {
+    const drawer = cardNode.querySelector(".card-reviews-drawer");
+    const toggleBtn = cardNode.querySelector(".reviews-toggle-btn");
+    const isOpen = state.openDrawers.has(provider.id);
+
+    if (isOpen) {
+      state.openDrawers.delete(provider.id);
+      drawer.hidden = true;
+      toggleBtn.classList.remove("open");
+      return;
+    }
+
+    state.openDrawers.add(provider.id);
+    drawer.hidden = false;
+    toggleBtn.classList.add("open");
+
+    renderReviewsDrawer(provider, drawer);
+    fetchReviews(provider.id, drawer);
+  }
+
   function renderCards() {
     const root = document.getElementById("providers");
     const template = document.getElementById("provider-card");
@@ -226,7 +566,8 @@
           tag.textContent = provider.region === "cn" ? t("regionCn") : t("regionGlobal");
           tags.appendChild(tag);
         }
-        const protocols = provider.protocols && provider.protocols.length > 0 ? provider.protocols : [provider.protocol];
+        const protocols =
+          provider.protocols && provider.protocols.length > 0 ? provider.protocols : [provider.protocol];
         protocols.forEach((p) => {
           const proto = document.createElement("span");
           proto.className = "tag protocol";
@@ -270,6 +611,30 @@
         btn.disabled = !state.connected || busy;
         btn.classList.toggle("secondary", imported);
         btn.addEventListener("click", () => importProvider(provider));
+
+        // Community stats & actions
+        updateCardCommunity(node, provider.id);
+
+        const voteWorkingBtn = node.querySelector(".vote-working");
+        if (voteWorkingBtn) {
+          voteWorkingBtn.addEventListener("click", () => handleVote(provider.id, "working"));
+        }
+        const voteFailedBtn = node.querySelector(".vote-failed");
+        if (voteFailedBtn) {
+          voteFailedBtn.addEventListener("click", () => handleVote(provider.id, "failed"));
+        }
+
+        const reviewsToggleBtn = node.querySelector(".reviews-toggle-btn");
+        if (reviewsToggleBtn) {
+          reviewsToggleBtn.addEventListener("click", () => toggleReviewsDrawer(provider, node));
+        }
+
+        const drawer = node.querySelector(".card-reviews-drawer");
+        if (state.openDrawers.has(provider.id)) {
+          drawer.hidden = false;
+          reviewsToggleBtn?.classList.add("open");
+          renderReviewsDrawer(provider, drawer);
+        }
 
         const verified = node.querySelector(".card-verified");
         const notes = [];
@@ -332,6 +697,20 @@
     renderCards();
   }
 
+  async function loadCommunitySummary() {
+    try {
+      const res = await fetch("./api/summary");
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data && data.ok && data.summary) {
+        state.summary = data.summary;
+        updateAllCardStats();
+      }
+    } catch {
+      // ignore
+    }
+  }
+
   async function loadCatalog(bustCache = false) {
     try {
       const url = bustCache ? `./providers.json?t=${Date.now()}` : "./providers.json";
@@ -348,6 +727,7 @@
     }
     renderMeta();
     renderCards();
+    loadCommunitySummary();
   }
 
   function refreshPage() {
