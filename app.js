@@ -41,7 +41,7 @@
       refresh: "刷新页面",
       importFailed: "导入失败：{error}",
       loadFailed: "目录加载失败，请刷新重试。",
-      reviewsCount: "评价 ({n})",
+      reviewsCount: "评测详情 ({n})",
       working: "还能用",
       failed: "已失效",
       workingPercent: "{percent}% 可用",
@@ -51,13 +51,17 @@
       downloadClient: "下载 FreeBuddy 客户端",
       verifiedUser: "客户端实测",
       authorPlaceholder: "你的昵称 (选填)",
-      contentPlaceholder: "说说你的使用体验、响应速度或避坑指南...",
+      contentPlaceholder: "说说你的使用体验、响应速度、真实模型效果或避坑指南...",
       submitReview: "发表评价",
       submitting: "提交中…",
       noReviewsYet: "暂无评价，快来抢先点评！",
       clientOnlyVoteTip: "仅支持在 FreeBuddy 客户端内参与可用度投票",
       reviewFailed: "评价提交失败：{error}",
-      voteFailed: "投票失败：{error}"
+      voteFailed: "投票失败：{error}",
+      supportedModels: "支持模型与特性",
+      healthAvailTip: "基于社区近 24 小时反馈统计",
+      votePrompt: "您今日实测可用吗？",
+      reviewsTitle: "社区真实评测"
     },
     en: {
       title: "Freebie Buddies",
@@ -91,7 +95,7 @@
       refresh: "Refresh page",
       importFailed: "Import failed: {error}",
       loadFailed: "Could not load the catalog. Please refresh.",
-      reviewsCount: "Reviews ({n})",
+      reviewsCount: "Reviews & Details ({n})",
       working: "Working",
       failed: "Broken",
       workingPercent: "{percent}% working",
@@ -107,7 +111,11 @@
       noReviewsYet: "No reviews yet. Be the first to share your experience!",
       clientOnlyVoteTip: "Voting is only available inside the FreeBuddy client",
       reviewFailed: "Failed to submit review: {error}",
-      voteFailed: "Failed to vote: {error}"
+      voteFailed: "Failed to vote: {error}",
+      supportedModels: "Supported Models & Features",
+      healthAvailTip: "Based on community feedback in the last 24 hours",
+      votePrompt: "Is it working for you today?",
+      reviewsTitle: "Community Reviews"
     }
   };
 
@@ -124,7 +132,7 @@
     runtimes: null,
     busy: new Set(),
     summary: {},
-    openDrawers: new Set(),
+    activeModalProviderId: null,
     reviewsCache: {},
     submittingVote: new Set(),
     userVotes: (() => {
@@ -300,10 +308,10 @@
       voteFailedBtn.classList.toggle("voted", state.userVotes[providerId] === "failed");
     }
 
-    // 4. Reviews toggle label
-    const toggleLabel = node.querySelector(".reviews-toggle-label");
-    if (toggleLabel) {
-      toggleLabel.textContent = t("reviewsCount", { n: s.reviewCount || 0 });
+    // 4. Detail button label
+    const detailLabel = node.querySelector(".detail-btn-label");
+    if (detailLabel) {
+      detailLabel.textContent = t("reviewsCount", { n: s.reviewCount || 0 });
     }
   }
 
@@ -312,6 +320,10 @@
       const pid = node.dataset.providerId;
       if (pid) updateCardCommunity(node, pid);
     });
+
+    if (state.activeModalProviderId) {
+      updateModalHealth(state.activeModalProviderId);
+    }
   }
 
   async function handleVote(providerId, voteType) {
@@ -355,7 +367,7 @@
     }
   }
 
-  async function fetchReviews(providerId, drawer) {
+  async function fetchReviews(providerId) {
     try {
       const res = await fetch(`./api/reviews?providerId=${encodeURIComponent(providerId)}`);
       if (!res.ok) return;
@@ -366,9 +378,8 @@
           state.summary[providerId] = data.stats;
           updateAllCardStats();
         }
-        const provider = state.providers.find((p) => p.id === providerId);
-        if (provider && !drawer.hidden) {
-          renderReviewsDrawer(provider, drawer);
+        if (state.activeModalProviderId === providerId) {
+          renderModalReviews(providerId);
         }
       }
     } catch (err) {
@@ -376,12 +387,78 @@
     }
   }
 
-  function renderReviewsDrawer(provider, drawer) {
-    const cached = state.reviewsCache[provider.id];
-    const reviews = cached?.reviews || [];
-    drawer.innerHTML = "";
+  /* --- Modal Logic --- */
 
-    // 1. If not connected as FreeBuddy client -> show Lock Banner
+  function updateModalHealth(providerId) {
+    const modal = document.getElementById("detail-modal");
+    if (!modal || modal.hidden || state.activeModalProviderId !== providerId) return;
+
+    const s = state.summary[providerId] || {
+      ratingAvg: 0,
+      reviewCount: 0,
+      workingVotes: 0,
+      failedVotes: 0,
+      availability: null
+    };
+
+    // Health Score Num
+    const numEl = modal.querySelector(".health-score-num");
+    if (numEl) numEl.textContent = s.reviewCount > 0 ? s.ratingAvg.toFixed(1) : "-.-";
+
+    // Stars
+    const starsEl = modal.querySelector(".health-score-stars");
+    if (starsEl) {
+      const full = Math.round(s.ratingAvg) || 0;
+      starsEl.textContent = s.reviewCount > 0 ? "★".repeat(full) + "☆".repeat(5 - full) : "☆☆☆☆☆";
+    }
+
+    // Count
+    const countEl = modal.querySelector(".health-score-count");
+    if (countEl) countEl.textContent = String(s.reviewCount || 0);
+
+    // Availability Pill
+    const availPill = modal.querySelector(".health-avail-pill");
+    const availText = modal.querySelector(".health-avail-pill .avail-text");
+    if (availPill && availText) {
+      availPill.classList.remove("good", "warn", "bad");
+      if (s.availability !== null && s.availability !== undefined) {
+        availText.textContent = t("workingPercent", { percent: s.availability });
+        if (s.availability >= 80) availPill.classList.add("good");
+        else if (s.availability >= 50) availPill.classList.add("warn");
+        else availPill.classList.add("bad");
+      } else {
+        availText.textContent = t("noFeedback");
+      }
+    }
+
+    // Votes
+    const voteWorkingBtn = modal.querySelector(".modal-vote-working");
+    const voteFailedBtn = modal.querySelector(".modal-vote-failed");
+    if (voteWorkingBtn) {
+      voteWorkingBtn.querySelector(".vote-count").textContent = String(s.workingVotes || 0);
+      voteWorkingBtn.classList.toggle("voted", state.userVotes[providerId] === "working");
+    }
+    if (voteFailedBtn) {
+      voteFailedBtn.querySelector(".vote-count").textContent = String(s.failedVotes || 0);
+      voteFailedBtn.classList.toggle("voted", state.userVotes[providerId] === "failed");
+    }
+
+    // Total review count header
+    const reviewsCountEl = modal.querySelector(".modal-reviews-count");
+    if (reviewsCountEl) reviewsCountEl.textContent = String(s.reviewCount || 0);
+  }
+
+  function renderModalReviews(providerId) {
+    const modal = document.getElementById("detail-modal");
+    if (!modal || modal.hidden) return;
+
+    const inputZone = modal.querySelector(".modal-review-input-zone");
+    const listZone = modal.querySelector(".modal-reviews-list");
+    const cached = state.reviewsCache[providerId];
+    const reviews = cached?.reviews || [];
+
+    // 1. Input zone
+    inputZone.innerHTML = "";
     if (!state.connected) {
       const banner = document.createElement("div");
       banner.className = "client-lock-banner";
@@ -392,9 +469,8 @@
           ${escapeHtml(t("downloadClient"))} ➔
         </a>
       `;
-      drawer.appendChild(banner);
+      inputZone.appendChild(banner);
     } else {
-      // 2. If connected -> render Review Form
       let selectedRating = 5;
       const form = document.createElement("form");
       form.className = "review-form";
@@ -413,12 +489,11 @@
         <input type="text" class="review-form-author" maxlength="30" placeholder="${escapeHtml(t("authorPlaceholder"))}" />
         <textarea class="review-form-content" required maxlength="300" placeholder="${escapeHtml(t("contentPlaceholder"))}"></textarea>
         <div class="review-form-actions">
-          <span class="form-tip">1人1评 · 真实可靠</span>
+          <span class="form-tip">每个设备对单服务商保留一条评测 · 提交后可随时修改</span>
           <button type="submit" class="review-form-submit">${escapeHtml(t("submitReview"))}</button>
         </div>
       `;
 
-      // star buttons click
       const starBtns = form.querySelectorAll(".star-btn");
       starBtns.forEach((b) => {
         b.addEventListener("click", () => {
@@ -429,7 +504,6 @@
         });
       });
 
-      // submit review handler
       form.addEventListener("submit", async (e) => {
         e.preventDefault();
         const contentInput = form.querySelector(".review-form-content");
@@ -444,7 +518,7 @@
 
         try {
           const res = await bridge.submitReview({
-            providerId: provider.id,
+            providerId,
             rating: selectedRating,
             content,
             author: author || undefined
@@ -452,7 +526,7 @@
 
           if (res && res.ok) {
             contentInput.value = "";
-            fetchReviews(provider.id, drawer);
+            fetchReviews(providerId);
             loadCommunitySummary();
           } else {
             window.alert(t("reviewFailed", { error: res?.error || "unknown" }));
@@ -465,18 +539,16 @@
         }
       });
 
-      drawer.appendChild(form);
+      inputZone.appendChild(form);
     }
 
-    // 3. Render Reviews List
-    const list = document.createElement("div");
-    list.className = "reviews-list";
-
+    // 2. Reviews list
+    listZone.innerHTML = "";
     if (reviews.length === 0) {
       const empty = document.createElement("div");
       empty.className = "reviews-empty";
       empty.textContent = cached ? t("noReviewsYet") : "正在加载评价…";
-      list.appendChild(empty);
+      listZone.appendChild(empty);
     } else {
       reviews.forEach((r) => {
         const item = document.createElement("div");
@@ -497,31 +569,147 @@
           </div>
           <p class="review-item-content">${escapeHtml(r.content)}</p>
         `;
-        list.appendChild(item);
+        listZone.appendChild(item);
       });
     }
-
-    drawer.appendChild(list);
   }
 
-  function toggleReviewsDrawer(provider, cardNode) {
-    const drawer = cardNode.querySelector(".card-reviews-drawer");
-    const toggleBtn = cardNode.querySelector(".reviews-toggle-btn");
-    const isOpen = state.openDrawers.has(provider.id);
+  function openProviderModal(provider) {
+    state.activeModalProviderId = provider.id;
+    const modal = document.getElementById("detail-modal");
+    if (!modal) return;
 
-    if (isOpen) {
-      state.openDrawers.delete(provider.id);
-      drawer.hidden = true;
-      toggleBtn.classList.remove("open");
-      return;
+    // Set URL hash without scrolling
+    if (location.hash !== `#${provider.id}`) {
+      try {
+        history.replaceState(null, "", `#${provider.id}`);
+      } catch {
+        location.hash = provider.id;
+      }
     }
 
-    state.openDrawers.add(provider.id);
-    drawer.hidden = false;
-    toggleBtn.classList.add("open");
+    // Name & Icon
+    modal.querySelector(".modal-name").textContent = provider.name;
+    const iconEl = modal.querySelector(".modal-icon");
+    const primarySrc = resolveIcon(provider);
+    if (primarySrc) {
+      iconEl.src = primarySrc;
+      iconEl.alt = `${provider.name} icon`;
+      iconEl.hidden = false;
+    } else {
+      iconEl.hidden = true;
+    }
 
-    renderReviewsDrawer(provider, drawer);
-    fetchReviews(provider.id, drawer);
+    // Tags
+    const tagsContainer = modal.querySelector(".modal-tags");
+    tagsContainer.textContent = "";
+    if (provider.region) {
+      const tag = document.createElement("span");
+      tag.className = `tag region-${provider.region}`;
+      tag.textContent = provider.region === "cn" ? t("regionCn") : t("regionGlobal");
+      tagsContainer.appendChild(tag);
+    }
+    const protocols =
+      provider.protocols && provider.protocols.length > 0 ? provider.protocols : [provider.protocol];
+    protocols.forEach((p) => {
+      const proto = document.createElement("span");
+      proto.className = "tag protocol";
+      proto.textContent = protocolLabel(p);
+      tagsContainer.appendChild(proto);
+    });
+
+    // Verified date
+    const verifiedEl = modal.querySelector(".modal-verified");
+    verifiedEl.textContent = provider.verifiedAt ? t("verified", { date: provider.verifiedAt }) : "";
+
+    // Overview & Summary
+    modal.querySelector(".modal-summary").textContent = summaryFor(provider);
+
+    // Links
+    const homepage = modal.querySelector(".modal-homepage");
+    if (provider.homepage) {
+      homepage.href = provider.homepage;
+      homepage.textContent = t("homepage");
+      homepage.hidden = false;
+      homepage.onclick = openLink;
+    } else homepage.hidden = true;
+
+    const consoleLink = modal.querySelector(".modal-console");
+    if (provider.consoleUrl) {
+      consoleLink.href = provider.consoleUrl;
+      consoleLink.textContent = t("getKey");
+      consoleLink.hidden = false;
+      consoleLink.onclick = openLink;
+    } else consoleLink.hidden = true;
+
+    // Import button
+    const importBtn = modal.querySelector(".modal-import-btn");
+    const imported = state.importedProviderIds.has(provider.id);
+    const busy = state.busy.has(provider.id);
+    importBtn.textContent = busy ? t("importing") : imported ? t("importAgain") : t("import");
+    importBtn.disabled = !state.connected || busy;
+    importBtn.classList.toggle("secondary", imported);
+    importBtn.onclick = () => importProvider(provider);
+
+    // Models list
+    const modelsList = modal.querySelector(".modal-models");
+    modelsList.textContent = "";
+    provider.models.forEach((model) => {
+      const li = document.createElement("li");
+      li.textContent = model.name || model.id;
+      li.title = model.id;
+      if (model.supportsVision) li.classList.add("vision");
+      modelsList.appendChild(li);
+    });
+
+    // Health Board
+    updateModalHealth(provider.id);
+
+    // Vote buttons in modal
+    const voteWorkingBtn = modal.querySelector(".modal-vote-working");
+    if (voteWorkingBtn) {
+      voteWorkingBtn.onclick = () => handleVote(provider.id, "working");
+    }
+    const voteFailedBtn = modal.querySelector(".modal-vote-failed");
+    if (voteFailedBtn) {
+      voteFailedBtn.onclick = () => handleVote(provider.id, "failed");
+    }
+
+    // Render reviews & fetch
+    renderModalReviews(provider.id);
+    fetchReviews(provider.id);
+
+    // Show modal & prevent body scroll
+    modal.hidden = false;
+    modal.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeProviderModal() {
+    const modal = document.getElementById("detail-modal");
+    if (!modal) return;
+    modal.hidden = true;
+    modal.setAttribute("aria-hidden", "true");
+    state.activeModalProviderId = null;
+    document.body.style.overflow = "";
+
+    // Clear hash without reload
+    if (location.hash) {
+      try {
+        history.replaceState(null, "", location.pathname + location.search);
+      } catch {
+        location.hash = "";
+      }
+    }
+  }
+
+  function checkHashForModal() {
+    const hash = location.hash.replace(/^#/, "").trim();
+    if (!hash || state.providers.length === 0) return;
+    const provider = state.providers.find((p) => p.id === hash);
+    if (provider) {
+      openProviderModal(provider);
+    }
   }
 
   function renderCards() {
@@ -612,7 +800,7 @@
         btn.classList.toggle("secondary", imported);
         btn.addEventListener("click", () => importProvider(provider));
 
-        // Community stats & actions
+        // Community stats on card
         updateCardCommunity(node, provider.id);
 
         const voteWorkingBtn = node.querySelector(".vote-working");
@@ -624,16 +812,17 @@
           voteFailedBtn.addEventListener("click", () => handleVote(provider.id, "failed"));
         }
 
-        const reviewsToggleBtn = node.querySelector(".reviews-toggle-btn");
-        if (reviewsToggleBtn) {
-          reviewsToggleBtn.addEventListener("click", () => toggleReviewsDrawer(provider, node));
+        // Open modal button
+        const openDetailBtn = node.querySelector(".open-detail-btn");
+        if (openDetailBtn) {
+          openDetailBtn.addEventListener("click", () => openProviderModal(provider));
         }
 
-        const drawer = node.querySelector(".card-reviews-drawer");
-        if (state.openDrawers.has(provider.id)) {
-          drawer.hidden = false;
-          reviewsToggleBtn?.classList.add("open");
-          renderReviewsDrawer(provider, drawer);
+        // Clicking card title also opens detail modal
+        const cardTitle = node.querySelector(".card-brand");
+        if (cardTitle) {
+          cardTitle.style.cursor = "pointer";
+          cardTitle.addEventListener("click", () => openProviderModal(provider));
         }
 
         const verified = node.querySelector(".card-verified");
@@ -655,6 +844,14 @@
     if (!state.connected || state.busy.has(provider.id)) return;
     state.busy.add(provider.id);
     renderCards();
+    if (state.activeModalProviderId === provider.id) {
+      const modal = document.getElementById("detail-modal");
+      const importBtn = modal?.querySelector(".modal-import-btn");
+      if (importBtn) {
+        importBtn.textContent = t("importing");
+        importBtn.disabled = true;
+      }
+    }
     try {
       const result = await bridge.importAgent(provider);
       if (result && result.ok) {
@@ -667,6 +864,16 @@
     } finally {
       state.busy.delete(provider.id);
       renderCards();
+      if (state.activeModalProviderId === provider.id) {
+        const modal = document.getElementById("detail-modal");
+        const importBtn = modal?.querySelector(".modal-import-btn");
+        const imported = state.importedProviderIds.has(provider.id);
+        if (importBtn) {
+          importBtn.textContent = imported ? t("importAgain") : t("import");
+          importBtn.disabled = false;
+          importBtn.classList.toggle("secondary", imported);
+        }
+      }
     }
   }
 
@@ -695,6 +902,10 @@
     }
     renderMeta();
     renderCards();
+    if (state.activeModalProviderId) {
+      const p = state.providers.find((item) => item.id === state.activeModalProviderId);
+      if (p) openProviderModal(p);
+    }
   }
 
   async function loadCommunitySummary() {
@@ -728,6 +939,7 @@
     renderMeta();
     renderCards();
     loadCommunitySummary();
+    checkHashForModal();
   }
 
   function refreshPage() {
@@ -754,6 +966,37 @@
   if (refreshBtn) {
     refreshBtn.addEventListener("click", refreshPage);
   }
+
+  // Close modal bindings
+  const closeBtn = document.getElementById("modal-close-btn");
+  if (closeBtn) {
+    closeBtn.addEventListener("click", closeProviderModal);
+  }
+
+  const modalBackdrop = document.getElementById("detail-modal");
+  if (modalBackdrop) {
+    modalBackdrop.addEventListener("click", (e) => {
+      if (e.target === modalBackdrop) {
+        closeProviderModal();
+      }
+    });
+  }
+
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && state.activeModalProviderId) {
+      closeProviderModal();
+    }
+  });
+
+  window.addEventListener("hashchange", () => {
+    const hash = location.hash.replace(/^#/, "").trim();
+    if (hash) {
+      const p = state.providers.find((item) => item.id === hash);
+      if (p) openProviderModal(p);
+    } else if (state.activeModalProviderId) {
+      closeProviderModal();
+    }
+  });
 
   bridge.onState(applyHostState);
   bridge.onState(renderCards);
