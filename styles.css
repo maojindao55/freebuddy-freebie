@@ -11,6 +11,8 @@
   --brand-dark: #059669;
   --brand-glow: rgba(16, 185, 129, 0.12);
   --tag-bg: rgba(148, 163, 184, 0.14);
+  --card-footer-bg: rgba(148, 163, 184, 0.05);
+  --radius: 20px;
   --font: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB",
     "Microsoft YaHei", "Noto Sans SC", "Segoe UI", Roboto, sans-serif;
   --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
@@ -26,6 +28,7 @@
   --text-2: #cbd5e1;
   --text-3: #64748b;
   --tag-bg: rgba(255, 255, 255, 0.08);
+  --card-footer-bg: rgba(255, 255, 255, 0.02);
 }
 
 * { box-sizing: border-box; }
@@ -53,7 +56,7 @@ a:hover { text-decoration: underline; }
 }
 
 :root.embedded .hero {
-  padding: 12px 20px;
+  padding: 16px 24px;
 }
 
 .hero-inner, .page {
@@ -143,12 +146,7 @@ a:hover { text-decoration: underline; }
 .hero-status {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  margin-top: 0;
-  padding: 5px 12px 5px 10px;
-  border-radius: 999px;
-  border: 1px solid var(--border-strong);
-  background: var(--panel);
+  gap: 6px;
   font-size: 12px;
   color: var(--text-2);
   white-space: nowrap;
@@ -251,17 +249,31 @@ a:hover { text-decoration: underline; }
 .card {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 18px;
-  border-radius: 16px;
+  gap: 0;
+  padding: 0;
+  border-radius: var(--radius);
   border: 1px solid var(--border);
   background: var(--panel);
-  transition: border-color 0.15s ease, transform 0.15s ease;
+  transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  overflow: hidden;
 }
 
 .card:hover {
   border-color: var(--border-strong);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+:root[data-theme="dark"] .card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.card-body {
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
 }
 
 .card-head {
@@ -294,8 +306,15 @@ a:hover { text-decoration: underline; }
 .card-tags {
   display: flex;
   flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 6px;
-  margin-top: 6px;
+}
+
+.card-head-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
 }
 
 .tag {
@@ -329,6 +348,23 @@ a:hover { text-decoration: underline; }
   font-size: 13px;
 }
 
+.card-models-wrap {
+  max-height: 58px;
+  overflow: hidden;
+  position: relative;
+}
+
+.card-models-wrap::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 24px;
+  background: linear-gradient(to bottom, transparent, var(--panel));
+  pointer-events: none;
+}
+
 .card-models {
   display: flex;
   flex-wrap: wrap;
@@ -352,7 +388,7 @@ a:hover { text-decoration: underline; }
   font-size: 10px;
 }
 
-.card-foot {
+.card-actions {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -418,6 +454,7 @@ a:hover { text-decoration: underline; }
   margin: 0;
   color: var(--text-3);
   font-size: 11.5px;
+  padding: 0 20px 12px;
 }
 
 .card-verified:empty { display: none; }
@@ -456,31 +493,42 @@ a:hover { text-decoration: underline; }
 
 /* --- Card Community & Reviews --- */
 .card-community {
-  margin-top: 12px;
-  padding-top: 10px;
-  border-top: 1px dashed var(--border-strong);
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.community-stats {
+  padding: 12px 20px;
+  border-top: 1px solid var(--border);
+  background: var(--card-footer-bg);
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
+}
+
+.community-left {
+  display: flex;
+  align-items: center;
   gap: 8px;
+}
+
+.community-divider {
+  color: var(--border-strong);
+  font-size: 10px;
 }
 
 .community-rating {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 600;
 }
 
 .community-rating .star-icon {
   color: #f59e0b;
+}
+
+.community-rating .rating-sep {
+  color: var(--text-3);
+  font-weight: normal;
+  margin: 0 2px;
 }
 
 .community-rating .rating-count {
@@ -510,11 +558,22 @@ a:hover { text-decoration: underline; }
   color: var(--text-2);
 }
 
-.community-actions {
-  display: flex;
+.open-detail-btn {
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
+  gap: 4px;
+  padding: 0;
+  font-size: 12px;
+  font-weight: 500;
+  border: none;
+  background: transparent;
+  color: var(--brand);
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.open-detail-btn:hover {
+  opacity: 0.8;
 }
 
 .vote-group {
@@ -560,42 +619,6 @@ a:hover { text-decoration: underline; }
   cursor: default;
 }
 
-.open-detail-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 3px 9px;
-  font-size: 11.5px;
-  font-weight: 600;
-  border-radius: 6px;
-  border: 1px solid var(--border-strong);
-  background: var(--tag-bg);
-  color: var(--text);
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.open-detail-btn:hover {
-  background: var(--brand-glow);
-  border-color: var(--brand);
-  color: var(--brand-dark);
-}
-
-:root[data-theme="dark"] .open-detail-btn:hover {
-  color: #34d399;
-  border-color: #059669;
-}
-
-.open-detail-btn .detail-btn-arrow {
-  display: inline-block;
-  font-size: 10px;
-  transition: transform 0.15s ease;
-}
-
-.open-detail-btn:hover .detail-btn-arrow {
-  transform: translateX(2px);
-}
-
 /* ==========================================================================
    Modal: Provider Details & Spacious Reviews
    ========================================================================== */
@@ -627,7 +650,7 @@ a:hover { text-decoration: underline; }
 .modal-dialog {
   position: relative;
   width: 100%;
-  max-width: 740px;
+  max-width: 800px;
   max-height: calc(100vh - 40px);
   background: var(--panel);
   border: 1px solid var(--border-strong);

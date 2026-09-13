@@ -278,7 +278,7 @@
     const ratingCount = node.querySelector(".rating-count");
     if (ratingVal && ratingCount) {
       ratingVal.textContent = s.reviewCount > 0 ? s.ratingAvg.toFixed(1) : "-.-";
-      ratingCount.textContent = `(${s.reviewCount})`;
+      ratingCount.textContent = `${s.reviewCount}条`;
     }
 
     // 2. Availability
@@ -833,14 +833,7 @@
         // Community stats on card
         updateCardCommunity(node, provider.id);
 
-        const voteWorkingBtn = node.querySelector(".vote-working");
-        if (voteWorkingBtn) {
-          voteWorkingBtn.addEventListener("click", () => handleVote(provider.id, "working"));
-        }
-        const voteFailedBtn = node.querySelector(".vote-failed");
-        if (voteFailedBtn) {
-          voteFailedBtn.addEventListener("click", () => handleVote(provider.id, "failed"));
-        }
+
 
         // Open modal button
         const openDetailBtn = node.querySelector(".open-detail-btn");
