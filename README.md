@@ -277,3 +277,9 @@ FreeBuddy → 页面：
 
 FreeBuddy 只接受来自配置页面 origin 的消息，并在原生对话框里向用户展示
 `baseUrl` 与模型列表、由用户输入 API Key 后才会真正创建 Agent。
+
+## 部署与升级顺序规范
+
+为避免后端 Worker 与新版本客户端鉴权协议不匹配（新版本客户端已移除硬编码 HMAC 密钥，仅携带 `X-FreeBuddy-Device-Id`），发布新版本 FreeBuddy 客户端前，**必须先部署上线本仓库的 Cloudflare Worker**。
+新版 Worker 仅对 Device ID 进行合法性校验，可无缝兼容旧客户端的请求，确保双向过渡期无中断。
+

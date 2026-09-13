@@ -47,9 +47,10 @@
       workingPercent: "{percent}% 可用",
       noFeedback: "暂无反馈",
       clientOnlyTitle: "仅支持在 FreeBuddy 客户端内打分与评价",
-      clientOnlyDesc: "所有评价均来自真实的客户端使用者。立即下载 FreeBuddy 体验完整套件与社区评测！",
+      clientOnlyDesc: "评价来自 FreeBuddy 客户端用户。立即下载 FreeBuddy 体验完整套件与社区评测！",
       downloadClient: "下载 FreeBuddy 客户端",
-      verifiedUser: "客户端实测",
+      verifiedUser: "来自客户端",
+      clientTag: "⚡️ FreeBuddy 客户端",
       authorPlaceholder: "你的昵称 (选填)",
       contentPlaceholder: "说说你的使用体验、响应速度、真实模型效果或避坑指南...",
       submitReview: "发表评价",
@@ -119,9 +120,10 @@
       workingPercent: "{percent}% working",
       noFeedback: "No feedback",
       clientOnlyTitle: "Ratings & reviews only available in FreeBuddy",
-      clientOnlyDesc: "All reviews come from verified FreeBuddy client users. Download FreeBuddy to try models and join community feedback!",
+      clientOnlyDesc: "Reviews come from FreeBuddy client users. Download FreeBuddy to try models and join community feedback!",
       downloadClient: "Download FreeBuddy",
-      verifiedUser: "Client Verified",
+      verifiedUser: "From Client",
+      clientTag: "⚡️ FreeBuddy Client",
       authorPlaceholder: "Your nickname (optional)",
       contentPlaceholder: "Share your experience, speed, tips, or caveats...",
       submitReview: "Submit Review",
@@ -696,7 +698,7 @@
               )
               .join("")}
           </div>
-          <span class="client-verified-tag">⚡️ FreeBuddy 客户端已认证</span>
+          <span class="client-verified-tag">${escapeHtml(t("clientTag"))}</span>
         </div>
         <input type="text" class="review-form-author" maxlength="30" placeholder="${escapeHtml(t("authorPlaceholder"))}" />
         <textarea class="review-form-content" required maxlength="300" placeholder="${escapeHtml(t("contentPlaceholder"))}"></textarea>

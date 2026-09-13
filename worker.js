@@ -10,12 +10,10 @@
  * - Static Assets fallback for index.html, app.js, styles.css, providers.json, etc.
  */
 
-const DEFAULT_CLIENT_AUTH_SECRET = "fb_sec_v1_8f9c2d1b4e6a0375";
-
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, X-FreeBuddy-Device-Id, X-FreeBuddy-Timestamp, X-FreeBuddy-Signature",
+  "Access-Control-Allow-Headers": "Content-Type, X-FreeBuddy-Device-Id",
   "Access-Control-Max-Age": "86400"
 };
 
@@ -29,57 +27,15 @@ function jsonResponse(data, status = 200) {
   });
 }
 
-async function computeHmacSha256(secret, message) {
-  const enc = new TextEncoder();
-  const key = await crypto.subtle.importKey(
-    "raw",
-    enc.encode(secret),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign", "verify"]
-  );
-  const sig = await crypto.subtle.sign("HMAC", key, enc.encode(message));
-  return Array.from(new Uint8Array(sig))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-}
+function verifyClientAuth(request) {
+  const deviceId = request.headers.get("x-freebuddy-device-id")?.trim();
 
-async function verifyClientAuth(request, env) {
-  const deviceId = request.headers.get("x-freebuddy-device-id");
-  const timestamp = request.headers.get("x-freebuddy-timestamp");
-  const signature = request.headers.get("x-freebuddy-signature");
-
-  if (!deviceId || !timestamp || !signature) {
+  if (!deviceId || deviceId.length < 8 || deviceId.length > 128) {
     return {
       ok: false,
       status: 401,
       error: "unauthorized_client",
-      message: "缺少客户端认证标识，仅支持在 FreeBuddy 客户端内打分与评价。"
-    };
-  }
-
-  const now = Date.now();
-  const reqTime = parseInt(timestamp, 10);
-  if (isNaN(reqTime) || Math.abs(now - reqTime) > 10 * 60 * 1000) {
-    return {
-      ok: false,
-      status: 401,
-      error: "expired_timestamp",
-      message: "认证时间戳已失效，请重试。"
-    };
-  }
-
-  const url = new URL(request.url);
-  const payload = `${request.method.toUpperCase()}:${url.pathname}:${deviceId}:${timestamp}`;
-  const secret = env?.CLIENT_SECRET || DEFAULT_CLIENT_AUTH_SECRET;
-  const expectedSig = await computeHmacSha256(secret, payload);
-
-  if (expectedSig !== signature.toLowerCase()) {
-    return {
-      ok: false,
-      status: 403,
-      error: "forbidden_client",
-      message: "签名无效，仅支持在 FreeBuddy 客户端内打分与评价。"
+      message: "缺少客户端设备标识，仅支持在 FreeBuddy 客户端内打分与评价。"
     };
   }
 
@@ -432,8 +388,7 @@ async function handleApi(request, env) {
         rating: r.rating,
         content: r.content,
         createdAt: r.created_at,
-        updatedAt: r.updated_at,
-        isVerifiedClient: true
+        updatedAt: r.updated_at
       }));
 
       return jsonResponse({ ok: true, providerId, stats, reviews });
@@ -444,7 +399,7 @@ async function handleApi(request, env) {
 
   // POST /api/reviews
   if (url.pathname === "/api/reviews" && request.method === "POST") {
-    const auth = await verifyClientAuth(request, env);
+    const auth = verifyClientAuth(request);
     if (!auth.ok) {
       return jsonResponse(auth, auth.status);
     }
@@ -496,7 +451,7 @@ async function handleApi(request, env) {
 
   // POST /api/votes
   if (url.pathname === "/api/votes" && request.method === "POST") {
-    const auth = await verifyClientAuth(request, env);
+    const auth = verifyClientAuth(request);
     if (!auth.ok) {
       return jsonResponse(auth, auth.status);
     }
