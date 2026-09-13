@@ -9,7 +9,7 @@ binding = "ASSETS"
 # D1 数据库绑定说明：
 # 方式 1（推荐）：在 Cloudflare 控制台 -> Workers & Pages -> 设置 -> 变量与绑定 -> 绑定 D1 数据库，变量名填 DB
 # 方式 2：取消下方注释并填入你在 Cloudflare 创建的真实 database_id
-# [[d1_databases]]
-# binding = "DB"
-# database_name = "freebie-db"
-# database_id = "<YOUR_D1_DATABASE_ID>"
+[[d1_databases]]
+binding = "DB"
+database_name = "freebie-db"
+database_id = "b95f4660-142c-4896-a71e-5ded41c64030"
