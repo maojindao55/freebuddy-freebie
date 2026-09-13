@@ -66,12 +66,12 @@
           <header class="card-head">
             <div class="card-brand">
               <img class="card-icon" alt="" hidden loading="lazy" />
-              <h2 class="card-name"></h2>
+              <div class="card-title-group">
+                <h2 class="card-name"></h2>
+                <div class="card-tags"></div>
+              </div>
             </div>
-            <div class="card-head-right">
-              <span class="card-imported" hidden></span>
-              <div class="card-tags"></div>
-            </div>
+            <span class="card-imported" hidden></span>
           </header>
           <p class="card-summary"></p>
           <div class="card-models-wrap">
@@ -87,24 +87,22 @@
         </div>
         <div class="card-community">
           <div class="community-left">
-            <span class="community-rating">
+            <span class="community-rating" title="综合评分">
               <span class="star-icon">★</span>
               <span class="rating-val">-.-</span>
-              <span class="rating-sep">·</span>
-              <span class="rating-count">0条</span>
+              <span class="rating-count">(0)</span>
             </span>
-            <span class="community-divider">|</span>
-            <div class="community-avail">
+            <span class="community-divider">·</span>
+            <div class="community-avail" title="可用度反馈">
               <span class="avail-dot">●</span>
               <span class="avail-text">暂无反馈</span>
             </div>
           </div>
-          <button type="button" class="open-detail-btn">
-            查看详情
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+          <button type="button" class="open-detail-btn" title="查看真实评测与详情">
+            <span class="detail-btn-label">评测详情 (0)</span>
+            <span class="detail-btn-arrow">➔</span>
           </button>
         </div>
-        <p class="card-verified"></p>
       </article>
     </template>
 

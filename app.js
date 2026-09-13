@@ -278,7 +278,7 @@
     const ratingCount = node.querySelector(".rating-count");
     if (ratingVal && ratingCount) {
       ratingVal.textContent = s.reviewCount > 0 ? s.ratingAvg.toFixed(1) : "-.-";
-      ratingCount.textContent = `${s.reviewCount}条`;
+      ratingCount.textContent = `(${s.reviewCount})`;
     }
 
     // 2. Availability
@@ -296,7 +296,7 @@
       }
     }
 
-    // 3. Vote counts & voted state
+    // 3. Vote counts & voted state (card status bar, modal)
     const voteWorkingBtn = node.querySelector(".vote-working");
     const voteFailedBtn = node.querySelector(".vote-failed");
     if (voteWorkingBtn) {
@@ -314,6 +314,7 @@
       detailLabel.textContent = t("reviewsCount", { n: s.reviewCount || 0 });
     }
   }
+
 
   function updateAllCardStats() {
     document.querySelectorAll(".card[data-provider-id]").forEach((node) => {
@@ -833,35 +834,39 @@
         // Community stats on card
         updateCardCommunity(node, provider.id);
 
-
-
-        // Open modal button
+        // Open modal button and clickable footer bar
         const openDetailBtn = node.querySelector(".open-detail-btn");
         if (openDetailBtn) {
-          openDetailBtn.addEventListener("click", () => openProviderModal(provider));
+          openDetailBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            openProviderModal(provider);
+          });
+        }
+        const cardCommunity = node.querySelector(".card-community");
+        if (cardCommunity) {
+          cardCommunity.style.cursor = "pointer";
+          cardCommunity.addEventListener("click", () => openProviderModal(provider));
         }
 
-        // Clicking card title also opens detail modal
-        const cardTitle = node.querySelector(".card-brand");
-        if (cardTitle) {
-          cardTitle.style.cursor = "pointer";
-          cardTitle.addEventListener("click", () => openProviderModal(provider));
+        // Clicking card brand also opens detail modal
+        const cardBrand = node.querySelector(".card-brand");
+        if (cardBrand) {
+          cardBrand.style.cursor = "pointer";
+          cardBrand.addEventListener("click", () => openProviderModal(provider));
         }
 
-        const verified = node.querySelector(".card-verified");
-        const notes = [];
-        if (provider.verifiedAt) notes.push(t("verified", { date: provider.verifiedAt }));
+        // Show runtime warning if needed
         const neededRuntimes = [...new Set(protocols.map(runtimeKey))];
         const allMissing = state.runtimes && neededRuntimes.every((r) => state.runtimes[r] === false);
         if (allMissing) {
-          notes.push(t("runtimeMissing", { runtime: neededRuntimes.map((r) => RUNTIME_LABEL[r] || r).join(" / ") }));
           node.classList.add("runtime-missing");
+          node.title = t("runtimeMissing", { runtime: neededRuntimes.map((r) => RUNTIME_LABEL[r] || r).join(" / ") });
         }
-        verified.textContent = notes.join(" · ");
 
         root.appendChild(node);
       });
   }
+
 
   async function importProvider(provider) {
     if (!state.connected || state.busy.has(provider.id)) return;
