@@ -72,6 +72,21 @@
 
 ---
 
+## 🗂️ 可选：同时下发到运行时目录（D1）
+
+`providers.json` 只影响页面静态目录。如果你希望这条服务商也进入 `GET /api/providers` 运行时目录，
+**额外新增一个文件**（不要改代码，也不要删改 `providers.json` 里的历史条目）：
+
+- 路径：`submissions/providers/<id>.json`，`<id>` 必须与文件内的 `id` 完全一致。
+- 字段：与 `providers.json` 的同名字段一致（camelCase），另外**必须**带 `status`：
+  - 新增/更新：`"status": "approved"`（合并 PR 即视为审核通过）
+  - 下线：`"status": "disabled"`，且必须补 `offlineReason`（≤400 字）与 `offlineAt`（`YYYY-MM-DD`）
+  - 恢复：把 `status` 改回 `"approved"`，并删掉 `offlineReason` / `offlineAt`
+- 校验：`node scripts/sync-providers.mjs` 会先在本地全量校验，任何字段不合规都会报错并拒绝生成 SQL。
+- 规范与示例：<https://github.com/maojindao55/freebuddy-freebie/blob/main/submissions/providers/README.md>
+
+---
+
 ## 🛠️ Agent 执行步骤 (Step-by-step Workflow)
 
 1. **查重与准备**：

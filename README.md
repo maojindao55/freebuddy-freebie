@@ -11,9 +11,18 @@
 | --- | --- |
 | `index.html` / `styles.css` / `app.js` | 页面本体，渲染服务商卡片、筛选、导入按钮 |
 | `freebuddy-bridge.js` | 与 FreeBuddy 通信的 postMessage 客户端（协议 v1） |
-| `providers.json` | 服务商目录，唯一需要经常维护的文件 |
-| `providers.schema.json` | 目录的 JSON Schema，编辑器会据此校验 |
+| `providers.json` | 静态服务商目录（历史基础目录，按 `id` 与运行时目录合并，静态条目优先） |
+| `providers.schema.json` | 静态目录的 JSON Schema，编辑器会据此校验 |
+| `submissions/providers/` | **D1 运行时服务商声明**：一个文件一个服务商，PR 合并后由 workflow 同步进 D1。规范见 [submissions/providers/README.md](./submissions/providers/README.md) |
+| `submissions/examples/` | 可直接复制的声明示例（不会被同步） |
+| `scripts/sync-providers.mjs` | 校验全部声明并生成确定性 upsert SQL（原生 Node，无依赖），只输出不直接连库 |
+| `worker.js` | Cloudflare Worker：评测/投票 API、`GET /api/providers` 运行时目录、静态资源回退 |
+| `schema.sql` | D1 表结构（`reviews`、`votes`、`providers`），全新数据库使用 |
+| `migrations/` | D1 迁移脚本，已有数据库升级用（`0001` 补约束、`0002` 扩展 `disabled` 状态，均保留数据且中断后可安全重跑） |
+| `.github/workflows/sync-providers.yml` | `main` 上的声明变更 → 生成 SQL → `wrangler d1 execute --remote` |
+| `tests/` | `node --test` 测试（Node ≥ 22.13.0），不参与静态资源发布 |
 | `_headers` | Cloudflare Pages 响应头（CORS 及安全策略） |
+| `.assetsignore` | 发布排除清单（语法同 `.gitignore`）：`node_modules/`、`.wrangler/`、`.codebuddy/`、`tests/`、`migrations/`、`submissions/`、`scripts/`、`.github/` 等本地文件不会上传为公开资源；页面 HTML/JS/JSON/CSS 与 `worker.js`、`_headers`、`wrangler.toml` 照常发布 |
 | `wrangler.toml` | Cloudflare Pages 项目配置 |
 
 ## 维护 providers.json
@@ -42,6 +51,120 @@
 - `baseUrl` / `homepage` / `consoleUrl` 必须是 `https://`。
 - `models[0]` 会成为导入后的默认模型。
 - 改完顺手更新 `verifiedAt` 和顶层 `updatedAt`。
+
+## 运行时服务商（D1）
+
+投稿与审核入口仍然是 GitHub PR，页面不提供在线投稿表单。审核通过的服务商由 PR 里的声明文件
+`submissions/providers/<id>.json` 同步进 D1 的 `providers` 表，`GET /api/providers` 再把它交给页面：
+
+- `GET /api/providers` **只返回 `status = 'approved'` 的记录**，映射为静态目录同款 camelCase 字段；接口只读，没有公网写入口（写路径只有「合并 PR → 同步脚本 → D1」一条）。
+- `status` 取值与含义：
+
+  | status | 含义 | 是否被 `GET /api/providers` 返回 |
+  | --- | --- | --- |
+  | `pending` | 已声明、待审核 | 否 |
+  | `approved` | 审核通过 | **是** |
+  | `disabled` | 显式下线（记录保留，可恢复） | 否 |
+  | `rejected` | 审核不通过 | 否 |
+
+- 该接口输出的是「已审核 + 应用层校验后」的数据，**不承诺**与 `providers.schema.json` 完全一致：Worker 会逐条校验 ID、name、region、protocol、models 非空与 URL 安全（仅接受 `https:`），不安全的 `homepage` / `consoleUrl` / `icon` 会被清空，无法使用的记录会被丢弃；`schema.sql` 中的 CHECK 只是数据库兜底，不能替代 JSON Schema。
+- 首页先渲染 `providers.json`，再异步加载 `api/providers`（3 秒超时后放弃），按 `id` 合并、静态目录优先；接口失败、超时或数据格式异常时都保留静态目录，页面照常可用。
+
+### 数据库初始化与迁移顺序
+
+表结构在 `schema.sql`，按数据库当前状态选择对应命令。**注意 `status = 'disabled'` 需要 `0002` 迁移**，只跑过旧 schema 的库必须先升级，否则同步脚本写下线状态时会直接撞 CHECK 约束：
+
+**全新数据库**（`CREATE TABLE IF NOT EXISTS`，不会重建已有表；已包含 `pending / approved / disabled / rejected` 全部状态）：
+
+```bash
+npx wrangler d1 execute freebie-db --remote --file=schema.sql
+# 或直接用迁移（等价，且会写入 d1_migrations 记录，推荐）
+npx wrangler d1 migrations apply freebie-db --remote
+```
+
+> 两种方式**选一种就好，不要混用**：如果先用 `schema.sql` 建库、之后又执行 `migrations apply`，wrangler 会按记录重放 `0001`（它会把 `disabled` 记录搬进隔离表并把状态集合降级），随后 `0002` 再升级回来。数据不会丢（隔离表保留原文），但需要重新触发一次同步才能把 `disabled` 记录放回 `providers`。
+
+**已有数据库（升级，全程保留数据）**：旧表结构宽松，重跑 `schema.sql` 不会补上 CHECK 约束，请执行迁移，**不要 `DROP TABLE providers` 重建**（会丢已有记录）：
+
+```bash
+# 推荐：由 wrangler 记录到 d1_migrations，失败的迁移会回滚，0001 / 0002 按顺序执行
+npx wrangler d1 migrations apply freebie-db --remote
+
+# 或者按需直接执行单个迁移文件
+npx wrangler d1 execute freebie-db --remote --file=migrations/0001_providers_constraints.sql
+npx wrangler d1 execute freebie-db --remote --file=migrations/0002_providers_status_disabled.sql
+```
+
+| 迁移 | 作用 | 适用 |
+| --- | --- | --- |
+| `0001_providers_constraints.sql` | 给旧的宽松 `providers` 表补上 CHECK 约束 | 跑过旧 `schema.sql`、表里还没有约束的库 |
+| `0002_providers_status_disabled.sql` | 把 `status` 取值集合扩展为 `pending / approved / disabled / rejected` | 跑过 `0001`、需要支持「显式下线」的库 |
+
+两个迁移都是一条流程：新建带约束的表 → 原样复制合规记录（所有状态全部保留）→ 把不满足新约束的旧记录写入 `providers_quarantine` 并记录 `failed_checks` 原因 → 断言「合规记录一条不少 + 隔离条数对得上」→ 全部通过后才替换旧表并重建 `idx_providers_status`。任何断言失败都会直接报错中止，旧表保持原样，不会静默丢数据。
+
+### 迁移中断后重跑
+
+D1 的 SQL 接口**不支持显式事务**：对 D1 执行 `BEGIN TRANSACTION` / `SAVEPOINT` 会直接报错（`To execute a transaction, please use the state.storage.transaction() API instead of the SQL BEGIN TRANSACTION or SAVEPOINT statements.`），只能改用 `batch` / Durable Objects 提供的事务能力。所以这个脚本**没法**用 `BEGIN`/`COMMIT` 把「复制 → 隔离写入 → 断言 → 换表」包成一次原子操作，改为保证「在任意两条语句之间被打断后重跑都安全」：
+
+| 中断位置 | 重跑后果 |
+| --- | --- |
+| 复制合规记录之后、写隔离表之前 | `providers_new` 和体检表都是从当前 `providers` 派生的副本，重跑会先 `DROP` 再重建，无影响 |
+| 写隔离表之后、断言/换表之前 | 隔离表以 `legacy_rowid` 为主键、用 `INSERT OR REPLACE` 写入：同一个旧行永远只有一行审计记录，重跑只是把它刷新成新一轮的 `run_id`，**不会撞主键失败，也不会产生重复行** |
+| `DROP TABLE providers` 与 `ALTER TABLE ... RENAME` 之间 | 唯一需要人工介入的情况：新数据在 `providers_new` 里。此时脚本会在前置检查处主动中止，按对应迁移文件（`0001` / `0002`）顶部「前置检查」注释执行 `ALTER TABLE providers_new RENAME TO providers;` 恢复后重跑即可 |
+| 已成功之后 | 等价于用同样的约束再重建一遍，结果不变（隔离表不会新增记录） |
+
+检查隔离出来的记录（`run_id` 标记最近一次写入它的迁移轮次；确认后修正字段重新投稿，或用 `--json` 导出留档）：
+
+```bash
+npx wrangler d1 execute freebie-db --remote --command "SELECT legacy_rowid, run_id, id, name, status, failed_checks FROM providers_quarantine ORDER BY legacy_rowid"
+npx wrangler d1 execute freebie-db --remote --json --command "SELECT * FROM providers_quarantine"
+```
+
+## 同步服务商声明到 D1（PR 合并 → D1）
+
+```text
+submissions/providers/<id>.json  --合并 PR-->  main
+      |
+      |  GitHub Actions: .github/workflows/sync-providers.yml
+      v
+scripts/sync-providers.mjs  --(先全量校验，再输出 SQL)-->  .wrangler/sync-providers.sql
+      |
+      v
+npx wrangler d1 execute freebie-db --remote --file=...   -->  D1 `providers`
+```
+
+- **触发条件**：只有 push 到 `main`、且改动落在 `submissions/providers/**`、`submissions/providers.schema.json`、`scripts/sync-providers.mjs`、`schema.sql`、`migrations/**` 或 workflow 自身时才会运行。
+- **权限与并发**：`permissions: contents: read`；`concurrency: sync-providers-d1`（不取消进行中的运行，避免两次写入交错）。
+- **合并即生效**：PR 合并后同步脚本对每个声明执行一次 `INSERT ... ON CONFLICT(id) DO UPDATE`。同一份声明重复同步结果不变（幂等），改回 `approved` 就能恢复上线。
+- **同步语义**：写 `pending` / `approved` / `disabled` / `rejected` 全部状态；`created_at` 与已有的 `submitted_by` 在更新时保留，`updated_at` 刷新为本次同步时间。
+- **删除声明文件不会下线服务商**：脚本只写「当前还存在声明文件」的 `id`，无法区分「文件被删」和「本次只改了一个文件」。请用显式 `"status": "disabled"` 下线。
+
+### 管理员：配置 GitHub Secrets
+
+workflow 需要两个仓库级密钥，配置位置：**仓库 → Settings → Secrets and variables → Actions → Secrets**（`CLOUDFLARE_ACCOUNT_ID` 也可以配在 **Variables** 里，同样会读取）：
+
+| 名称 | 必需 | 说明 |
+| --- | --- | --- |
+| `CLOUDFLARE_API_TOKEN` | 是 | Cloudflare API Token，权限至少包含目标账号的 **D1 Edit**（建议按账号/资源最小授权） |
+| `CLOUDFLARE_ACCOUNT_ID` | 是 | Cloudflare 账号 ID（`wrangler whoami` 或控制台右侧可见） |
+
+> 密钥只会通过 `env` 传给 wrangler，不写入仓库、不出现在命令行参数里；workflow 文件里也没有任何真实凭据。**未配置密钥时 workflow 会在第一步就失败并给出提示**，不会带着空凭据去连 D1。
+
+### 同步失败后怎么处理
+
+| 现象 | 原因 | 处理 |
+| --- | --- | --- |
+| `Generate upsert SQL from declarations` 步骤失败，日志里是 `error: submissions/providers/xxx.json` 加具体字段原因 | 声明文件不合规（URL 不是 https、`disabled` 缺 `offlineReason`/`offlineAt`、`id` 与文件名不一致等） | 按提示修文件再提交一次 PR。脚本**在生成任何 SQL 之前就退出**，所以 D1 完全没有被改动，不存在部分写入 |
+| 第一步 `Check Cloudflare credentials` 失败 | Secrets 没配或名称拼错 | 按上一节配置 `CLOUDFLARE_API_TOKEN` / `CLOUDFLARE_ACCOUNT_ID` 后重新运行 |
+| `Apply upserts to D1` 失败（wrangler 报错 / 网络中断） | 认证、账号权限、D1 暂时不可用等 | 脚本的每条语句都是幂等 upsert，**直接在 Actions 里 re-run 失败的 job 即可**；也可以本地执行 `node scripts/sync-providers.mjs --out .wrangler/sync-providers.sql` 后手动 `npx wrangler d1 execute freebie-db --remote --file=.wrangler/sync-providers.sql` |
+| workflow 没有触发 | 改动不在 `paths` 列表里（例如只改了 `submissions/providers/README.md` 或 examples） | 正常现象，文档/示例不影响数据；确有需要可在 Actions 里 re-run 上一次成功的运行 |
+
+本地自检（不需要任何密钥，只输出 SQL，不连库）：
+
+```bash
+node scripts/sync-providers.mjs                        # SQL 到 stdout
+node scripts/sync-providers.mjs --out .wrangler/sync-providers.sql
+```
 
 ## 🎁 提交 PR / 白嫖爆料指引 (Contribution Guide)
 
@@ -91,6 +214,16 @@ python3 -m http.server 8788
 
 ```bash
 VITE_FREEBIE_PAGE_URL=http://localhost:8788/ npm run dev
+```
+
+## 测试
+
+- 运行测试需要 **Node.js ≥ 22.13.0**（`tests/` 用内置 `node:sqlite` 搭 D1 fixture；该模块在 Node 22.13.0 才移出 `--experimental-sqlite` 标志，更早的版本不受支持）。本项目在 Node 24 LTS 上验证通过，`package.json` 的 `engines.node` 即该下限。
+- `tests/assets-ignore.test.js` 用 git 的 ignore 引擎校验 `.assetsignore` 模式（需要 `git` 在 PATH 上；机器上没有 git 时该用例会跳过）。
+- `tests/sync-providers.test.js` 会真实 spawn `scripts/sync-providers.mjs`，把生成的 SQL 应用到内存 SQLite，再通过 `GET /api/providers` 读回来，覆盖「approved 上线 / disabled 下线 / 无效声明整体拒绝 / SQL 注入转义 / 迁移 0002 保数据」等路径。
+
+```bash
+npm test   # node --test，运行 tests/ 下全部测试
 ```
 
 ## 桥协议 v1

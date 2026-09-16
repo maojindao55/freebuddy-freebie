@@ -1,0 +1,13 @@
+{
+  "name": "freebuddy-freebie",
+  "version": "1.0.0",
+  "private": true,
+  "description": "FreeBuddy 免费模型专区：静态目录 + Worker/D1 运行时目录",
+  "type": "module",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "scripts": {
+    "test": "node --test"
+  }
+}

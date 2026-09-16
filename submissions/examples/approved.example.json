@@ -1,0 +1,24 @@
+{
+  "$schema": "../providers.schema.json",
+  "id": "example-provider",
+  "name": "Example Provider",
+  "icon": "openai",
+  "region": "global",
+  "homepage": "https://example.com",
+  "consoleUrl": "https://example.com/console/api-keys",
+  "freeTierSummary": {
+    "zh-CN": "新用户注册即赠送免费额度，超出后按量计费；免费模型包含 example-mini。",
+    "en": "New accounts get free credits; the free tier includes example-mini."
+  },
+  "protocol": "openai-chat",
+  "protocols": ["openai-chat", "anthropic"],
+  "baseUrl": "https://api.example.com/v1",
+  "envKey": "OPENAI_API_KEY",
+  "models": [
+    { "id": "example-mini", "name": "Example Mini", "contextWindow": 128000, "supportsVision": true },
+    { "id": "example-flash", "name": "Example Flash", "contextWindow": 65536 }
+  ],
+  "verifiedAt": "2026-09-16",
+  "status": "approved",
+  "submittedBy": "example-login"
+}

@@ -2,6 +2,7 @@
  * Cloudflare Worker for FreeBuddy Freebie Catalog & Community Reviews API.
  *
  * Provides:
+ * - GET /api/providers : Approved runtime providers from D1 (submissions still go through GitHub PR)
  * - GET /api/summary : Aggregated review scores & vote stats for all providers
  * - GET /api/reviews?providerId=xxx : Recent reviews and stats for a specific provider
  * - POST /api/reviews : Submit or update a review (authenticated via FreeBuddy client)
@@ -112,6 +113,142 @@ function findD1Database(env) {
   return null;
 }
 
+const PROVIDER_PROTOCOLS = ["openai-chat", "openai-responses", "anthropic", "deepseek"];
+const PROVIDER_ID_PATTERN = /^[a-z0-9][a-z0-9_-]{0,63}$/;
+const ENV_KEY_PATTERN = /^[A-Z][A-Z0-9_]{1,63}$/;
+const VERIFIED_AT_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+const MAX_NAME_LENGTH = 80;
+const MAX_URL_LENGTH = 2048;
+
+function parseJsonSafe(value, fallback) {
+  if (typeof value !== "string" || !value.trim()) return fallback;
+  try {
+    const parsed = JSON.parse(value);
+    return parsed === null || parsed === undefined ? fallback : parsed;
+  } catch {
+    return fallback;
+  }
+}
+
+// The static catalog only ships https URLs (providers.schema.json enforces
+// `^https://` on every URL field), so runtime rows must not be able to weaken
+// that contract and inject a clickable non-https link.
+function isSafeHttpsUrl(value) {
+  if (typeof value !== "string") return false;
+  const trimmed = value.trim();
+  if (!trimmed || trimmed.length > MAX_URL_LENGTH) return false;
+  try {
+    return new URL(trimmed).protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+// Icons are either https URLs or lobehub slugs. Anything else (including a
+// protocol-relative `//host/x.svg`) is dropped so it can never become an asset URL.
+function isSafeIcon(value) {
+  if (typeof value !== "string") return false;
+  const trimmed = value.trim();
+  if (!trimmed || trimmed.length > 200) return false;
+  return isSafeHttpsUrl(trimmed) || /^[a-z0-9][a-z0-9-]*$/i.test(trimmed);
+}
+
+function sanitizeModel(model) {
+  if (!model || typeof model !== "object" || Array.isArray(model)) return null;
+  const id = typeof model.id === "string" ? model.id.trim() : "";
+  if (!id) return null;
+  const clean = { id };
+  if (typeof model.name === "string" && model.name.trim()) clean.name = model.name.trim();
+  if (Number.isFinite(model.contextWindow) && model.contextWindow > 0) clean.contextWindow = model.contextWindow;
+  if (model.supportsVision === true) clean.supportsVision = true;
+  return clean;
+}
+
+// Explicit application-layer validation for one runtime provider.
+// schema.sql CHECK constraints are only a backstop: they are not a JSON Schema
+// replacement, and rows can also arrive through manual admin imports that bypass
+// the review flow. Every record is re-checked here before it is served.
+function validateProvider(provider) {
+  const errors = [];
+  if (!provider || typeof provider !== "object" || Array.isArray(provider)) {
+    return { ok: false, errors: ["not_an_object"] };
+  }
+  if (typeof provider.id !== "string" || !PROVIDER_ID_PATTERN.test(provider.id)) errors.push("invalid_id");
+  if (typeof provider.name !== "string" || !provider.name.trim() || provider.name.length > MAX_NAME_LENGTH) {
+    errors.push("invalid_name");
+  }
+  if (provider.region !== undefined && provider.region !== "cn" && provider.region !== "global") {
+    errors.push("invalid_region");
+  }
+  if (!PROVIDER_PROTOCOLS.includes(provider.protocol)) errors.push("invalid_protocol");
+  if (!Array.isArray(provider.models) || provider.models.length === 0) errors.push("empty_models");
+  if (!isSafeHttpsUrl(provider.baseUrl)) errors.push("unsafe_base_url");
+  if (provider.homepage !== undefined && !isSafeHttpsUrl(provider.homepage)) errors.push("unsafe_homepage");
+  if (provider.consoleUrl !== undefined && !isSafeHttpsUrl(provider.consoleUrl)) errors.push("unsafe_consoleUrl");
+  if (provider.icon !== undefined && !isSafeIcon(provider.icon)) errors.push("unsafe_icon");
+  if (provider.contextWindow !== undefined && !(Number.isFinite(provider.contextWindow) && provider.contextWindow > 0)) {
+    errors.push("invalid_contextWindow");
+  }
+  return { ok: errors.length === 0, errors };
+}
+
+// Map a D1 providers row to the camelCase Provider object used by the page.
+// Unsafe optional fields (homepage / consoleUrl / icon) are cleared, then the whole
+// record must pass validateProvider() or it is dropped, so broken data never reaches
+// the renderer.
+function toProviderObject(row) {
+  if (!row) return null;
+  const id = typeof row.id === "string" ? row.id.trim() : "";
+  const name = typeof row.name === "string" ? row.name.trim() : "";
+  const baseUrl = typeof row.base_url === "string" ? row.base_url.trim() : "";
+
+  const provider = { id, name };
+
+  if (isSafeIcon(row.icon)) provider.icon = row.icon.trim();
+  if (row.region === "cn" || row.region === "global") provider.region = row.region;
+  if (isSafeHttpsUrl(row.homepage)) provider.homepage = row.homepage.trim();
+  if (isSafeHttpsUrl(row.console_url)) provider.consoleUrl = row.console_url.trim();
+
+  const freeTierSummary = parseJsonSafe(row.free_tier_summary, null);
+  if (freeTierSummary && typeof freeTierSummary === "object" && !Array.isArray(freeTierSummary)) {
+    const summary = {};
+    for (const [lang, text] of Object.entries(freeTierSummary)) {
+      if (typeof text === "string" && text.trim()) summary[lang] = text.trim();
+    }
+    if (Object.keys(summary).length > 0) provider.freeTierSummary = summary;
+  }
+
+  provider.protocol = PROVIDER_PROTOCOLS.includes(row.protocol) ? row.protocol : "openai-chat";
+
+  const protocols = parseJsonSafe(row.protocols, null);
+  if (Array.isArray(protocols)) {
+    const valid = [...new Set(protocols.filter((p) => PROVIDER_PROTOCOLS.includes(p)))];
+    if (valid.length > 0) provider.protocols = valid;
+  }
+
+  provider.baseUrl = baseUrl;
+  if (typeof row.env_key === "string" && ENV_KEY_PATTERN.test(row.env_key.trim())) {
+    provider.envKey = row.env_key.trim();
+  }
+
+  const models = parseJsonSafe(row.models, []);
+  provider.models = (Array.isArray(models) ? models : []).map(sanitizeModel).filter(Boolean);
+
+  if (Number.isFinite(row.context_window) && row.context_window > 0) provider.contextWindow = row.context_window;
+  if (typeof row.verified_at === "string" && VERIFIED_AT_PATTERN.test(row.verified_at.trim())) {
+    provider.verifiedAt = row.verified_at.trim();
+  }
+
+  const validation = validateProvider(provider);
+  if (!validation.ok) {
+    console.warn(
+      `[api/providers] dropped invalid runtime provider "${id || "(missing id)"}": ${validation.errors.join(", ")}`
+    );
+    return null;
+  }
+  return provider;
+}
+
 async function handleApi(request, env) {
   const url = new URL(request.url);
 
@@ -145,6 +282,37 @@ async function handleApi(request, env) {
       reviewCount,
       dbError
     });
+  }
+
+  // GET /api/providers : approved runtime providers only.
+  // Read-only by design: new providers are reviewed via GitHub PR first.
+  if (url.pathname === "/api/providers" && request.method === "GET") {
+    if (!db) {
+      return jsonResponse({ ok: true, providers: [] });
+    }
+    try {
+      const rows = await db
+        .prepare(
+          `SELECT id, name, icon, region, homepage, console_url, free_tier_summary,
+                  protocol, protocols, base_url, env_key, models, context_window, verified_at
+           FROM providers
+           WHERE status = 'approved'
+           ORDER BY updated_at DESC, id ASC`
+        )
+        .all();
+
+      const providers = [];
+      for (const row of rows?.results || []) {
+        const provider = toProviderObject(row);
+        if (provider) providers.push(provider);
+      }
+
+      return jsonResponse({ ok: true, providers });
+    } catch (err) {
+      // Missing table or broken binding must never take the static catalog down.
+      console.warn("[api/providers] query failed:", err.message);
+      return jsonResponse({ ok: true, providers: [] });
+    }
   }
 
   // GET /api/summary

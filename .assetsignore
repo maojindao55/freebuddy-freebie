@@ -1,0 +1,38 @@
+# 部署白名单的反面：wrangler.toml 里 [assets] directory = "."，也就是仓库根目录本身就是公开的
+# 静态资源目录 —— 凡是没有在这里排除的文件都会作为公开资源上传。格式与 .gitignore 相同
+# （Cloudflare 文档：.assetsignore "takes the same format as .gitignore"）。
+#
+# 只发布页面运行和部署需要的东西：index.html / styles.css / app.js / freebuddy-bridge.js /
+# providers.json / providers.schema.json，以及 worker.js、_headers、wrangler.toml。
+# tests/assets-ignore.test.js 会用 git 的 ignore 引擎逐条验证这些模式。
+
+# 依赖与本地工具产物（绝不发布）
+node_modules/
+.wrangler/
+.codebuddy/
+
+# 测试、迁移与工程配置：只在仓库/本地使用
+tests/
+migrations/
+package.json
+package-lock.json
+
+# D1 运行时目录的投稿声明、同步脚本与 CI 配置：仓库/CI 使用，绝不发布
+submissions/
+scripts/
+.github/
+
+# 版本控制元数据与仓库文档（不是页面资源）
+.git/
+.gitignore
+.assetsignore
+README.md
+CONTRIBUTING.md
+CONTRIBUTING_AGENT.md
+
+# macOS / 日志等本地杂物
+.DS_Store
+*.log
+
+# Shell 展开 / 手滑产物：形如 `> {r[p.protocol]` 的陌生文件，绝不发布
+{r\[p.protocol\]

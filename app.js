@@ -120,6 +120,9 @@
   };
 
   const RUNTIME_LABEL = { codex: "Codex", claude: "Claude Code", deepseek: "DeepSeek" };
+  const PROVIDER_PROTOCOLS = ["openai-chat", "openai-responses", "anthropic", "deepseek"];
+  const PROVIDER_ID_PATTERN = /^[a-z0-9][a-z0-9_-]{0,63}$/;
+  const RUNTIME_FETCH_TIMEOUT_MS = 3000;
 
   const state = {
     locale: normalizeLocale(params.get("lang") || navigator.language),
@@ -166,6 +169,35 @@
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#39;");
+  }
+
+  // Only https URLs may become links or asset sources on this page. The reviewed
+  // static catalog is validated against providers.schema.json; runtime entries from
+  // /api/providers are re-checked here too (defense in depth), so a dirty D1 row can
+  // never turn into a clickable javascript:/data:/http: href.
+  function isSafeHttpsUrl(value) {
+    if (typeof value !== "string") return false;
+    const trimmed = value.trim();
+    if (!trimmed || trimmed.length > 2048) return false;
+    try {
+      return new URL(trimmed).protocol === "https:";
+    } catch {
+      return false;
+    }
+  }
+
+  // Icons are either https URLs or lobehub slugs; anything else is dropped so it
+  // can never become an asset URL.
+  function isSafeIcon(value) {
+    if (typeof value !== "string") return false;
+    const trimmed = value.trim();
+    if (!trimmed || trimmed.length > 200) return false;
+    return isSafeHttpsUrl(trimmed) || /^[a-z0-9][a-z0-9-]*$/i.test(trimmed);
+  }
+
+  // Returns the trimmed URL only when it is safe to place in an href/src.
+  function safeUrl(value) {
+    return isSafeHttpsUrl(value) ? value.trim() : "";
   }
 
   function formatRelativeTime(ts) {
@@ -237,10 +269,13 @@
 
   function resolveIcon(provider) {
     if (provider && provider.icon) {
-      if (provider.icon.startsWith("https://") || provider.icon.startsWith("/")) {
+      // Relative paths are allowed, but never protocol-relative (`//host/x.svg`).
+      if (isSafeHttpsUrl(provider.icon) || (provider.icon.startsWith("/") && !provider.icon.startsWith("//"))) {
         return provider.icon;
       }
-      return `https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.95.0/icons/${provider.icon}.svg`;
+      if (/^[a-z0-9][a-z0-9-]*$/i.test(provider.icon)) {
+        return `https://cdn.jsdelivr.net/npm/@lobehub/icons-static-svg@1.95.0/icons/${provider.icon}.svg`;
+      }
     }
     return getFaviconFallback(provider);
   }
@@ -656,22 +691,28 @@
     // Overview & Summary
     modal.querySelector(".modal-summary").textContent = summaryFor(provider);
 
-    // Links
+    // Links (https only — never trust a provider object built elsewhere)
     const homepage = modal.querySelector(".modal-homepage");
-    if (provider.homepage) {
-      homepage.href = provider.homepage;
-      homepage.textContent = t("homepage");
-      homepage.hidden = false;
-      homepage.onclick = openLink;
-    } else homepage.hidden = true;
+    const homepageUrl = safeUrl(provider.homepage);
+    if (homepage) {
+      if (homepageUrl) {
+        homepage.href = homepageUrl;
+        homepage.textContent = t("homepage");
+        homepage.hidden = false;
+        homepage.onclick = openLink;
+      } else homepage.hidden = true;
+    }
 
     const consoleLink = modal.querySelector(".modal-console");
-    if (provider.consoleUrl) {
-      consoleLink.href = provider.consoleUrl;
-      consoleLink.textContent = t("getKey");
-      consoleLink.hidden = false;
-      consoleLink.onclick = openLink;
-    } else consoleLink.hidden = true;
+    const consoleUrl = safeUrl(provider.consoleUrl);
+    if (consoleLink) {
+      if (consoleUrl) {
+        consoleLink.href = consoleUrl;
+        consoleLink.textContent = t("getKey");
+        consoleLink.hidden = false;
+        consoleLink.onclick = openLink;
+      } else consoleLink.hidden = true;
+    }
 
     // Import button
     const importBtn = modal.querySelector(".modal-import-btn");
@@ -737,6 +778,7 @@
   function checkHashForModal() {
     const hash = location.hash.replace(/^#/, "").trim();
     if (!hash || state.providers.length === 0) return;
+    if (state.activeModalProviderId === hash) return; // already open for this provider
     const provider = state.providers.find((p) => p.id === hash);
     if (provider) {
       openProviderModal(provider);
@@ -811,18 +853,20 @@
         });
 
         const homepage = node.querySelector(".card-homepage");
-        if (provider.homepage) {
-          homepage.href = provider.homepage;
+        const homepageUrl = safeUrl(provider.homepage);
+        if (homepage && homepageUrl) {
+          homepage.href = homepageUrl;
           homepage.textContent = t("homepage");
           homepage.addEventListener("click", openLink);
-        } else homepage.remove();
+        } else if (homepage) homepage.remove();
 
         const consoleLink = node.querySelector(".card-console");
-        if (provider.consoleUrl) {
-          consoleLink.href = provider.consoleUrl;
+        const consoleUrl = safeUrl(provider.consoleUrl);
+        if (consoleLink && consoleUrl) {
+          consoleLink.href = consoleUrl;
           consoleLink.textContent = t("getKey");
           consoleLink.addEventListener("click", openLink);
-        } else consoleLink.remove();
+        } else if (consoleLink) consoleLink.remove();
 
         const btn = node.querySelector(".import-btn");
         const busy = state.busy.has(provider.id);
@@ -950,24 +994,151 @@
     }
   }
 
-  async function loadCatalog(bustCache = false) {
+  // Runtime catalog entries come from GET /api/providers (approved D1 rows).
+  // Rebuild each entry with type guards and https-only URL checks so a malformed or
+  // unsafe remote record can never reach the DOM; unusable records are dropped.
+  function sanitizeRemoteProvider(raw) {
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+    const id = typeof raw.id === "string" ? raw.id.trim() : "";
+    const name = typeof raw.name === "string" ? raw.name.trim() : "";
+    const baseUrl = typeof raw.baseUrl === "string" ? raw.baseUrl.trim() : "";
+    if (!id || !PROVIDER_ID_PATTERN.test(id)) return null;
+    if (!name || name.length > 80) return null;
+    // baseUrl is what FreeBuddy imports; a non-https endpoint is unusable.
+    if (!isSafeHttpsUrl(baseUrl)) return null;
+
+    const provider = { id, name, baseUrl };
+
+    if (isSafeIcon(raw.icon)) provider.icon = raw.icon.trim();
+    if (raw.region === "cn" || raw.region === "global") provider.region = raw.region;
+    // Unsafe or malformed URLs are cleared here, never rendered as links.
+    if (isSafeHttpsUrl(raw.homepage)) provider.homepage = raw.homepage.trim();
+    if (isSafeHttpsUrl(raw.consoleUrl)) provider.consoleUrl = raw.consoleUrl.trim();
+
+    if (raw.freeTierSummary && typeof raw.freeTierSummary === "object" && !Array.isArray(raw.freeTierSummary)) {
+      const summary = {};
+      Object.entries(raw.freeTierSummary).forEach(([lang, text]) => {
+        if (typeof text === "string" && text) summary[lang] = text;
+      });
+      if (Object.keys(summary).length > 0) provider.freeTierSummary = summary;
+    }
+
+    provider.protocol = PROVIDER_PROTOCOLS.includes(raw.protocol) ? raw.protocol : "openai-chat";
+    if (Array.isArray(raw.protocols)) {
+      const protocols = [...new Set(raw.protocols.filter((p) => PROVIDER_PROTOCOLS.includes(p)))];
+      if (protocols.length > 0) provider.protocols = protocols;
+    }
+
+    if (typeof raw.envKey === "string" && /^[A-Z][A-Z0-9_]{1,63}$/.test(raw.envKey.trim())) {
+      provider.envKey = raw.envKey.trim();
+    }
+
+    provider.models = (Array.isArray(raw.models) ? raw.models : [])
+      .map((model) => {
+        if (!model || typeof model !== "object" || typeof model.id !== "string" || !model.id.trim()) return null;
+        const clean = { id: model.id.trim() };
+        if (typeof model.name === "string" && model.name.trim()) clean.name = model.name.trim();
+        if (Number.isFinite(model.contextWindow) && model.contextWindow > 0) clean.contextWindow = model.contextWindow;
+        if (model.supportsVision === true) clean.supportsVision = true;
+        return clean;
+      })
+      .filter(Boolean);
+    // Without a model the entry cannot be imported, so it is not worth rendering.
+    if (provider.models.length === 0) return null;
+
+    if (Number.isFinite(raw.contextWindow) && raw.contextWindow > 0) provider.contextWindow = raw.contextWindow;
+    if (typeof raw.verifiedAt === "string" && /^\d{4}-\d{2}-\d{2}$/.test(raw.verifiedAt.trim())) {
+      provider.verifiedAt = raw.verifiedAt.trim();
+    }
+
+    return provider;
+  }
+
+  function mergeCatalogProviders(staticProviders, runtimeProviders) {
+    const merged = staticProviders.slice();
+    const seen = new Set();
+    merged.forEach((provider) => {
+      if (provider && provider.id) seen.add(provider.id);
+    });
+    // The reviewed static catalog wins on id conflicts; runtime-only entries are appended.
+    runtimeProviders.forEach((provider) => {
+      if (seen.has(provider.id)) return;
+      seen.add(provider.id);
+      merged.push(provider);
+    });
+    return merged;
+  }
+
+  // Fetch JSON with an optional hard timeout. A stalled /api/providers request must
+  // never keep the page from showing the reviewed static catalog.
+  async function fetchJsonWithTimeout(url, options = {}, timeoutMs = 0) {
+    const controller = timeoutMs > 0 && typeof AbortController === "function" ? new AbortController() : null;
+    const timer = controller ? setTimeout(() => controller.abort(), timeoutMs) : null;
     try {
-      const url = bustCache ? `./providers.json?t=${Date.now()}` : "./providers.json";
-      const res = await fetch(url, { cache: "no-cache" });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      state.providers = Array.isArray(data.providers) ? data.providers.slice().reverse() : [];
-      state.updatedAt = data.updatedAt || null;
+      const res = await fetch(url, controller ? { ...options, signal: controller.signal } : options);
+      if (!res.ok) return { ok: false, reason: `http_${res.status}` };
+      try {
+        return { ok: true, data: await res.json() };
+      } catch (err) {
+        return { ok: false, reason: "invalid_json", err };
+      }
     } catch (err) {
-      console.error("[freebie] catalog load failed", err);
+      return { ok: false, reason: controller && controller.signal.aborted ? "timeout" : "network_error", err };
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
+  }
+
+  async function fetchRuntimeProviders() {
+    const result = await fetchJsonWithTimeout("./api/providers", { cache: "no-cache" }, RUNTIME_FETCH_TIMEOUT_MS);
+    if (!result.ok) {
+      // Expected on static-only deploys, timeouts and broken rows included: keep the static catalog.
+      if (result.reason !== "timeout") console.warn("[freebie] runtime providers unavailable:", result.reason);
+      return [];
+    }
+    const data = result.data;
+    if (!data || !Array.isArray(data.providers)) return [];
+    const providers = [];
+    data.providers.forEach((item) => {
+      const provider = sanitizeRemoteProvider(item);
+      if (provider) providers.push(provider);
+      else console.warn("[freebie] skipped invalid runtime provider entry", item);
+    });
+    return providers;
+  }
+
+  function applyCatalog(staticProviders, runtimeProviders) {
+    state.providers = mergeCatalogProviders(staticProviders, runtimeProviders);
+    renderMeta();
+    renderCards();
+    checkHashForModal();
+  }
+
+  async function loadCatalog(bustCache = false) {
+    const staticUrl = bustCache ? `./providers.json?t=${Date.now()}` : "./providers.json";
+    const staticResult = await fetchJsonWithTimeout(staticUrl, { cache: "no-cache" });
+
+    if (!staticResult.ok) {
+      console.error("[freebie] catalog load failed", staticResult.err || staticResult.reason);
       document.getElementById("providers").innerHTML =
         `<p class="load-error">${t("loadFailed")}</p>`;
       return;
     }
-    renderMeta();
-    renderCards();
+
+    const data = staticResult.data;
+    const staticProviders = Array.isArray(data?.providers) ? data.providers.slice().reverse() : [];
+    state.updatedAt = data?.updatedAt || null;
+
+    // Render the reviewed static catalog first; the runtime merge below only ever
+    // adds entries, and only if /api/providers answers before the timeout.
+    applyCatalog(staticProviders, []);
     loadCommunitySummary();
-    checkHashForModal();
+
+    const runtimeProviders = await fetchRuntimeProviders();
+    if (runtimeProviders.length === 0) return;
+
+    applyCatalog(staticProviders, runtimeProviders);
+    loadCommunitySummary();
   }
 
   function refreshPage() {
@@ -1028,6 +1199,22 @@
 
   bridge.onState(applyHostState);
   bridge.onState(renderCards);
+
+  // Test-only seam: the Node harness opts in with `window.__freebieTestMode = true`
+  // before this script runs (tests/app-catalog.test.js). Normal page loads expose nothing.
+  if (window.__freebieTestMode) {
+    window.__freebieInternals = {
+      state,
+      isSafeHttpsUrl,
+      safeUrl,
+      sanitizeRemoteProvider,
+      mergeCatalogProviders,
+      fetchJsonWithTimeout,
+      fetchRuntimeProviders,
+      loadCatalog,
+      RUNTIME_FETCH_TIMEOUT_MS
+    };
+  }
 
   applyTheme();
   applyLocale();

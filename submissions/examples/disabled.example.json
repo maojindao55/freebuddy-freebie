@@ -1,0 +1,22 @@
+{
+  "$schema": "../providers.schema.json",
+  "id": "example-provider",
+  "name": "Example Provider",
+  "icon": "openai",
+  "region": "global",
+  "homepage": "https://example.com",
+  "consoleUrl": "https://example.com/console/api-keys",
+  "freeTierSummary": {
+    "zh-CN": "免费额度活动已结束，保留条目以便日后恢复。",
+    "en": "The free tier has ended; the entry is kept so it can be restored later."
+  },
+  "protocol": "openai-chat",
+  "baseUrl": "https://api.example.com/v1",
+  "envKey": "OPENAI_API_KEY",
+  "models": [{ "id": "example-mini", "name": "Example Mini", "contextWindow": 128000 }],
+  "verifiedAt": "2026-09-16",
+  "status": "disabled",
+  "offlineReason": "免费额度活动已结束，新账号不再赠送额度",
+  "offlineAt": "2026-09-16",
+  "submittedBy": "example-login"
+}

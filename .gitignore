@@ -1,3 +1,9 @@
 .wrangler/
 node_modules/
 .DS_Store
+
+# 本地 Agent 工作目录（CodeBuddy 挂载的 skill 等），不是仓库内容
+.codebuddy/
+
+# Shell-expansion / typo artifacts (e.g. `> {r[p.protocol]`), never user content
+{r\[p.protocol\]

@@ -1,0 +1,70 @@
+name: Sync provider declarations to D1
+
+# GitHub is the review gate for the runtime provider catalog: merging a PR into `main`
+# runs scripts/sync-providers.mjs and applies the generated upserts to the D1 database
+# behind GET /api/providers. The script validates every declaration before it emits a
+# single statement, so one invalid submission fails this job and D1 is never partially
+# written. Deleting a declaration file is deliberately not a delete/disable — a provider
+# is taken offline by `"status": "disabled"` (see submissions/providers/README.md).
+on:
+  push:
+    branches: [main]
+    paths:
+      - "submissions/providers/**"
+      - "submissions/providers.schema.json"
+      - "scripts/sync-providers.mjs"
+      - "schema.sql"
+      - "migrations/**"
+      - ".github/workflows/sync-providers.yml"
+
+# Read the repository, write to D1 through wrangler. Nothing else.
+permissions:
+  contents: read
+
+# D1 has no explicit transactions, so two overlapping runs could interleave their
+# statements. Queue them instead of cancelling: every statement is an idempotent upsert,
+# so a queued run is cheap, while a cancelled one is harder to read in the logs.
+concurrency:
+  group: sync-providers-d1
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: Sync submissions/providers into freebie-db
+    runs-on: ubuntu-latest
+    env:
+      # Configure both under Settings -> Secrets and variables -> Actions
+      # (see README, section "同步服务商声明到 D1"). The account id is not a credential
+      # in itself, so a plain repository variable is accepted as well.
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID || vars.CLOUDFLARE_ACCOUNT_ID }}
+      SYNC_SQL_FILE: .wrangler/sync-providers.sql
+    steps:
+      # Fail fast (and with a fixable message) instead of letting wrangler report an
+      # opaque authentication error.
+      - name: Check Cloudflare credentials
+        run: |
+          if [ -z "${CLOUDFLARE_API_TOKEN}" ] || [ -z "${CLOUDFLARE_ACCOUNT_ID}" ]; then
+            echo "::error title=missing-cloudflare-credentials::CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID are not configured. Add them in Settings -> Secrets and variables -> Actions (README, section '同步服务商声明到 D1')."
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # engines.node >= 22.13.0; "22.x" resolves to the latest 22 release.
+          node-version: "22.x"
+
+      # Exits non-zero with a per-file diagnostic when any declaration is invalid, and in
+      # that case writes no SQL at all — the next step therefore never runs.
+      - name: Generate upsert SQL from declarations
+        run: node scripts/sync-providers.mjs --out "$SYNC_SQL_FILE"
+
+      - name: Apply upserts to D1
+        run: |
+          if ! grep -q "^INSERT INTO providers (" "$SYNC_SQL_FILE"; then
+            echo "No provider declaration produced a statement — nothing to apply."
+            exit 0
+          fi
+          npx --yes wrangler@4 d1 execute freebie-db --remote --yes --file="$SYNC_SQL_FILE"
