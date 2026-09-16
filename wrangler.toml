@@ -2,6 +2,12 @@ name = "freebuddy-freebie"
 compatibility_date = "2024-09-01"
 main = "worker.js"
 
+# 项目固定的 Cloudflare 账号（Account ID 不是密钥，Cloudflare 官方也把它当作可公开的标识符）。
+# 写在这里让 wrangler 的所有命令——本地 CLI 和 GitHub Actions——都用同一个确定值，
+# 不再从 GitHub Secret / Variable 读取账号 ID：填错账号是 7003 的常见来源，而这里只有一处可改。
+# 不要改成其他账号的 ID：D1 binding 和 `wrangler d1 ...` 都依赖它。
+account_id = "ca3b2549d8dcb98799c42e7b56f4e912"
+
 [assets]
 directory = "."
 binding = "ASSETS"

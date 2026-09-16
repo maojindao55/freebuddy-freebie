@@ -10,9 +10,12 @@
  * (verified on wrangler 4.5.0 and 4.133.0). Windows PowerShell needs its own spelling: `npx`'s
  * .cmd shim truncates multi-line arguments at the first newline, and Windows PowerShell 5.1
  * drops embedded double quotes, so the README must keep the `Get-Content -Raw -Encoding UTF8`
- * plus `.Replace('"', '\"')` variant. Most checks are static assertions on the markdown text so
- * a later edit cannot quietly reintroduce the broken examples; the generator is also spawned so
- * its real output — and any stale `.wrangler/sync-providers.sql` copy — is checked too.
+ * plus `.Replace('"', '\"')` variant. The admin section must require exactly one GitHub secret
+ * (`CLOUDFLARE_API_TOKEN`) and tell operators the retired `CLOUDFLARE_ACCOUNT_ID` can be
+ * deleted: the account id lives in wrangler.toml now, and a wrong secret value was a source of
+ * Cloudflare 7003. Most checks are static assertions on the markdown text so a later edit cannot
+ * quietly reintroduce the broken examples; the generator is also spawned so its real output —
+ * and any stale `.wrangler/sync-providers.sql` copy — is checked too.
  */
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
@@ -135,11 +138,30 @@ test("the README keeps the 7003 transport explanation and the do-not-touch-ident
     "the /import vs /query transport must stay explained"
   );
   assert.ok(
-    /不要修改[\s\S]{0,64}CLOUDFLARE_ACCOUNT_ID/.test(README),
-    "readers must be told not to change the account id / database name / D1 UUID when they hit 7003"
+    /不要修改[\s\S]{0,80}account_id/.test(README),
+    "readers must be told not to change the wrangler.toml account_id / database name / D1 UUID when they hit 7003"
   );
   assert.ok(
     README.includes("npx wrangler d1 migrations apply freebie-db --remote"),
     "the manual migration path must stay documented; the workflow never applies 0001 / 0002"
+  );
+});
+
+test("the README requires only the token secret and retires the account id", () => {
+  assert.ok(
+    README.includes("| `CLOUDFLARE_API_TOKEN` | 是 |"),
+    "the API token must be documented as the one required secret"
+  );
+  assert.ok(
+    !README.includes("| `CLOUDFLARE_ACCOUNT_ID` | 是 |"),
+    "the account id must no longer be documented as a required secret"
+  );
+  assert.ok(
+    /CLOUDFLARE_ACCOUNT_ID[\s\S]{0,80}可以删除/.test(README),
+    "the README must tell operators the CLOUDFLARE_ACCOUNT_ID secret or variable can be deleted"
+  );
+  assert.ok(
+    /wrangler\.toml[\s\S]{0,40}account_id/.test(README),
+    "the README must point at wrangler.toml's account_id as the single source of the account id"
   );
 });

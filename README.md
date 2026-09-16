@@ -16,14 +16,15 @@
 | `submissions/providers/` | **D1 运行时服务商声明**：一个文件一个服务商，PR 合并后由 workflow 同步进 D1。规范见 [submissions/providers/README.md](./submissions/providers/README.md) |
 | `submissions/examples/` | 可直接复制的声明示例（不会被同步） |
 | `scripts/sync-providers.mjs` | 校验全部声明并生成确定性 upsert SQL（原生 Node，无依赖），只输出不直接连库 |
+| `scripts/check-d1-preflight.mjs` | workflow 写入前的只读 preflight：用当前凭据运行 `wrangler d1 list --json`，确认 `freebie-db`（UUID `b95f…`）可见，否则以清晰错误中止；不输出 Token / 账号 ID |
 | `worker.js` | Cloudflare Worker：评测/投票 API、`GET /api/providers` 运行时目录、静态资源回退 |
 | `schema.sql` | D1 表结构（`reviews`、`votes`、`providers`），全新数据库使用 |
 | `migrations/` | D1 迁移脚本，已有数据库升级用（`0001` 补约束、`0002` 扩展 `disabled` 状态，均保留数据且中断后可安全重跑） |
-| `.github/workflows/sync-providers.yml` | `main` 上的声明变更 → 生成 SQL → `wrangler d1 execute --remote --command`（写入库前先执行一次 `schema.sql`，首次同步自动建表） |
+| `.github/workflows/sync-providers.yml` | `main` 上的声明变更 → 生成 SQL → D1 preflight（凭据能看到 `freebie-db` 才继续）→ `wrangler d1 execute --remote --command`（写入库前先执行一次 `schema.sql`，首次同步自动建表） |
 | `tests/` | `node --test` 测试（Node ≥ 22.13.0），不参与静态资源发布 |
 | `_headers` | Cloudflare Pages 响应头（CORS 及安全策略） |
 | `.assetsignore` | 发布排除清单（语法同 `.gitignore`）：`node_modules/`、`.wrangler/`、`.codebuddy/`、`tests/`、`migrations/`、`submissions/`、`scripts/`、`.github/` 等本地文件不会上传为公开资源；页面 HTML/JS/JSON/CSS 与 `worker.js`、`_headers`、`wrangler.toml` 照常发布 |
-| `wrangler.toml` | Cloudflare Pages 项目配置 |
+| `wrangler.toml` | Cloudflare 项目配置：D1 binding，以及固定项目账号的顶层 `account_id`（不是密钥；workflow 因此不再需要 `CLOUDFLARE_ACCOUNT_ID` Secret） |
 
 ## 维护 providers.json
 
@@ -84,7 +85,7 @@ npx wrangler d1 migrations apply freebie-db --remote
 
 > 两种方式**选一种就好，不要混用**：如果先用 `schema.sql` 建库、之后又执行 `migrations apply`，wrangler 会按记录重放 `0001`（它会把 `disabled` 记录搬进隔离表并把状态集合降级），随后 `0002` 再升级回来。数据不会丢（隔离表保留原文），但需要重新触发一次同步才能把 `disabled` 记录放回 `providers`。
 
-> **为什么用 `--command="$(< 文件)"` 而不是文件模式（`--file`）**：文件模式会把 SQL 上传到 D1 的 `/import` 接口，本库上该接口返回 Cloudflare **7003**；`--command` 走 `/query` 接口，执行的是同一份 SQL。**等号不能改成空格**：`schema.sql`、迁移文件和生成的同步 SQL 都以 `--` 注释开头，wrangler 的 CLI 解析器会把「以 `-` 开头的值」当成下一个选项，`--command "$(< 文件)"` 会直接报 `Unknown argument`（wrangler 4.5.0 / 4.133.0 实测）。这是命令传输方式问题，与账号无关：**不要修改 `CLOUDFLARE_ACCOUNT_ID`、数据库名或 D1 UUID，也不要重建数据库**（见「同步失败后怎么处理」）。自动同步的 workflow 出于同样原因也已改用 `--command=`（见「同步服务商声明到 D1」）。
+> **为什么用 `--command="$(< 文件)"` 而不是文件模式（`--file`）**：文件模式会把 SQL 上传到 D1 的 `/import` 接口，本库上该接口返回 Cloudflare **7003**；`--command` 走 `/query` 接口，执行的是同一份 SQL。**等号不能改成空格**：`schema.sql`、迁移文件和生成的同步 SQL 都以 `--` 注释开头，wrangler 的 CLI 解析器会把「以 `-` 开头的值」当成下一个选项，`--command "$(< 文件)"` 会直接报 `Unknown argument`（wrangler 4.5.0 / 4.133.0 实测）。这是命令传输方式问题，与账号配置无关：**不要修改 `wrangler.toml` 里的 `account_id`、数据库名或 D1 UUID，也不要重建数据库**（见「同步失败后怎么处理」）。账号 ID 已固定在 `wrangler.toml` 的顶层 `account_id`，不再从 GitHub Secret / Variable 读取。自动同步的 workflow 出于同样原因也已改用 `--command=`（见「同步服务商声明到 D1」）。
 
 > **Windows PowerShell**：不要用 `npx`（它的 `.cmd` 通道会把多行参数截断到第一个换行），请先 `npm install -g wrangler@4`；Windows PowerShell 5.1 还会吞掉参数里的 `"`，必须先把 `"` 转义成 `\"`（否则参数会在第一个 `"` 处被拆坏）。下面两行把 `schema.sql` 换成迁移 / 同步 SQL 的路径即可套用：
 
@@ -141,14 +142,18 @@ submissions/providers/<id>.json  --合并 PR-->  main
 scripts/sync-providers.mjs  --(先全量校验，再输出 SQL)-->  .wrangler/sync-providers.sql
       |
       v
+preflight: npx wrangler d1 list --json | node scripts/check-d1-preflight.mjs
+      |    (凭据看不到 freebie-db / UUID b95f… 就报错中止，不碰数据库)
+      v
 npx wrangler d1 execute freebie-db --remote --command="$(< .wrangler/sync-providers.sql)"
       |
       v
 D1 `providers`
 ```
 
-- **触发条件**：只有 push 到 `main`、且改动落在 `submissions/providers/**`、`submissions/providers.schema.json`、`scripts/sync-providers.mjs`、`schema.sql`、`migrations/**` 或 workflow 自身时才会运行。
+- **触发条件**：只有 push 到 `main`、且改动落在 `submissions/providers/**`、`submissions/providers.schema.json`、`scripts/sync-providers.mjs`、`scripts/check-d1-preflight.mjs`、`schema.sql`、`migrations/**`、`wrangler.toml` 或 workflow 自身时才会运行。
 - **权限与并发**：`permissions: contents: read`；`concurrency: sync-providers-d1`（不取消进行中的运行，避免两次写入交错）。
+- **写入前 preflight（非敏感）**：workflow 在任何写操作之前用当前凭据执行 `wrangler d1 list --json`，由 `scripts/check-d1-preflight.mjs` 断言列表里存在 `freebie-db` 且 UUID 为 `b95f4660-…`，否则以清晰错误退出，`schema.sql` / upsert 都不会执行。它同时验证 `wrangler.toml` 的 `account_id` 与 Token 属于同一账号——账号 ID 填错曾表现为 D1 接口 7003；日志只输出库名/UUID，不输出 Token，也不输出账号 ID。
 - **首次同步自动建表**：写 upsert 之前会先用同一条 `--command=` 通道执行一次 `schema.sql`。它只有 `CREATE ... IF NOT EXISTS` 语句，所以对已有库是无副作用的空操作，对空的 `freebie-db`（`list` 显示 `num_tables=0`）则补出 `providers` / `reviews` / `votes` 三张表，让第一次同步直接成功。workflow **不会**自动执行 `migrations/0001` / `0002`：那两个脚本会重建已存在的 `providers` 表、只适用于已部署的旧库，旧库仍需按「数据库初始化与迁移顺序」人工迁移。
 - **不走文件上传（`/import`）**：`wrangler d1 execute` 的文件模式会把 SQL 上传到 D1 的 `/import` 接口，本库上该接口返回 Cloudflare 7003；现在由 bash 读取文件内容，经 `--command` 传给 `/query` 接口。引用写作 `--command="$(< 文件)"`：**等号不能改成空格**（值以 `--` 注释开头，wrangler 会把「以 `-` 开头的值」当成下一个选项而报 `Unknown argument`）；命令替换的结果在双引号内既不会被分词/通配符展开，也不会二次展开 `$`、反引号，多语句 SQL 完整作为**一个参数**传给 wrangler。Windows PowerShell 的写法见「数据库初始化与迁移顺序」。
 - **合并即生效**：PR 合并后同步脚本对每个声明执行一次 `INSERT ... ON CONFLICT(id) DO UPDATE`。同一份声明重复同步结果不变（幂等），改回 `approved` 就能恢复上线。
@@ -157,23 +162,26 @@ D1 `providers`
 
 ### 管理员：配置 GitHub Secrets
 
-workflow 需要两个仓库级密钥，配置位置：**仓库 → Settings → Secrets and variables → Actions → Secrets**（`CLOUDFLARE_ACCOUNT_ID` 也可以配在 **Variables** 里，同样会读取）：
+workflow **只需要一个仓库级密钥**，配置位置：**仓库 → Settings → Secrets and variables → Actions → Secrets**：
 
 | 名称 | 必需 | 说明 |
 | --- | --- | --- |
 | `CLOUDFLARE_API_TOKEN` | 是 | Cloudflare API Token，权限至少包含目标账号的 **D1 Edit**（建议按账号/资源最小授权） |
-| `CLOUDFLARE_ACCOUNT_ID` | 是 | Cloudflare 账号 ID（`wrangler whoami` 或控制台右侧可见） |
 
-> 密钥只会通过 `env` 传给 wrangler，不写入仓库、不出现在命令行参数里；workflow 文件里也没有任何真实凭据。**未配置密钥时 workflow 会在第一步就失败并给出提示**，不会带着空凭据去连 D1。
+账号 ID 不在这里配置：它固定在 `wrangler.toml` 的顶层 `account_id`（不是密钥，Cloudflare 也把它当作可公开的标识符），workflow 和所有 `wrangler` 命令都只用这一个确定值，所以 `wrangler d1 list` / `d1 execute` 不会再因为 Secret 里的账号 ID 填错而报 7003。**如果你以前配置过 `CLOUDFLARE_ACCOUNT_ID`（Secret 或 Variable），现在可以删除**——没有任何流程会再读它。
+
+> 密钥只会通过 `env` 传给 wrangler，不写入仓库、不出现在命令行参数里；workflow 文件里也没有任何真实凭据。**未配置 Token 时 workflow 会在第一步就失败并给出提示**，不会带着空凭据去连 D1。
 
 ### 同步失败后怎么处理
 
 | 现象 | 原因 | 处理 |
 | --- | --- | --- |
 | `Generate upsert SQL from declarations` 步骤失败，日志里是 `error: submissions/providers/xxx.json` 加具体字段原因 | 声明文件不合规（URL 不是 https、`disabled` 缺 `offlineReason`/`offlineAt`、`id` 与文件名不一致等） | 按提示修文件再提交一次 PR。脚本**在生成任何 SQL 之前就退出**，所以 D1 完全没有被改动，不存在部分写入 |
-| 第一步 `Check Cloudflare credentials` 失败 | Secrets 没配或名称拼错 | 按上一节配置 `CLOUDFLARE_API_TOKEN` / `CLOUDFLARE_ACCOUNT_ID` 后重新运行 |
+| 第一步 `Check Cloudflare credentials` 失败 | Token Secret 没配或名称拼错 | 按上一节配置 `CLOUDFLARE_API_TOKEN` 后重新运行（现在只需要这一个 Secret，账号 ID 已写在 `wrangler.toml`） |
+| `Preflight D1 connectivity` 失败 | 当前 Token 看不到目标库：Token 失效/无 D1 权限、不属于 `wrangler.toml` 里 `account_id` 的账号，或 D1 暂时不可用 | 核对 Token 是否为 `account_id` 对应账号且带 D1 权限；**不要**去 GitHub 里找 `CLOUDFLARE_ACCOUNT_ID`（已弃用），账号 ID 只在 `wrangler.toml` 里。修正后重新运行即可——preflight 是只读的，失败时 D1 没有被改动 |
 | `Apply schema and upserts to D1` 失败（wrangler 报错 / 网络中断） | 认证、账号权限、D1 暂时不可用等 | 脚本的每条语句都是幂等 upsert，`schema.sql` 也可重复执行，**直接在 Actions 里 re-run 失败的 job 即可**；也可以本地执行 `node scripts/sync-providers.mjs --out .wrangler/sync-providers.sql`，再手动 `npx wrangler d1 execute freebie-db --remote --command="$(< .wrangler/sync-providers.sql)"`（Windows PowerShell 见「数据库初始化与迁移顺序」） |
-| 旧版本日志里 `wrangler d1 execute --file` 报 Cloudflare **7003**（`/import` 上传失败） | 旧 workflow 用文件模式，走的是 D1 的 `/import` 接口，该接口对当前 `freebie-db` 不可用；与账号、数据库名、D1 UUID 无关 | **更新到当前 workflow 后重新运行**（re-run 失败的 job，或推送一个命中 `paths` 的提交），**不要**修改 `CLOUDFLARE_ACCOUNT_ID` / 数据库名 / D1 UUID，也不要重建数据库。当前 workflow 改用 `--command=` 走 `/query`，并在写 upsert 前先执行 `schema.sql`，因此空库的第一次同步会自动建表并成功 |
+| 旧版本日志里 `wrangler d1 execute --file` 报 Cloudflare **7003**（`/import` 上传失败） | 旧 workflow 用文件模式，走的是 D1 的 `/import` 接口，该接口对当前 `freebie-db` 不可用；与数据库名、D1 UUID 无关 | **更新到当前 workflow 后重新运行**（re-run 失败的 job，或推送一个命中 `paths` 的提交），**不要**修改 `wrangler.toml` 里的 `account_id` / 数据库名 / D1 UUID，也不要重建数据库。当前 workflow 改用 `--command=` 走 `/query`，并在写 upsert 前先执行 `schema.sql`（空库第一次同步自动建表）与 D1 preflight（确认凭据能看到 `freebie-db`） |
+| 旧版本日志里 `/accounts/***/d1/database/..../query` 报 7003，换 Token 后仍然如此 | 请求打到了 Token 无权访问的账号：旧 workflow 从 `CLOUDFLARE_ACCOUNT_ID` Secret/Variable 取账号 ID，填错就会这样 | 确认已更新到当前 workflow（不再读取账号 ID），若还配置着 `CLOUDFLARE_ACCOUNT_ID` 就删除它，然后 re-run。账号 ID 现在只来自 `wrangler.toml` 的 `account_id` |
 | workflow 没有触发 | 改动不在 `paths` 列表里（例如只改了 `submissions/providers/README.md` 或 examples） | 正常现象，文档/示例不影响数据；确有需要可在 Actions 里 re-run 上一次成功的运行 |
 
 本地自检（不需要任何密钥，只输出 SQL，不连库）：
@@ -238,8 +246,9 @@ VITE_FREEBIE_PAGE_URL=http://localhost:8788/ npm run dev
 - 运行测试需要 **Node.js ≥ 22.13.0**（`tests/` 用内置 `node:sqlite` 搭 D1 fixture；该模块在 Node 22.13.0 才移出 `--experimental-sqlite` 标志，更早的版本不受支持）。本项目在 Node 24 LTS 上验证通过，`package.json` 的 `engines.node` 即该下限。
 - `tests/assets-ignore.test.js` 用 git 的 ignore 引擎校验 `.assetsignore` 模式（需要 `git` 在 PATH 上；机器上没有 git 时该用例会跳过）。
 - `tests/sync-providers.test.js` 会真实 spawn `scripts/sync-providers.mjs`，把生成的 SQL 应用到内存 SQLite，再通过 `GET /api/providers` 读回来，覆盖「approved 上线 / disabled 下线 / 无效声明整体拒绝 / SQL 注入转义 / 迁移 0002 保数据」等路径。
-- `tests/sync-workflow.test.js` 静态检查 `.github/workflows/sync-providers.yml`：不允许再出现文件模式（`--file`，会走 `/import` 上传），必须保留 `--command="$(< schema.sql)"` → `--command="$(< "$SYNC_SQL_FILE")"` 的等号引用形式（空格形式会把 `--` 开头的文件内容当成新选项）、空 SQL 跳过、Secrets 前置检查，且不得自动执行迁移。
-- `tests/docs-d1-commands.test.js` 检查本 README、`migrations/*.sql`，并真实运行 `scripts/sync-providers.mjs` 检查生成输出（工作区里已存在的 `.wrangler/sync-providers.sql` 一并做陈旧检查）：代码块、迁移说明与生成 SQL 头部都不允许再出现 `--file` 示例，文件类 D1 命令必须是 `--command="$(< 文件)"`，并保留 Windows PowerShell 的 `Get-Content -Raw -Encoding UTF8` + 引号转义写法。
+- `tests/sync-workflow.test.js` 静态检查 `.github/workflows/sync-providers.yml`：不允许再出现文件模式（`--file`，会走 `/import` 上传），必须保留 `--command="$(< schema.sql)"` → `--command="$(< "$SYNC_SQL_FILE")"` 的等号引用形式（空格形式会把 `--` 开头的文件内容当成新选项）、空 SQL 跳过、只检查 `CLOUDFLARE_API_TOKEN` 一个 Secret 且不引用任何账号 ID 变量、preflight 排在 `schema.sql` / upsert 之前，且不得自动执行迁移；`wrangler.toml` 必须以顶层 `account_id` 固定项目账号，并保留 `freebie-db` 的 UUID。
+- `tests/d1-preflight.test.js` 真实 spawn `scripts/check-d1-preflight.mjs`：`freebie-db`（UUID `b95f…`）可见时通过，库缺失 / 改名 / 空列表 / 非法 JSON 时以清晰错误退出，失败信息里不会出现 Token；并断言脚本里的库名与 UUID 和 `wrangler.toml` 的 `database_name` / `database_id` 一致。
+- `tests/docs-d1-commands.test.js` 检查本 README、`migrations/*.sql`，并真实运行 `scripts/sync-providers.mjs` 检查生成输出（工作区里已存在的 `.wrangler/sync-providers.sql` 一并做陈旧检查）：代码块、迁移说明与生成 SQL 头部都不允许再出现 `--file` 示例，文件类 D1 命令必须是 `--command="$(< 文件)"`，并保留 Windows PowerShell 的 `Get-Content -Raw -Encoding UTF8` + 引号转义写法；README 只能要求 `CLOUDFLARE_API_TOKEN` 一个 Secret，且说明 `CLOUDFLARE_ACCOUNT_ID` 已可删除。
 
 ```bash
 npm test   # node --test，运行 tests/ 下全部测试

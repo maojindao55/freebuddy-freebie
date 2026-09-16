@@ -13,8 +13,11 @@ on:
       - "submissions/providers/**"
       - "submissions/providers.schema.json"
       - "scripts/sync-providers.mjs"
+      - "scripts/check-d1-preflight.mjs"
       - "schema.sql"
       - "migrations/**"
+      # account_id lives here; a change to it must go through the preflight before the next sync.
+      - "wrangler.toml"
       - ".github/workflows/sync-providers.yml"
 
 # Read the repository, write to D1 through wrangler. Nothing else.
@@ -33,19 +36,20 @@ jobs:
     name: Sync submissions/providers into freebie-db
     runs-on: ubuntu-latest
     env:
-      # Configure both under Settings -> Secrets and variables -> Actions
-      # (see README, section "同步服务商声明到 D1"). The account id is not a credential
-      # in itself, so a plain repository variable is accepted as well.
+      # Only the API token is a credential, configured under Settings -> Secrets and variables
+      # -> Actions (README, section "管理员：配置 GitHub Secrets"). The account id is not a
+      # credential: it is pinned as account_id in wrangler.toml, so wrangler — including every
+      # command in this workflow — always talks to that one account. No account-id secret or
+      # variable is read any more; deleting the retired one is the point of this setup.
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID || vars.CLOUDFLARE_ACCOUNT_ID }}
       SYNC_SQL_FILE: .wrangler/sync-providers.sql
     steps:
       # Fail fast (and with a fixable message) instead of letting wrangler report an
       # opaque authentication error.
       - name: Check Cloudflare credentials
         run: |
-          if [ -z "${CLOUDFLARE_API_TOKEN}" ] || [ -z "${CLOUDFLARE_ACCOUNT_ID}" ]; then
-            echo "::error title=missing-cloudflare-credentials::CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID are not configured. Add them in Settings -> Secrets and variables -> Actions (README, section '同步服务商声明到 D1')."
+          if [ -z "${CLOUDFLARE_API_TOKEN}" ]; then
+            echo "::error title=missing-cloudflare-credentials::CLOUDFLARE_API_TOKEN is not configured. Add it in Settings -> Secrets and variables -> Actions (README, section '管理员：配置 GitHub Secrets'). Only this one secret is required."
             exit 1
           fi
 
@@ -60,6 +64,22 @@ jobs:
       # that case writes no SQL at all — the next step therefore never runs.
       - name: Generate upsert SQL from declarations
         run: node scripts/sync-providers.mjs --out "$SYNC_SQL_FILE"
+
+      # Read-only proof that the current credentials can actually see the target database, run as
+      # the last step before anything is written. wrangler resolves the account from
+      # wrangler.toml (account_id), so a token without D1 access — or a checkout whose account_id
+      # does not own freebie-db — fails here with a readable error instead of surfacing as a
+      # mid-write Cloudflare 7003. The assertion lives in scripts/check-d1-preflight.mjs: it
+      # requires the committed uuid b95f4660-... to be listed as freebie-db, and prints neither
+      # the token nor the account id.
+      - name: Preflight D1 connectivity
+        run: |
+          set -euo pipefail
+          if ! npx --yes wrangler@4 d1 list --json > "$RUNNER_TEMP/d1-list.json"; then
+            echo "::error title=d1-preflight-failed::wrangler d1 list failed with the CLOUDFLARE_API_TOKEN credential. Verify the token is valid and has D1 access to the account pinned as account_id in wrangler.toml (README, section '管理员：配置 GitHub Secrets')."
+            exit 1
+          fi
+          node scripts/check-d1-preflight.mjs < "$RUNNER_TEMP/d1-list.json"
 
       # This database rejects D1's file-import endpoint (what wrangler's file mode uploads to)
       # with Cloudflare error 7003, so every statement is sent through the /query endpoint
