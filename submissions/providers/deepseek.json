@@ -1,0 +1,35 @@
+{
+  "$schema": "../providers.schema.json",
+  "id": "deepseek",
+  "name": "DeepSeek 深度求索",
+  "icon": "deepseek-color",
+  "region": "cn",
+  "homepage": "https://deepseek.com",
+  "consoleUrl": "https://platform.deepseek.com/api_keys",
+  "freeTierSummary": {
+    "zh-CN": "新用户注册即送 500 万 tokens 免费额度（有效期 30 天），支持 DeepSeek-V3 与 DeepSeek-R1 深度思考推理模型。",
+    "en": "New accounts receive 5M free tokens (valid for 30 days), supporting DeepSeek-V3 and DeepSeek-R1 reasoning models."
+  },
+  "protocol": "deepseek",
+  "protocols": [
+    "deepseek",
+    "openai-chat"
+  ],
+  "baseUrl": "https://api.deepseek.com",
+  "envKey": "DEEPSEEK_API_KEY",
+  "models": [
+    {
+      "id": "deepseek-chat",
+      "name": "DeepSeek-V3 (Chat)",
+      "contextWindow": 64000
+    },
+    {
+      "id": "deepseek-reasoner",
+      "name": "DeepSeek-R1 (推理思考)",
+      "contextWindow": 64000
+    }
+  ],
+  "verifiedAt": "2026-09-10",
+  "status": "approved",
+  "submittedBy": "static-catalog-import"
+}

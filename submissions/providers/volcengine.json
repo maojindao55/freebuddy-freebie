@@ -1,0 +1,37 @@
+{
+  "$schema": "../providers.schema.json",
+  "id": "volcengine",
+  "name": "火山引擎 方舟",
+  "icon": "doubao-color",
+  "region": "cn",
+  "homepage": "https://www.volcengine.com/product/ark",
+  "consoleUrl": "https://console.volcengine.com/ark/region:ark+cn-beijing/apiKey",
+  "freeTierSummary": {
+    "zh-CN": "新用户每个模型赠送 50 万 tokens 免费体验额度，包含豆包 1.5 系列（Lite / Pro / 深度思考），支持极低价格高性价比推理。",
+    "en": "New accounts receive 500K free tokens per model covering the Doubao 1.5 series (Lite, Pro, Thinking) with high speed and low cost."
+  },
+  "protocol": "openai-chat",
+  "baseUrl": "https://ark.cn-beijing.volces.com/api/v3",
+  "envKey": "OPENAI_API_KEY",
+  "models": [
+    {
+      "id": "doubao-1-5-lite-32k-250115",
+      "name": "Doubao-1.5-Lite-32K",
+      "contextWindow": 32768
+    },
+    {
+      "id": "doubao-1-5-pro-32k-250115",
+      "name": "Doubao-1.5-Pro-32K",
+      "contextWindow": 32768,
+      "supportsVision": true
+    },
+    {
+      "id": "doubao-1-5-thinking-pro",
+      "name": "Doubao-1.5-Thinking-Pro",
+      "contextWindow": 32768
+    }
+  ],
+  "verifiedAt": "2026-09-10",
+  "status": "approved",
+  "submittedBy": "static-catalog-import"
+}

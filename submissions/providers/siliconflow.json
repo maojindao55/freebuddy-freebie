@@ -1,0 +1,41 @@
+{
+  "$schema": "../providers.schema.json",
+  "id": "siliconflow",
+  "name": "硅基流动 SiliconFlow",
+  "icon": "siliconcloud-color",
+  "region": "cn",
+  "homepage": "https://siliconflow.cn",
+  "consoleUrl": "https://cloud.siliconflow.cn/account/ak",
+  "freeTierSummary": {
+    "zh-CN": "实名认证后一组开源小模型（Qwen2.5-7B、GLM-4-9B 等）永久免费，新用户注册赠送额度（可体验 DeepSeek-V3）。",
+    "en": "A set of open-source models (Qwen2.5-7B, GLM-4-9B, etc.) is free after identity verification; new accounts get tokens for DeepSeek-V3."
+  },
+  "protocol": "openai-chat",
+  "baseUrl": "https://api.siliconflow.cn/v1",
+  "envKey": "OPENAI_API_KEY",
+  "models": [
+    {
+      "id": "Qwen/Qwen2.5-7B-Instruct",
+      "name": "Qwen2.5-7B-Instruct",
+      "contextWindow": 128000
+    },
+    {
+      "id": "THUDM/glm-4-9b-chat",
+      "name": "GLM-4-9B-Chat",
+      "contextWindow": 32000
+    },
+    {
+      "id": "internlm/internlm2_5-7b-chat",
+      "name": "InternLM2.5-7B-Chat",
+      "contextWindow": 32000
+    },
+    {
+      "id": "deepseek-ai/DeepSeek-V3",
+      "name": "DeepSeek-V3 (赠送额度)",
+      "contextWindow": 64000
+    }
+  ],
+  "verifiedAt": "2026-09-10",
+  "status": "approved",
+  "submittedBy": "static-catalog-import"
+}

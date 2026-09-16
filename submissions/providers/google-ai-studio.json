@@ -1,0 +1,39 @@
+{
+  "$schema": "../providers.schema.json",
+  "id": "google-ai-studio",
+  "name": "Google AI Studio",
+  "icon": "gemini-color",
+  "region": "global",
+  "homepage": "https://aistudio.google.com",
+  "consoleUrl": "https://aistudio.google.com/apikey",
+  "freeTierSummary": {
+    "zh-CN": "Gemini 2.5 / 2.0 Flash 系列提供慷慨的免费层（按天/按分钟限频），拥有 100 万超长多模态上下文，无需信用卡，需能访问 Google。",
+    "en": "Gemini 2.5 / 2.0 Flash series offers a generous free tier with 1M multimodal context window; no credit card required."
+  },
+  "protocol": "openai-chat",
+  "baseUrl": "https://generativelanguage.googleapis.com/v1beta/openai",
+  "envKey": "OPENAI_API_KEY",
+  "models": [
+    {
+      "id": "gemini-2.5-flash",
+      "name": "Gemini 2.5 Flash",
+      "contextWindow": 1048576,
+      "supportsVision": true
+    },
+    {
+      "id": "gemini-2.5-flash-lite",
+      "name": "Gemini 2.5 Flash-Lite",
+      "contextWindow": 1048576,
+      "supportsVision": true
+    },
+    {
+      "id": "gemini-2.0-flash",
+      "name": "Gemini 2.0 Flash",
+      "contextWindow": 1048576,
+      "supportsVision": true
+    }
+  ],
+  "verifiedAt": "2026-09-10",
+  "status": "approved",
+  "submittedBy": "static-catalog-import"
+}

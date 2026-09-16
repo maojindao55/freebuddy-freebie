@@ -1,0 +1,33 @@
+{
+  "$schema": "../providers.schema.json",
+  "id": "agnes-ai",
+  "name": "Agnes AI",
+  "icon": "agnesai",
+  "region": "cn",
+  "homepage": "https://agnes-ai.cn",
+  "consoleUrl": "https://platform.agnes-ai.cn",
+  "freeTierSummary": {
+    "zh-CN": "全新主力模型 Agnes 3.0 Flash 与 2.5 Flash 限免开放（输入与输出 Token 现价均为 ¥0），支持 512K 超长上下文与图像多模态理解。",
+    "en": "Flagship models Agnes 3.0 Flash and 2.5 Flash are currently free (¥0 for input & output), supporting 512K context and vision multimodal input."
+  },
+  "protocol": "openai-chat",
+  "baseUrl": "https://apihub.agnes-ai.cn/v1",
+  "envKey": "AGNES_API_KEY",
+  "models": [
+    {
+      "id": "agnes-3.0-flash",
+      "name": "Agnes 3.0 Flash (限免)",
+      "contextWindow": 524288,
+      "supportsVision": true
+    },
+    {
+      "id": "agnes-2.5-flash",
+      "name": "Agnes 2.5 Flash (限免)",
+      "contextWindow": 524288,
+      "supportsVision": true
+    }
+  ],
+  "verifiedAt": "2026-09-10",
+  "status": "approved",
+  "submittedBy": "static-catalog-import"
+}

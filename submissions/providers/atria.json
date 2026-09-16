@@ -1,0 +1,31 @@
+{
+  "$schema": "../providers.schema.json",
+  "id": "atria",
+  "name": "Atria",
+  "icon": "https://www.google.com/s2/favicons?domain=atria-asi.ai&sz=128",
+  "region": "global",
+  "homepage": "https://api.atria-asi.ai",
+  "consoleUrl": "https://api.atria-asi.ai/console",
+  "freeTierSummary": {
+    "zh-CN": "限时开放 100,000,000 tokens 免费总额度。Atria Dawn Preview 由上海人工智能实验室与多所高校联合开源，面向科研工作者、开发者与专业知识工作者：给定一个研究问题、一段代码或一份数据，它能自主检索资料、调用工具并运行测试，直接产出可核查的研究报告、跑通的程序、可编辑的文档表格，甚至 3D 机械零件模型和可玩的小游戏。兼容 Chat Completions / Messages / Responses 三种接口。",
+    "en": "Limited-time 100M free tokens. Atria Dawn Preview from Shanghai AI Laboratory and partner universities is an agent model for researchers, developers, and knowledge workers: it searches sources, calls tools, and runs tests to deliver verifiable reports, working programs, editable documents, even 3D parts and mini-games."
+  },
+  "protocol": "openai-chat",
+  "protocols": [
+    "openai-chat",
+    "openai-responses",
+    "anthropic"
+  ],
+  "baseUrl": "https://api.atria-asi.ai/v1",
+  "envKey": "ATRIA_API_KEY",
+  "models": [
+    {
+      "id": "Atria-Dawn-Preview",
+      "name": "Atria Dawn Preview",
+      "contextWindow": 256000
+    }
+  ],
+  "verifiedAt": "2026-09-16",
+  "status": "approved",
+  "submittedBy": "static-catalog-import"
+}

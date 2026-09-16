@@ -1,0 +1,41 @@
+{
+  "$schema": "../providers.schema.json",
+  "id": "openrouter",
+  "name": "OpenRouter",
+  "icon": "openrouter",
+  "region": "global",
+  "homepage": "https://openrouter.ai",
+  "consoleUrl": "https://openrouter.ai/settings/keys",
+  "freeTierSummary": {
+    "zh-CN": "以 :free 结尾的模型完全免费，每天约 50 次调用额度（充值后可达 1000 次/天）。推荐使用 openrouter/free 自动分配合适的免费模型。",
+    "en": "Models with the :free suffix are completely free (50 req/day, up to 1,000/day after deposit). Use openrouter/free to auto-route available models."
+  },
+  "protocol": "openai-chat",
+  "baseUrl": "https://openrouter.ai/api/v1",
+  "envKey": "OPENAI_API_KEY",
+  "models": [
+    {
+      "id": "openrouter/free",
+      "name": "Auto (free router)",
+      "contextWindow": 128000
+    },
+    {
+      "id": "meta-llama/llama-3.3-70b-instruct:free",
+      "name": "Llama 3.3 70B Instruct (free)",
+      "contextWindow": 131072
+    },
+    {
+      "id": "google/gemma-2-9b-it:free",
+      "name": "Gemma 2 9B (free)",
+      "contextWindow": 8192
+    },
+    {
+      "id": "qwen/qwen-2.5-coder-32b-instruct:free",
+      "name": "Qwen 2.5 Coder 32B (free)",
+      "contextWindow": 32768
+    }
+  ],
+  "verifiedAt": "2026-09-10",
+  "status": "approved",
+  "submittedBy": "static-catalog-import"
+}

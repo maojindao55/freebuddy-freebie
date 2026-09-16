@@ -1,0 +1,41 @@
+{
+  "$schema": "../providers.schema.json",
+  "id": "modelscope",
+  "name": "魔搭 ModelScope",
+  "icon": "modelscope-color",
+  "region": "cn",
+  "homepage": "https://modelscope.cn",
+  "consoleUrl": "https://modelscope.cn/my/myaccesstoken",
+  "freeTierSummary": {
+    "zh-CN": "API-Inference 每天约 2000 次免费调用，覆盖 Qwen2.5-72B / Coder-32B 及 DeepSeek 等主流开源大模型，需绑定阿里云账号并实名。",
+    "en": "API-Inference gives ~2,000 free calls per day across Qwen2.5-72B, Coder-32B, and DeepSeek; requires a linked verified Aliyun account."
+  },
+  "protocol": "openai-chat",
+  "baseUrl": "https://api-inference.modelscope.cn/v1",
+  "envKey": "OPENAI_API_KEY",
+  "models": [
+    {
+      "id": "Qwen/Qwen2.5-72B-Instruct",
+      "name": "Qwen2.5-72B-Instruct",
+      "contextWindow": 128000
+    },
+    {
+      "id": "Qwen/Qwen2.5-Coder-32B-Instruct",
+      "name": "Qwen2.5-Coder-32B-Instruct",
+      "contextWindow": 128000
+    },
+    {
+      "id": "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B",
+      "name": "DeepSeek-R1-Distill-Qwen-32B",
+      "contextWindow": 64000
+    },
+    {
+      "id": "deepseek-ai/DeepSeek-V3",
+      "name": "DeepSeek-V3",
+      "contextWindow": 64000
+    }
+  ],
+  "verifiedAt": "2026-09-10",
+  "status": "approved",
+  "submittedBy": "static-catalog-import"
+}

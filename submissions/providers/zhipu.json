@@ -1,0 +1,43 @@
+{
+  "$schema": "../providers.schema.json",
+  "id": "zhipu",
+  "name": "智谱 BigModel",
+  "icon": "zhipu-color",
+  "region": "cn",
+  "homepage": "https://bigmodel.cn",
+  "consoleUrl": "https://bigmodel.cn/usercenter/proj-mgmt/apikeys",
+  "freeTierSummary": {
+    "zh-CN": "GLM-4-Flash / GLM-4V-Flash / GLM-Z1-Flash 永久免费，支持深度思考与多模态视觉理解，新用户赠送 2000 万 tokens，限并发 30。",
+    "en": "GLM-4-Flash, GLM-4V-Flash, and GLM-Z1-Flash are permanently free with reasoning and vision support; new accounts get 20M tokens. Concurrency limit 30."
+  },
+  "protocol": "openai-chat",
+  "baseUrl": "https://open.bigmodel.cn/api/paas/v4",
+  "envKey": "OPENAI_API_KEY",
+  "models": [
+    {
+      "id": "glm-4-flash",
+      "name": "GLM-4-Flash",
+      "contextWindow": 128000
+    },
+    {
+      "id": "glm-4v-flash",
+      "name": "GLM-4V-Flash",
+      "contextWindow": 128000,
+      "supportsVision": true
+    },
+    {
+      "id": "glm-z1-flash",
+      "name": "GLM-Z1-Flash (思考推理)",
+      "contextWindow": 128000
+    },
+    {
+      "id": "glm-4.1v-thinking-flash",
+      "name": "GLM-4.1V-Thinking-Flash",
+      "contextWindow": 64000,
+      "supportsVision": true
+    }
+  ],
+  "verifiedAt": "2026-09-10",
+  "status": "approved",
+  "submittedBy": "static-catalog-import"
+}

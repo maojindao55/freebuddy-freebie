@@ -1,0 +1,36 @@
+{
+  "$schema": "../providers.schema.json",
+  "id": "groq",
+  "name": "Groq",
+  "icon": "groq",
+  "region": "global",
+  "homepage": "https://groq.com",
+  "consoleUrl": "https://console.groq.com/keys",
+  "freeTierSummary": {
+    "zh-CN": "免费层长期稳定，Llama 3.3 70B / 8B 推理速度极高（高达 300~500 tokens/s），受每分钟 tokens (TPM) 及请求数限制。",
+    "en": "Long-standing free tier offering Llama 3.3 70B and 8B at extreme inference speeds (>300 t/s); limited by tokens per minute."
+  },
+  "protocol": "openai-chat",
+  "baseUrl": "https://api.groq.com/openai/v1",
+  "envKey": "OPENAI_API_KEY",
+  "models": [
+    {
+      "id": "llama-3.3-70b-versatile",
+      "name": "Llama 3.3 70B",
+      "contextWindow": 131072
+    },
+    {
+      "id": "llama-3.1-8b-instant",
+      "name": "Llama 3.1 8B",
+      "contextWindow": 131072
+    },
+    {
+      "id": "qwen-2.5-32b",
+      "name": "Qwen 2.5 32B",
+      "contextWindow": 32768
+    }
+  ],
+  "verifiedAt": "2026-09-10",
+  "status": "approved",
+  "submittedBy": "static-catalog-import"
+}

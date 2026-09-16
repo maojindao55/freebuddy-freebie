@@ -1,0 +1,36 @@
+{
+  "$schema": "../providers.schema.json",
+  "id": "cerebras",
+  "name": "Cerebras",
+  "icon": "cerebras-color",
+  "region": "global",
+  "homepage": "https://cerebras.ai",
+  "consoleUrl": "https://cloud.cerebras.ai",
+  "freeTierSummary": {
+    "zh-CN": "基于晶圆级引擎（WSE）提供全球最快级别的推理速度（超过 2000 tokens/s），免费层支持 Llama 3.3 70B 与 3.1 8B 等模型。",
+    "en": "Fastest inference speed in the world (>2,000 t/s) powered by Wafer Scale Engine; free tier supports Llama 3.3 70B and 3.1 8B."
+  },
+  "protocol": "openai-chat",
+  "baseUrl": "https://api.cerebras.ai/v1",
+  "envKey": "OPENAI_API_KEY",
+  "models": [
+    {
+      "id": "llama-3.3-70b",
+      "name": "Llama 3.3 70B",
+      "contextWindow": 8192
+    },
+    {
+      "id": "llama3.1-8b",
+      "name": "Llama 3.1 8B",
+      "contextWindow": 8192
+    },
+    {
+      "id": "llama3.1-70b",
+      "name": "Llama 3.1 70B",
+      "contextWindow": 8192
+    }
+  ],
+  "verifiedAt": "2026-09-10",
+  "status": "approved",
+  "submittedBy": "static-catalog-import"
+}
