@@ -61,10 +61,27 @@ jobs:
       - name: Generate upsert SQL from declarations
         run: node scripts/sync-providers.mjs --out "$SYNC_SQL_FILE"
 
-      - name: Apply upserts to D1
+      # This database rejects D1's file-import endpoint (what wrangler's file mode uploads to)
+      # with Cloudflare error 7003, so every statement is sent through the /query endpoint
+      # instead. bash reads each file and hands it to `--command=` as one quoted argument, which
+      # keeps the multi-statement script intact: no word splitting, no glob expansion, and no
+      # `$` / backtick evaluation inside the SQL text (command substitution output is data).
+      # The equals form is required, not cosmetic: schema.sql and the generated sync SQL both
+      # start with a `--` comment banner, and wrangler's CLI parser treats a value starting
+      # with `-` as another option — `--command "$(< file)"` dies with `Unknown argument`
+      # (verified on wrangler 4.5.0 and 4.133.0), while `--command="$(< file)"` parses fine.
+      - name: Apply schema and upserts to D1
         run: |
           if ! grep -q "^INSERT INTO providers (" "$SYNC_SQL_FILE"; then
             echo "No provider declaration produced a statement — nothing to apply."
             exit 0
           fi
-          npx --yes wrangler@4 d1 execute freebie-db --remote --yes --file="$SYNC_SQL_FILE"
+
+          # A brand-new database has no tables yet. schema.sql only contains CREATE ... IF NOT
+          # EXISTS statements, so this bootstraps the first sync and is a no-op afterwards.
+          # The data-rebuilding upgrade scripts (README, "数据库初始化与迁移顺序") are
+          # deliberately NOT run here — they target already-deployed databases and are applied
+          # by hand.
+          npx --yes wrangler@4 d1 execute freebie-db --remote --yes --command="$(< schema.sql)"
+
+          npx --yes wrangler@4 d1 execute freebie-db --remote --yes --command="$(< "$SYNC_SQL_FILE")"

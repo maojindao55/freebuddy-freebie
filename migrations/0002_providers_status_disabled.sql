@@ -21,7 +21,9 @@
 -- 执行方式（任选其一）：
 --   npx wrangler d1 migrations apply freebie-db --remote
 --     -- 推荐：由 wrangler 记录到 d1_migrations，失败的迁移会回滚，0001 / 0002 按顺序执行。
---   npx wrangler d1 execute freebie-db --remote --file=migrations/0002_providers_status_disabled.sql
+--   npx wrangler d1 execute freebie-db --remote --command="$(< migrations/0002_providers_status_disabled.sql)"
+--     -- 不要用文件模式（--file）：它走 D1 的 /import 接口，本库返回 7003；也不要写成空格
+--        分隔的 --command "..."：本文件以 -- 注释开头，该写法会被当成新选项而报 Unknown argument。
 --
 -- 为什么没有 BEGIN/COMMIT：D1 的 SQL 接口不接受显式事务语句 —— 对 D1 执行
 --   BEGIN TRANSACTION / SAVEPOINT
