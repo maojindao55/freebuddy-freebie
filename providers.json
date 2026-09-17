@@ -1,6 +1,6 @@
 {
   "$schema": "./providers.schema.json",
-  "updatedAt": "2026-09-16",
+  "updatedAt": "2026-09-17",
   "providers": [
     {
       "id": "zhipu",
@@ -191,8 +191,8 @@
       "homepage": "https://openrouter.ai",
       "consoleUrl": "https://openrouter.ai/settings/keys",
       "freeTierSummary": {
-        "zh-CN": "以 :free 结尾的模型完全免费，每天约 50 次调用额度（充值后可达 1000 次/天）。推荐使用 openrouter/free 自动分配合适的免费模型。",
-        "en": "Models with the :free suffix are completely free (50 req/day, up to 1,000/day after deposit). Use openrouter/free to auto-route available models."
+        "zh-CN": "以 :free 结尾的模型完全免费，每天约 50 次调用额度（充值后可达 1000 次/天）。Union Alpha（stealth/union-alpha）限时免费，262K 上下文，支持视觉与工具调用。推荐使用 openrouter/free 自动分配合适的免费模型。",
+        "en": "Models with the :free suffix are completely free (50 req/day, up to 1,000/day after deposit). Union Alpha (stealth/union-alpha) is free for a limited time with 262K context, vision and tool calling. Use openrouter/free to auto-route available models."
       },
       "protocol": "openai-chat",
       "baseUrl": "https://openrouter.ai/api/v1",
@@ -202,6 +202,12 @@
           "id": "openrouter/free",
           "name": "Auto (free router)",
           "contextWindow": 128000
+        },
+        {
+          "id": "stealth/union-alpha",
+          "name": "Union Alpha (free)",
+          "contextWindow": 262144,
+          "supportsVision": true
         },
         {
           "id": "meta-llama/llama-3.3-70b-instruct:free",
@@ -219,7 +225,7 @@
           "contextWindow": 32768
         }
       ],
-      "verifiedAt": "2026-09-10",
+      "verifiedAt": "2026-09-17",
       "icon": "openrouter"
     },
     {
