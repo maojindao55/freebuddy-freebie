@@ -61,7 +61,25 @@
       supportedModels: "支持模型与特性",
       healthAvailTip: "基于社区近 24 小时反馈统计",
       votePrompt: "您今日实测可用吗？",
-      reviewsTitle: "社区真实评测"
+      reviewsTitle: "社区真实评测",
+      searchPlaceholder: "搜索服务商、额度或模型...",
+      sortDefault: "综合排序 (最新)",
+      sortRating: "评分最高",
+      sortAvail: "可用度优先",
+      sortLabel: "排序方式",
+      quotaLabel: "免费额度",
+      modelsLabel: "主力模型",
+      factRegion: "区域网络",
+      factProtocol: "接口协议",
+      factDefaultModel: "首选模型",
+      factQuality: "综合评级",
+      factVerified: "核验日期",
+      qualityTop: "S 级",
+      qualityHigh: "A 级",
+      qualityMid: "B 级",
+      emptyTitle: "未找到匹配的服务商",
+      emptyDesc: "尝试更改搜索词，或切换地域筛选",
+      clearSearch: "清空搜索"
     },
     en: {
       title: "Freebie Buddies",
@@ -115,7 +133,25 @@
       supportedModels: "Supported Models & Features",
       healthAvailTip: "Based on community feedback in the last 24 hours",
       votePrompt: "Is it working for you today?",
-      reviewsTitle: "Community Reviews"
+      reviewsTitle: "Community Reviews",
+      searchPlaceholder: "Search providers, quotas, or models...",
+      sortDefault: "Default (Newest)",
+      sortRating: "Top Rated",
+      sortAvail: "Most Stable",
+      sortLabel: "Sort By",
+      quotaLabel: "Free Tier",
+      modelsLabel: "Key Models",
+      factRegion: "Region",
+      factProtocol: "Protocol",
+      factDefaultModel: "Default Model",
+      factQuality: "Overall Grade",
+      factVerified: "Verified Date",
+      qualityTop: "Tier S",
+      qualityHigh: "Tier A",
+      qualityMid: "Tier B",
+      emptyTitle: "No matching providers",
+      emptyDesc: "Try adjusting your search terms or filters",
+      clearSearch: "Clear search"
     }
   };
 
@@ -128,6 +164,8 @@
     locale: normalizeLocale(params.get("lang") || navigator.language),
     theme: params.get("theme") === "dark" ? "dark" : "light",
     region: "all",
+    searchQuery: "",
+    sortBy: "default",
     providers: [],
     updatedAt: null,
     connected: false,
@@ -232,6 +270,10 @@
       el.setAttribute("title", text);
       el.setAttribute("aria-label", text);
     });
+    document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
+      const text = t(el.getAttribute("data-i18n-placeholder"));
+      el.setAttribute("placeholder", text);
+    });
     document.querySelectorAll("[data-i18n-html]").forEach((el) => {
       el.innerHTML = t(el.getAttribute("data-i18n-html"));
       el.querySelectorAll("a").forEach((link) => {
@@ -278,6 +320,111 @@
       }
     }
     return getFaviconFallback(provider);
+  }
+
+  /**
+   * Dynamically calculates provider grade tier (S / A / B) based on:
+   * 1. Community Availability % (up to +/- 20 pts)
+   * 2. Community Upvotes vs Downvotes balance (up to +/- 15 pts)
+   * 3. Community Star Rating Average (up to +/- 10 pts)
+   * 4. Platform maturity & recognition baseline (up to +25 pts)
+   * 5. Model capacity & flagship capability (up to +25 pts)
+   */
+  function getQualityTier(provider) {
+    if (!provider) return { tier: "B", label: t("qualityMid"), className: "q-mid", score: 0 };
+
+    // Baseline platform score (base floor: 30)
+    let score = 30;
+
+    // Platform maturity
+    const recognizedPlatforms = new Set([
+      "zhipu", "google-ai-studio", "modelscope", "deepseek", "siliconflow",
+      "volcengine", "openrouter", "groq", "dashscope", "sensenova", "senseaudio", "cerebras"
+    ]);
+    if (recognizedPlatforms.has(provider.id)) {
+      score += 25;
+    } else if (provider.region === "cn") {
+      score += 15;
+    } else {
+      score += 10;
+    }
+
+    // Model breadth & flagship detection
+    const models = Array.isArray(provider.models) ? provider.models : [];
+    if (models.length >= 5) {
+      score += 15;
+    } else if (models.length >= 2) {
+      score += 10;
+    } else if (models.length >= 1) {
+      score += 5;
+    }
+
+    const modelString = models
+      .map((m) => (typeof m === "string" ? m : (m.id || m.name || "")))
+      .join(" ")
+      .toLowerCase();
+    if (/deepseek|claude|gpt-4|gemini|qwen|glm|llama-3/i.test(modelString)) {
+      score += 10;
+    }
+
+    // Dynamic community indicators
+    const s = state.summary && state.summary[provider.id];
+    if (s) {
+      // A. Real-time community availability rate
+      if (typeof s.availability === "number" && !isNaN(s.availability)) {
+        if (s.availability >= 90) {
+          score += 20;
+        } else if (s.availability >= 75) {
+          score += 10;
+        } else if (s.availability >= 50) {
+          score += 0;
+        } else {
+          score -= 25; // Heavily downgrade when availability is poor
+        }
+      }
+
+      // B. User thumbs up / down net votes
+      const working = s.workingVotes || 0;
+      const failed = s.failedVotes || 0;
+      const totalVotes = working + failed;
+      if (totalVotes > 0) {
+        if (failed === 0 && working >= 2) {
+          score += 10;
+        } else if (working > failed) {
+          score += 5;
+        } else if (failed > working) {
+          score -= 15; // Net negative feedback degrades rank
+        }
+      }
+
+      // C. User rating stars
+      if (s.reviewCount > 0 && typeof s.ratingAvg === "number") {
+        if (s.ratingAvg >= 4.5) {
+          score += 10;
+        } else if (s.ratingAvg >= 3.8) {
+          score += 5;
+        } else if (s.ratingAvg < 3.0) {
+          score -= 15;
+        }
+      }
+    }
+
+    // Tier determination:
+    // S 级: score >= 75
+    // A 级: 55 <= score < 75
+    // B 级: score < 55
+    if (score >= 75) {
+      return { tier: "S", label: t("qualityTop"), className: "q-top", score };
+    }
+    if (score >= 55) {
+      return { tier: "A", label: t("qualityHigh"), className: "q-high", score };
+    }
+    return { tier: "B", label: t("qualityMid"), className: "q-mid", score };
+  }
+
+  const PINNED_IDS = new Set(["zhipu", "senseaudio", "modelscope", "deepseek"]);
+  function isPinned(provider) {
+    return provider && PINNED_IDS.has(provider.id);
   }
 
   function openLink(event) {
@@ -343,10 +490,26 @@
       voteFailedBtn.classList.toggle("voted", state.userVotes[providerId] === "failed");
     }
 
+    const workingCountEl = node.querySelector(".working-count");
+    if (workingCountEl) workingCountEl.textContent = String(s.workingVotes || 0);
+    const failedCountEl = node.querySelector(".failed-count");
+    if (failedCountEl) failedCountEl.textContent = String(s.failedVotes || 0);
+
     // 4. Detail button label
     const detailLabel = node.querySelector(".detail-btn-label");
     if (detailLabel) {
       detailLabel.textContent = t("reviewsCount", { n: s.reviewCount || 0 });
+    }
+
+    // 5. Dynamic Grade badge (S / A / B)
+    const qualityBadge = node.querySelector(".card-quality");
+    if (qualityBadge) {
+      const provider = state.providers.find((p) => p.id === providerId);
+      if (provider) {
+        const q = getQualityTier(provider);
+        qualityBadge.textContent = q.label;
+        qualityBadge.className = `card-quality ${q.className}`;
+      }
     }
   }
 
@@ -482,6 +645,19 @@
     // Total review count header
     const reviewsCountEl = modal.querySelector(".modal-reviews-count");
     if (reviewsCountEl) reviewsCountEl.textContent = String(s.reviewCount || 0);
+
+    // Dynamic grade in modal
+    const provider = state.providers.find((p) => p.id === providerId);
+    if (provider) {
+      const q = getQualityTier(provider);
+      const qualityVal = modal.querySelector(".fact-quality-val");
+      if (qualityVal) qualityVal.textContent = q.label;
+      const modalQuality = modal.querySelector(".modal-quality");
+      if (modalQuality) {
+        modalQuality.textContent = q.label;
+        modalQuality.className = `modal-quality ${q.className}`;
+      }
+    }
   }
 
   function renderModalReviews(providerId) {
@@ -684,6 +860,30 @@
       tagsContainer.appendChild(proto);
     });
 
+    // Facts Grid
+    const regionVal = modal.querySelector(".fact-region-val");
+    if (regionVal) {
+      regionVal.textContent = provider.region === "cn" ? t("regionCn") : t("regionGlobal");
+    }
+    const protoVal = modal.querySelector(".fact-proto-val");
+    if (protoVal) {
+      protoVal.textContent = protocols.map(protocolLabel).join(", ");
+    }
+    const modelVal = modal.querySelector(".fact-model-val");
+    if (modelVal) {
+      modelVal.textContent = (provider.models && provider.models[0]?.name) || provider.models[0]?.id || "-";
+    }
+    const qualityVal = modal.querySelector(".fact-quality-val");
+    if (qualityVal) {
+      qualityVal.textContent = getQualityTier(provider).label;
+    }
+    const modalQuality = modal.querySelector(".modal-quality");
+    if (modalQuality) {
+      const q = getQualityTier(provider);
+      modalQuality.textContent = q.label;
+      modalQuality.className = `modal-quality ${q.className}`;
+    }
+
     // Verified date
     const verifiedEl = modal.querySelector(".modal-verified");
     verifiedEl.textContent = provider.verifiedAt ? t("verified", { date: provider.verifiedAt }) : "";
@@ -789,126 +989,205 @@
     const root = document.getElementById("providers");
     const template = document.getElementById("provider-card");
     root.textContent = "";
-    state.providers
-      .filter((p) => state.region === "all" || p.region === state.region)
-      .forEach((provider) => {
-        const node = template.content.firstElementChild.cloneNode(true);
-        node.dataset.providerId = provider.id;
 
-        node.querySelector(".card-name").textContent = provider.name;
+    let list = state.providers.filter((p) => state.region === "all" || p.region === state.region);
 
-        const iconEl = node.querySelector(".card-icon");
-        if (iconEl) {
-          const primarySrc = resolveIcon(provider);
-          if (primarySrc) {
-            iconEl.src = primarySrc;
-            iconEl.alt = `${provider.name} icon`;
-            iconEl.hidden = false;
-            iconEl.onerror = () => {
-              const fallbackSrc = getFaviconFallback(provider);
-              if (fallbackSrc && iconEl.src !== fallbackSrc) {
-                iconEl.onerror = () => {
-                  iconEl.hidden = true;
-                };
-                iconEl.src = fallbackSrc;
-              } else {
-                iconEl.hidden = true;
-              }
-            };
-          } else {
-            iconEl.hidden = true;
-          }
-        }
-
-        const tags = node.querySelector(".card-tags");
-        if (provider.region) {
-          const tag = document.createElement("span");
-          tag.className = `tag region-${provider.region}`;
-          tag.textContent = provider.region === "cn" ? t("regionCn") : t("regionGlobal");
-          tags.appendChild(tag);
-        }
-        const protocols =
-          provider.protocols && provider.protocols.length > 0 ? provider.protocols : [provider.protocol];
-        protocols.forEach((p) => {
-          const proto = document.createElement("span");
-          proto.className = "tag protocol";
-          proto.textContent = protocolLabel(p);
-          tags.appendChild(proto);
-        });
-
-        const imported = state.importedProviderIds.has(provider.id);
-        const badge = node.querySelector(".card-imported");
-        badge.hidden = !imported;
-        badge.textContent = t("imported");
-
-        node.querySelector(".card-summary").textContent = summaryFor(provider);
-
-        const models = node.querySelector(".card-models");
-        provider.models.forEach((model) => {
-          const li = document.createElement("li");
-          li.textContent = model.name || model.id;
-          li.title = model.id;
-          if (model.supportsVision) li.classList.add("vision");
-          models.appendChild(li);
-        });
-
-        const homepage = node.querySelector(".card-homepage");
-        const homepageUrl = safeUrl(provider.homepage);
-        if (homepage && homepageUrl) {
-          homepage.href = homepageUrl;
-          homepage.textContent = t("homepage");
-          homepage.addEventListener("click", openLink);
-        } else if (homepage) homepage.remove();
-
-        const consoleLink = node.querySelector(".card-console");
-        const consoleUrl = safeUrl(provider.consoleUrl);
-        if (consoleLink && consoleUrl) {
-          consoleLink.href = consoleUrl;
-          consoleLink.textContent = t("getKey");
-          consoleLink.addEventListener("click", openLink);
-        } else if (consoleLink) consoleLink.remove();
-
-        const btn = node.querySelector(".import-btn");
-        const busy = state.busy.has(provider.id);
-        btn.textContent = busy ? t("importing") : imported ? t("importAgain") : t("import");
-        btn.disabled = !state.connected || busy;
-        btn.classList.toggle("secondary", imported);
-        btn.addEventListener("click", () => importProvider(provider));
-
-        // Community stats on card
-        updateCardCommunity(node, provider.id);
-
-        // Open modal button and clickable footer bar
-        const openDetailBtn = node.querySelector(".open-detail-btn");
-        if (openDetailBtn) {
-          openDetailBtn.addEventListener("click", (e) => {
-            e.stopPropagation();
-            openProviderModal(provider);
-          });
-        }
-        const cardCommunity = node.querySelector(".card-community");
-        if (cardCommunity) {
-          cardCommunity.style.cursor = "pointer";
-          cardCommunity.addEventListener("click", () => openProviderModal(provider));
-        }
-
-        // Clicking card brand also opens detail modal
-        const cardBrand = node.querySelector(".card-brand");
-        if (cardBrand) {
-          cardBrand.style.cursor = "pointer";
-          cardBrand.addEventListener("click", () => openProviderModal(provider));
-        }
-
-        // Show runtime warning if needed
-        const neededRuntimes = [...new Set(protocols.map(runtimeKey))];
-        const allMissing = state.runtimes && neededRuntimes.every((r) => state.runtimes[r] === false);
-        if (allMissing) {
-          node.classList.add("runtime-missing");
-          node.title = t("runtimeMissing", { runtime: neededRuntimes.map((r) => RUNTIME_LABEL[r] || r).join(" / ") });
-        }
-
-        root.appendChild(node);
+    if (state.searchQuery) {
+      const q = state.searchQuery.toLowerCase().trim();
+      list = list.filter((p) => {
+        const name = (p.name || "").toLowerCase();
+        const id = (p.id || "").toLowerCase();
+        const summary = summaryFor(p).toLowerCase();
+        const modelsMatch =
+          Array.isArray(p.models) &&
+          p.models.some(
+            (m) => (m.name || "").toLowerCase().includes(q) || (m.id || "").toLowerCase().includes(q)
+          );
+        return name.includes(q) || id.includes(q) || summary.includes(q) || modelsMatch;
       });
+    }
+
+    if (state.sortBy === "rating") {
+      list = list.slice().sort((a, b) => {
+        const sa = state.summary[a.id]?.ratingAvg || 0;
+        const sb = state.summary[b.id]?.ratingAvg || 0;
+        return sb - sa;
+      });
+    } else if (state.sortBy === "avail") {
+      list = list.slice().sort((a, b) => {
+        const sa = state.summary[a.id]?.availability ?? -1;
+        const sb = state.summary[b.id]?.availability ?? -1;
+        return sb - sa;
+      });
+    }
+
+    if (list.length === 0 && state.providers.length > 0) {
+      const empty = document.createElement("div");
+      empty.className = "empty-search-state";
+      empty.innerHTML = `
+        <div class="empty-icon">🔍</div>
+        <h3 class="empty-title">${escapeHtml(t("emptyTitle"))}</h3>
+        <p class="empty-desc">${escapeHtml(t("emptyDesc"))}</p>
+        <button type="button" class="empty-reset-btn">${escapeHtml(t("clearSearch"))}</button>
+      `;
+      const resetBtn = empty.querySelector(".empty-reset-btn");
+      if (resetBtn) {
+        resetBtn.addEventListener("click", () => {
+          state.searchQuery = "";
+          state.region = "all";
+          const searchInput = document.getElementById("search-input");
+          if (searchInput) searchInput.value = "";
+          const clearBtn = document.getElementById("search-clear-btn");
+          if (clearBtn) clearBtn.hidden = true;
+          document.querySelectorAll(".filter").forEach((b) => b.classList.toggle("active", b.dataset.region === "all"));
+          renderCards();
+        });
+      }
+      root.appendChild(empty);
+      return;
+    }
+
+    list.forEach((provider) => {
+      const node = template.content.firstElementChild.cloneNode(true);
+      node.dataset.providerId = provider.id;
+
+      node.querySelector(".card-name").textContent = provider.name;
+
+      const qualityBadge = node.querySelector(".card-quality");
+      if (qualityBadge) {
+        const q = getQualityTier(provider);
+        qualityBadge.textContent = q.label;
+        qualityBadge.className = `card-quality ${q.className}`;
+      }
+
+      const pin = node.querySelector(".pin-mark");
+      if (pin) {
+        pin.hidden = !isPinned(provider);
+      }
+
+      const iconEl = node.querySelector(".card-icon");
+      if (iconEl) {
+        const primarySrc = resolveIcon(provider);
+        if (primarySrc) {
+          iconEl.src = primarySrc;
+          iconEl.alt = `${provider.name} icon`;
+          iconEl.hidden = false;
+          iconEl.onerror = () => {
+            const fallbackSrc = getFaviconFallback(provider);
+            if (fallbackSrc && iconEl.src !== fallbackSrc) {
+              iconEl.onerror = () => {
+                iconEl.hidden = true;
+                const fallbackText = node.querySelector(".card-icon-fallback");
+                if (fallbackText) fallbackText.hidden = false;
+              };
+              iconEl.src = fallbackSrc;
+            } else {
+              iconEl.hidden = true;
+              const fallbackText = node.querySelector(".card-icon-fallback");
+              if (fallbackText) fallbackText.hidden = false;
+            }
+          };
+        } else {
+          iconEl.hidden = true;
+          const fallbackText = node.querySelector(".card-icon-fallback");
+          if (fallbackText) fallbackText.hidden = false;
+        }
+      }
+
+      const tags = node.querySelector(".card-tags");
+      if (provider.region) {
+        const tag = document.createElement("span");
+        tag.className = `tag region-${provider.region}`;
+        tag.textContent = provider.region === "cn" ? t("regionCn") : t("regionGlobal");
+        tags.appendChild(tag);
+      }
+      const protocols =
+        provider.protocols && provider.protocols.length > 0 ? provider.protocols : [provider.protocol];
+      protocols.forEach((p) => {
+        const proto = document.createElement("span");
+        proto.className = "tag protocol";
+        proto.textContent = protocolLabel(p);
+        tags.appendChild(proto);
+      });
+
+      const imported = state.importedProviderIds.has(provider.id);
+      const badge = node.querySelector(".card-imported");
+      badge.hidden = !imported;
+      badge.textContent = t("imported");
+
+      node.querySelector(".card-summary").textContent = summaryFor(provider);
+
+      const models = node.querySelector(".card-models");
+      provider.models.forEach((model) => {
+        const li = document.createElement("li");
+        li.textContent = model.name || model.id;
+        li.title = model.id;
+        if (model.supportsVision) li.classList.add("vision");
+        models.appendChild(li);
+      });
+
+      const homepage = node.querySelector(".card-homepage");
+      const homepageUrl = safeUrl(provider.homepage);
+      if (homepage && homepageUrl) {
+        homepage.href = homepageUrl;
+        homepage.textContent = t("homepage");
+        homepage.addEventListener("click", openLink);
+      } else if (homepage) homepage.remove();
+
+      const consoleLink = node.querySelector(".card-console");
+      const consoleUrl = safeUrl(provider.consoleUrl);
+      if (consoleLink && consoleUrl) {
+        consoleLink.href = consoleUrl;
+        consoleLink.textContent = t("getKey");
+        consoleLink.addEventListener("click", openLink);
+      } else if (consoleLink) consoleLink.remove();
+
+      const btn = node.querySelector(".import-btn");
+      const busy = state.busy.has(provider.id);
+      btn.textContent = busy ? t("importing") : imported ? t("importAgain") : t("import");
+      btn.disabled = !state.connected || busy;
+      btn.classList.toggle("secondary", imported);
+      btn.addEventListener("click", () => importProvider(provider));
+
+      // Community stats on card
+      updateCardCommunity(node, provider.id);
+
+      // Open modal button and clickable footer bar
+      const openDetailBtn = node.querySelector(".open-detail-btn");
+      if (openDetailBtn) {
+        openDetailBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          openProviderModal(provider);
+        });
+      }
+      const cardCommunity = node.querySelector(".card-community");
+      if (cardCommunity) {
+        cardCommunity.style.cursor = "pointer";
+        cardCommunity.addEventListener("click", () => openProviderModal(provider));
+      }
+
+      // Clicking card brand or quota box also opens detail modal
+      const cardBrand = node.querySelector(".card-brand");
+      if (cardBrand) {
+        cardBrand.style.cursor = "pointer";
+        cardBrand.addEventListener("click", () => openProviderModal(provider));
+      }
+      const quotaBox = node.querySelector(".card-quota-box");
+      if (quotaBox) {
+        quotaBox.style.cursor = "pointer";
+        quotaBox.addEventListener("click", () => openProviderModal(provider));
+      }
+
+      // Show runtime warning if needed
+      const neededRuntimes = [...new Set(protocols.map(runtimeKey))];
+      const allMissing = state.runtimes && neededRuntimes.every((r) => state.runtimes[r] === false);
+      if (allMissing) {
+        node.classList.add("runtime-missing");
+        node.title = t("runtimeMissing", { runtime: neededRuntimes.map((r) => RUNTIME_LABEL[r] || r).join(" / ") });
+      }
+
+      root.appendChild(node);
+    });
   }
 
 
@@ -1212,6 +1491,35 @@
       renderCards();
     });
   });
+
+  const searchInput = document.getElementById("search-input");
+  const searchClearBtn = document.getElementById("search-clear-btn");
+  if (searchInput) {
+    searchInput.addEventListener("input", () => {
+      state.searchQuery = searchInput.value;
+      if (searchClearBtn) searchClearBtn.hidden = !searchInput.value;
+      renderCards();
+    });
+  }
+  if (searchClearBtn) {
+    searchClearBtn.addEventListener("click", () => {
+      if (searchInput) {
+        searchInput.value = "";
+        searchInput.focus();
+      }
+      state.searchQuery = "";
+      searchClearBtn.hidden = true;
+      renderCards();
+    });
+  }
+
+  const sortSelect = document.getElementById("sort-select");
+  if (sortSelect) {
+    sortSelect.addEventListener("change", () => {
+      state.sortBy = sortSelect.value;
+      renderCards();
+    });
+  }
 
   const refreshBtn = document.getElementById("refresh-btn");
   if (refreshBtn) {

@@ -29,16 +29,26 @@
             <p class="hero-slogan" data-i18n="slogan">不白嫖无兄弟，让穷兄弟也能用得上AI</p>
           </div>
         </div>
-        <div class="hero-actions">
-          <div class="hero-status" id="host-status" role="status"></div>
-          <button type="button" class="refresh-btn" id="refresh-btn" data-i18n-title="refresh" title="刷新页面" aria-label="刷新页面">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="refresh-icon" aria-hidden="true">
-              <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
-              <path d="M21 3v5h-5"/>
-              <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
-              <path d="M3 21v-5h5"/>
+        <div class="hero-toolbar">
+          <div class="search-box">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="search-icon" aria-hidden="true">
+              <circle cx="11" cy="11" r="8"/>
+              <path d="m21 21-4.3-4.3"/>
             </svg>
-          </button>
+            <input type="text" id="search-input" placeholder="搜索服务商、额度或模型..." autocomplete="off" data-i18n-placeholder="searchPlaceholder" />
+            <button type="button" id="search-clear-btn" class="search-clear-btn" hidden aria-label="清空搜索" title="清空搜索">✕</button>
+          </div>
+          <div class="hero-actions">
+            <div class="hero-status" id="host-status" role="status"></div>
+            <button type="button" class="refresh-btn" id="refresh-btn" data-i18n-title="refresh" title="刷新页面" aria-label="刷新页面">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="refresh-icon" aria-hidden="true">
+                <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+                <path d="M21 3v5h-5"/>
+                <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
+                <path d="M3 21v-5h5"/>
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
     </header>
@@ -50,7 +60,17 @@
           <button type="button" class="filter" data-region="cn" data-i18n="filterCn">国内直连</button>
           <button type="button" class="filter" data-region="global" data-i18n="filterGlobal">海外</button>
         </div>
-        <div class="toolbar-meta" id="catalog-meta"></div>
+        <div class="toolbar-controls">
+          <div class="sort-wrap">
+            <label for="sort-select" class="sr-only" data-i18n="sortLabel">排序方式</label>
+            <select id="sort-select" class="sort-select" aria-label="排序方式">
+              <option value="default" data-i18n="sortDefault">综合排序 (最新)</option>
+              <option value="rating" data-i18n="sortRating">评分最高</option>
+              <option value="avail" data-i18n="sortAvail">可用度优先</option>
+            </select>
+          </div>
+          <div class="toolbar-meta" id="catalog-meta"></div>
+        </div>
       </div>
 
       <section class="grid" id="providers" aria-live="polite"></section>
@@ -65,18 +85,38 @@
         <div class="card-body">
           <header class="card-head">
             <div class="card-brand">
-              <img class="card-icon" alt="" hidden loading="lazy" />
+              <div class="card-icon-wrap">
+                <img class="card-icon" alt="" hidden loading="lazy" />
+                <span class="card-icon-fallback" hidden>🤖</span>
+              </div>
               <div class="card-title-group">
-                <h2 class="card-name"></h2>
+                <div class="card-name-row">
+                  <h2 class="card-name"></h2>
+                  <span class="pin-mark" hidden title="推荐">📌</span>
+                </div>
                 <div class="card-tags"></div>
               </div>
             </div>
-            <span class="card-imported" hidden></span>
+            <div class="card-head-badges">
+              <span class="card-quality"></span>
+              <span class="card-imported" hidden></span>
+            </div>
           </header>
-          <p class="card-summary"></p>
+
+          <div class="card-quota-box">
+            <div class="quota-head">
+              <span class="quota-label" data-i18n="quotaLabel">免费额度</span>
+            </div>
+            <p class="card-summary"></p>
+          </div>
+
           <div class="card-models-wrap">
+            <div class="models-head">
+              <span class="models-label" data-i18n="modelsLabel">主力模型</span>
+            </div>
             <ul class="card-models"></ul>
           </div>
+
           <footer class="card-actions">
             <div class="card-links">
               <a class="card-link card-homepage" rel="noopener noreferrer" target="_blank"></a>
@@ -85,7 +125,8 @@
             <button type="button" class="import-btn"></button>
           </footer>
         </div>
-        <div class="card-community">
+
+        <div class="card-community" title="查看真实评测与详情">
           <div class="community-left">
             <span class="community-rating" title="综合评分">
               <span class="star-icon">★</span>
@@ -96,6 +137,11 @@
             <div class="community-avail" title="可用度反馈">
               <span class="avail-dot">●</span>
               <span class="avail-text">暂无反馈</span>
+            </div>
+            <span class="community-divider">·</span>
+            <div class="community-votes">
+              <span class="stat-working" title="还能用">👍 <span class="working-count">0</span></span>
+              <span class="stat-failed" title="已失效">👎 <span class="failed-count">0</span></span>
             </div>
           </div>
           <button type="button" class="open-detail-btn" title="查看真实评测与详情">
@@ -111,10 +157,13 @@
       <div class="modal-dialog">
         <header class="modal-header">
           <div class="modal-brand">
-            <img class="modal-icon" alt="" hidden loading="lazy" />
+            <div class="modal-icon-wrap">
+              <img class="modal-icon" alt="" hidden loading="lazy" />
+            </div>
             <div class="modal-title-col">
               <div class="modal-title-row">
                 <h2 class="modal-name"></h2>
+                <span class="modal-quality"></span>
                 <div class="modal-tags"></div>
               </div>
               <p class="modal-verified"></p>
@@ -129,9 +178,32 @@
         </header>
 
         <div class="modal-body">
+          <!-- Facts Grid -->
+          <div class="modal-facts-grid">
+            <div class="modal-fact">
+              <span class="fact-label" data-i18n="factRegion">区域网络</span>
+              <span class="fact-value fact-region-val">-</span>
+            </div>
+            <div class="modal-fact">
+              <span class="fact-label" data-i18n="factProtocol">接口协议</span>
+              <span class="fact-value fact-proto-val">-</span>
+            </div>
+            <div class="modal-fact">
+              <span class="fact-label" data-i18n="factDefaultModel">首选模型</span>
+              <span class="fact-value fact-model-val">-</span>
+            </div>
+            <div class="modal-fact">
+              <span class="fact-label" data-i18n="factQuality">品质分级</span>
+              <span class="fact-value fact-quality-val">-</span>
+            </div>
+          </div>
+
           <!-- Overview & Quick Actions -->
           <section class="modal-section modal-overview">
-            <p class="modal-summary"></p>
+            <h3 class="modal-section-title" data-i18n="quotaLabel">免费额度 / 特性</h3>
+            <div class="modal-quota-box">
+              <p class="modal-summary"></p>
+            </div>
             <div class="modal-quick-links">
               <a class="modal-link modal-homepage" rel="noopener noreferrer" target="_blank"></a>
               <a class="modal-link modal-console" rel="noopener noreferrer" target="_blank"></a>
