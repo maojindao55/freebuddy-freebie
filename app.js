@@ -1050,23 +1050,74 @@
     if (typeof raw.verifiedAt === "string" && /^\d{4}-\d{2}-\d{2}$/.test(raw.verifiedAt.trim())) {
       provider.verifiedAt = raw.verifiedAt.trim();
     }
+    // D1 merge time (ms epoch) of the runtime row. Only used to order the catalog; it is
+    // never rendered, and a missing/invalid value simply falls back to verifiedAt.
+    if (Number.isFinite(raw.createdAt) && raw.createdAt > 0) provider.createdAt = raw.createdAt;
 
     return provider;
   }
 
+  // Catalog recency key: a runtime row carries the D1 merge time as `createdAt`; a reviewed
+  // static entry without a runtime row falls back to its `verifiedAt` date (UTC midnight).
+  // Missing or malformed values return null and sort last.
+  function providerRecencyTime(provider) {
+    if (!provider || typeof provider !== "object") return null;
+    if (Number.isFinite(provider.createdAt) && provider.createdAt > 0) return provider.createdAt;
+    if (typeof provider.verifiedAt === "string" && /^\d{4}-\d{2}-\d{2}$/.test(provider.verifiedAt.trim())) {
+      const time = Date.parse(provider.verifiedAt.trim());
+      return Number.isFinite(time) ? time : null;
+    }
+    return null;
+  }
+
+  // Newest first: the D1 merge time when the provider has a runtime row, its verifiedAt
+  // date otherwise. The order is explicitly stable — equal times, and entries without a
+  // usable time, keep the deterministic catalog order (reviewed static order first, then
+  // the /api/providers order), so merging can never scramble untimed entries.
+  function sortProvidersByRecency(providers) {
+    return providers
+      .map((provider, index) => ({ provider, index, time: providerRecencyTime(provider) }))
+      .sort((a, b) => {
+        if (a.time !== b.time) {
+          if (a.time === null) return 1;
+          if (b.time === null) return -1;
+          return b.time - a.time;
+        }
+        return a.index - b.index;
+      })
+      .map((entry) => entry.provider);
+  }
+
   function mergeCatalogProviders(staticProviders, runtimeProviders) {
-    const merged = staticProviders.slice();
+    const runtimeById = new Map();
+    runtimeProviders.forEach((provider) => {
+      if (provider && provider.id) runtimeById.set(provider.id, provider);
+    });
+
+    const merged = staticProviders.map((provider) => {
+      if (!provider || !provider.id) return provider;
+      const runtime = runtimeById.get(provider.id);
+      // The reviewed static entry wins on every displayed field; only the runtime merge
+      // time is borrowed, so a static provider that also exists in D1 is still ordered by
+      // when it entered the runtime catalog.
+      if (runtime && Number.isFinite(runtime.createdAt) && runtime.createdAt > 0) {
+        return { ...provider, createdAt: runtime.createdAt };
+      }
+      return provider;
+    });
+
     const seen = new Set();
     merged.forEach((provider) => {
       if (provider && provider.id) seen.add(provider.id);
     });
-    // The reviewed static catalog wins on id conflicts; runtime-only entries are appended.
+    // Runtime-only entries are appended, then the whole catalog is ordered newest first.
     runtimeProviders.forEach((provider) => {
       if (seen.has(provider.id)) return;
       seen.add(provider.id);
       merged.push(provider);
     });
-    return merged;
+
+    return sortProvidersByRecency(merged);
   }
 
   // Fetch JSON with an optional hard timeout. A stalled /api/providers request must
@@ -1129,8 +1180,9 @@
     const staticProviders = Array.isArray(data?.providers) ? data.providers.slice().reverse() : [];
     state.updatedAt = data?.updatedAt || null;
 
-    // Render the reviewed static catalog first; the runtime merge below only ever
-    // adds entries, and only if /api/providers answers before the timeout.
+    // Render the reviewed static catalog first; the runtime merge below only ever adds
+    // entries (static ids still win) and re-sorts the list newest-first, and only runs if
+    // /api/providers answers before the timeout.
     applyCatalog(staticProviders, []);
     loadCommunitySummary();
 
@@ -1208,6 +1260,8 @@
       isSafeHttpsUrl,
       safeUrl,
       sanitizeRemoteProvider,
+      providerRecencyTime,
+      sortProvidersByRecency,
       mergeCatalogProviders,
       fetchJsonWithTimeout,
       fetchRuntimeProviders,

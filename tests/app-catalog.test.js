@@ -150,6 +150,197 @@ test("mergeCatalogProviders keeps static ids and appends runtime-only entries", 
   assert.equal(merged[2].name, "Runtime C");
 });
 
+test("sanitizeRemoteProvider only keeps a usable numeric createdAt", () => {
+  const { internals } = createApp();
+  const base = { id: "runtime-e", name: "Runtime E", baseUrl: "https://api.e.example.com/v1", models: [{ id: "e-1" }] };
+
+  assert.equal(internals.sanitizeRemoteProvider({ ...base, createdAt: 1767225600000 }).createdAt, 1767225600000);
+  for (const bad of [undefined, null, "1767225600000", 0, -1, NaN, Infinity, {}]) {
+    assert.equal(
+      internals.sanitizeRemoteProvider({ ...base, createdAt: bad }).createdAt,
+      undefined,
+      `createdAt ${String(bad)} must be dropped`
+    );
+  }
+});
+
+test("mergeCatalogProviders keeps static fields but orders by the runtime merge time", () => {
+  const { internals } = createApp();
+  const staticProviders = [
+    {
+      id: "static-a",
+      name: "Static A",
+      protocol: "openai-chat",
+      baseUrl: "https://api.a.example.com/v1",
+      models: [{ id: "a-1" }],
+      verifiedAt: "2026-01-01"
+    },
+    {
+      id: "static-b",
+      name: "Static B",
+      protocol: "openai-chat",
+      baseUrl: "https://api.b.example.com/v1",
+      models: [{ id: "b-1" }],
+      verifiedAt: "2026-01-05"
+    }
+  ];
+  const runtimeCreatedAt = Date.parse("2026-02-01T00:00:00Z");
+  const runtimeOnlyCreatedAt = Date.parse("2026-03-01T00:00:00Z");
+
+  const merged = internals.mergeCatalogProviders(staticProviders, [
+    // A dirty runtime row for a static id: none of its facts may win, only its timestamp.
+    {
+      id: "static-a",
+      name: "Hijacked A",
+      baseUrl: "https://api.evil.example.com/v1",
+      models: [{ id: "x" }],
+      createdAt: runtimeCreatedAt
+    },
+    { id: "runtime-c", name: "Runtime C", baseUrl: "https://api.c.example.com/v1", models: [{ id: "c-1" }], createdAt: runtimeOnlyCreatedAt }
+  ]);
+
+  // Newest merge first: runtime-only entry, then the static id with a runtime row, then
+  // the static entry that only has verifiedAt (2026-01-05).
+  assert.deepEqual(
+    merged.map((provider) => provider.id),
+    ["runtime-c", "static-a", "static-b"]
+  );
+  assert.equal(merged[1].name, "Static A", "static display fields win over the runtime row");
+  assert.equal(merged[1].baseUrl, "https://api.a.example.com/v1");
+  assert.equal(merged[1].createdAt, runtimeCreatedAt, "the runtime merge time is kept for ordering");
+  assert.equal(merged[0].createdAt, runtimeOnlyCreatedAt);
+  assert.equal(staticProviders[0].createdAt, undefined, "the reviewed static object is never mutated");
+});
+
+test("a provider merged into D1 later leads the historical batch without reshuffling it", () => {
+  const { internals } = createApp();
+  const batchAt = Date.parse("2026-01-10T00:00:00Z");
+  const senseAudioAt = Date.parse("2026-01-20T00:00:00Z");
+
+  const historical = ["hist-1", "hist-2", "hist-3"].map((id) => ({
+    id,
+    name: id,
+    protocol: "openai-chat",
+    baseUrl: `https://api.${id}.example.com/v1`,
+    models: [{ id: `${id}-1` }]
+  }));
+
+  const merged = internals.mergeCatalogProviders(historical, [
+    // The re-sync refreshes updated_at on every row but keeps created_at, so the whole
+    // imported batch shares one timestamp and must keep the reviewed catalog order.
+    ...historical.map((provider) => ({ ...provider, createdAt: batchAt })),
+    {
+      id: "senseaudio",
+      name: "SenseAudio",
+      baseUrl: "https://api.senseaudio.cn/v1",
+      models: [{ id: "senseaudio-s2" }],
+      createdAt: senseAudioAt
+    }
+  ]);
+
+  assert.deepEqual(
+    merged.map((provider) => provider.id),
+    ["senseaudio", "hist-1", "hist-2", "hist-3"]
+  );
+});
+
+test("recency sorting is stable and deterministic for missing or invalid dates", () => {
+  const { internals } = createApp();
+  const { providerRecencyTime, sortProvidersByRecency } = internals;
+
+  assert.equal(providerRecencyTime({ verifiedAt: "2026-01-05" }), Date.parse("2026-01-05"));
+  assert.equal(
+    providerRecencyTime({ createdAt: 123, verifiedAt: "2026-01-05" }),
+    123,
+    "the runtime merge time takes precedence over verifiedAt"
+  );
+  for (const value of [undefined, null, "", "not-a-date", "2026-13-45", "05/01/2026", "1767225600000", 0, -1, NaN, Infinity]) {
+    assert.equal(providerRecencyTime({ verifiedAt: value }), null, `verifiedAt ${String(value)} must be unusable`);
+  }
+  assert.equal(
+    providerRecencyTime({ createdAt: -5, verifiedAt: "2026-01-05" }),
+    Date.parse("2026-01-05"),
+    "an invalid createdAt falls back to verifiedAt"
+  );
+  assert.equal(providerRecencyTime(null), null);
+
+  const sorted = sortProvidersByRecency([
+    { id: "untimed-1" },
+    { id: "newest", createdAt: 300 },
+    { id: "untimed-2", verifiedAt: "not-a-date" },
+    { id: "older", createdAt: 100 },
+    { id: "same-as-newest", createdAt: 300 }
+  ]);
+
+  // Time descending; equal times and unusable/missing times keep the input order (which is
+  // itself deterministic: reviewed static order first, then /api/providers order).
+  assert.deepEqual(
+    sorted.map((provider) => provider.id),
+    ["newest", "same-as-newest", "older", "untimed-1", "untimed-2"]
+  );
+});
+
+test("rendered catalog sorts by merge time: runtime createdAt, D1-only, verifiedAt fallback", async () => {
+  const batchAt = Date.parse("2026-01-05T00:00:00Z");
+  const freshAt = Date.parse("2026-01-20T00:00:00Z");
+  const staticCatalog = {
+    updatedAt: "2026-01-01",
+    providers: [
+      {
+        id: "static-old",
+        name: "Static Old",
+        protocol: "openai-chat",
+        baseUrl: "https://api.old.example.com/v1",
+        models: [{ id: "old-1" }],
+        verifiedAt: "2026-01-01"
+      },
+      {
+        id: "static-verified",
+        name: "Static Verified",
+        protocol: "openai-chat",
+        baseUrl: "https://api.verified.example.com/v1",
+        models: [{ id: "v-1" }],
+        verifiedAt: "2026-01-10"
+      }
+    ]
+  };
+  const app = createApp({
+    routes: staticRoutes({
+      "./providers.json": () => jsonResponse(staticCatalog),
+      "./api/providers": () =>
+        jsonResponse({
+          ok: true,
+          providers: [
+            {
+              id: "static-old",
+              name: "Hijacked Old",
+              baseUrl: "https://api.evil.example.com/v1",
+              models: [{ id: "x" }],
+              createdAt: batchAt
+            },
+            {
+              id: "senseaudio",
+              name: "SenseAudio",
+              baseUrl: "https://api.senseaudio.cn/v1",
+              protocol: "openai-chat",
+              models: [{ id: "senseaudio-s2" }],
+              createdAt: freshAt
+            }
+          ]
+        })
+    })
+  });
+
+  await app.settle();
+
+  // static-old is ordered by its runtime createdAt (2026-01-05), static-verified falls back
+  // to verifiedAt (2026-01-10) and the newly merged D1-only provider (2026-01-20) leads.
+  assert.deepEqual(cardIds(app), ["senseaudio", "static-verified", "static-old"]);
+  const rendered = cards(app);
+  assert.equal(rendered[0].name, "SenseAudio");
+  assert.equal(rendered[2].name, "Static Old", "the static entry keeps its reviewed fields");
+});
+
 test("static catalog renders while the /api/providers request hangs", async () => {
   const app = createApp({ routes: (io) => staticRoutes({ "./api/providers": () => io.hang() }) });
 

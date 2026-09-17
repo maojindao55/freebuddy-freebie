@@ -239,6 +239,12 @@ function toProviderObject(row) {
     provider.verifiedAt = row.verified_at.trim();
   }
 
+  // Milliseconds since epoch of the first merge into the runtime catalog (the sync upsert
+  // preserves created_at on update). Deliberately the only runtime bookkeeping field that
+  // leaves the API: it lets the catalog list the newest provider first without exposing
+  // status / submitted_by / updated_at.
+  if (Number.isFinite(row.created_at) && row.created_at > 0) provider.createdAt = row.created_at;
+
   const validation = validateProvider(provider);
   if (!validation.ok) {
     console.warn(
@@ -286,6 +292,8 @@ async function handleApi(request, env) {
 
   // GET /api/providers : approved runtime providers only.
   // Read-only by design: new providers are reviewed via GitHub PR first.
+  // Ordered newest-added first (providers.created_at survives re-syncs), which the page
+  // re-applies after merging with the reviewed static catalog.
   if (url.pathname === "/api/providers" && request.method === "GET") {
     if (!db) {
       return jsonResponse({ ok: true, providers: [] });
@@ -294,10 +302,11 @@ async function handleApi(request, env) {
       const rows = await db
         .prepare(
           `SELECT id, name, icon, region, homepage, console_url, free_tier_summary,
-                  protocol, protocols, base_url, env_key, models, context_window, verified_at
+                  protocol, protocols, base_url, env_key, models, context_window, verified_at,
+                  created_at
            FROM providers
            WHERE status = 'approved'
-           ORDER BY updated_at DESC, id ASC`
+           ORDER BY created_at DESC, id ASC`
         )
         .all();
 

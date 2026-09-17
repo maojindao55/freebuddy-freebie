@@ -137,7 +137,58 @@ test("GET /api/providers returns approved rows only, in camelCase", async () => 
   assert.deepEqual(provider.models, [{ id: "alpha-1", name: "Alpha 1" }]);
   assert.equal(provider.contextWindow, 8192);
   assert.equal(provider.verifiedAt, "2026-01-05");
+  assert.equal(provider.createdAt, BASE_ROW.created_at, "createdAt must be derived from providers.created_at");
   assert.deepEqual(provider.freeTierSummary, { en: "Free tier for new accounts" });
+
+  // Runtime bookkeeping stays private: createdAt is the only D1 column next to the
+  // reviewed facts that may leave the API.
+  for (const leaked of ["status", "submittedBy", "submitted_by", "updatedAt", "updated_at", "created_at"]) {
+    assert.equal(provider[leaked], undefined, `${leaked} must not be exposed by the public payload`);
+  }
+});
+
+test("GET /api/providers exposes createdAt and orders providers newest-merged first", async () => {
+  const sqlite = migratedDatabase();
+  // created_at is the first-merge time and survives re-syncs; updated_at is refreshed on
+  // every sync, so it must NOT define the order (the values here disagree on purpose).
+  insertProvider(sqlite, { id: "oldest", base_url: "https://api.oldest.example.com/v1", created_at: 1000, updated_at: 9000 });
+  insertProvider(sqlite, { id: "newest", base_url: "https://api.newest.example.com/v1", created_at: 3000, updated_at: 10 });
+  insertProvider(sqlite, { id: "middle", base_url: "https://api.middle.example.com/v1", created_at: 2000, updated_at: 5000 });
+  insertProvider(sqlite, {
+    id: "pending-newest",
+    status: "pending",
+    base_url: "https://api.pending.example.com/v1",
+    created_at: 4000
+  });
+
+  const { response, body } = await requestProviders(sqlite);
+
+  assert.equal(response.status, 200);
+  assert.deepEqual(
+    body.providers.map((provider) => provider.id),
+    ["newest", "middle", "oldest"],
+    "approved rows must be served newest-merged first, and pending rows stay out"
+  );
+  assert.deepEqual(body.providers.map((provider) => provider.createdAt), [3000, 2000, 1000]);
+});
+
+test("a row without a usable created_at is still served but exposes no createdAt", async () => {
+  const sqlite = new DatabaseSync(":memory:");
+  sqlite.exec(LOOSE_TABLE_SQL);
+  insertProvider(sqlite, { id: "no-created-at", created_at: null, base_url: "https://api.no-created-at.example.com/v1" });
+  insertProvider(sqlite, { id: "has-created-at", created_at: 5, base_url: "https://api.has-created-at.example.com/v1" });
+
+  const { body } = await requestProviders(sqlite);
+  const byId = Object.fromEntries(body.providers.map((provider) => [provider.id, provider]));
+
+  assert.ok(byId["no-created-at"], "a null created_at must not drop the row");
+  assert.equal(byId["no-created-at"].createdAt, undefined, "no unusable timestamp may leave the API");
+  assert.equal(byId["has-created-at"].createdAt, 5);
+  assert.deepEqual(
+    body.providers.map((provider) => provider.id),
+    ["has-created-at", "no-created-at"],
+    "a NULL created_at sorts after every real timestamp"
+  );
 });
 
 test("app layer clears unsafe URLs and drops unusable rows from a dirty database", async () => {
@@ -170,7 +221,7 @@ test("app layer clears unsafe URLs and drops unusable rows from a dirty database
   const { response, body } = await requestProviders(sqlite);
 
   assert.equal(response.status, 200);
-  // ORDER BY updated_at DESC, id ASC (all rows share the same updated_at here).
+  // ORDER BY created_at DESC, id ASC (all rows share the same created_at here).
   assert.deepEqual(
     body.providers.map((provider) => provider.id),
     ["broken-summary", "clean-provider", "unsafe-icon", "unsafe-links"]

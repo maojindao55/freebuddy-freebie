@@ -32,7 +32,14 @@ const DECLARATION = JSON.parse(readFileSync(DECLARATION_PATH, "utf8"));
 
 /** Comment the sync script writes for this declaration when it scans the real directory. */
 const SQL_LABEL = "-- submissions/providers/senseaudio.json";
-const INVITE_URL = "https://senseaudio.cn/login?inviteCode=6EX3VALX";
+const INVITE_CODE = "J36RUVHX";
+const INVITE_URL = `https://senseaudio.cn/login?inviteCode=${INVITE_CODE}`;
+/**
+ * The previous invitation code, assembled from two halves so this test file itself never
+ * contains the retired literal: the code must not survive anywhere (declaration, sync SQL,
+ * committed tests), and a repo-wide grep for it stays a reliable check.
+ */
+const RETIRED_INVITE_CODE = "6EX3" + "VALX";
 
 /** Model ids verified against docs.senseaudio.cn (S2 series, TTS and ASR endpoints). */
 const VERIFIED_MODEL_IDS = [
@@ -87,7 +94,25 @@ test("URLs stay in the safe-https contract: invite console entry, invite-free ho
   const consoleUrl = new URL(DECLARATION.consoleUrl);
   assert.equal(consoleUrl.hostname, "senseaudio.cn");
   assert.equal(DECLARATION.consoleUrl, INVITE_URL, "the reporter's invitation link stays the console/registration entry");
-  assert.equal(consoleUrl.searchParams.get("inviteCode"), "6EX3VALX");
+  assert.equal(consoleUrl.searchParams.get("inviteCode"), INVITE_CODE);
+});
+
+test("the retired invitation code does not survive in the declaration or the synced SQL", async (t) => {
+  assert.ok(
+    !readFileSync(DECLARATION_PATH, "utf8").includes(RETIRED_INVITE_CODE),
+    "the declaration file must not keep the retired invite code anywhere"
+  );
+
+  // Build the SQL through the real sync CLI so the assertion covers what would be applied to D1.
+  const outDir = mkdtempSync(join(tmpdir(), "freebuddy-senseaudio-retired-"));
+  t.after(() => rmSync(outDir, { recursive: true, force: true }));
+  const out = join(outDir, "sync.sql");
+  const result = spawnSync(process.execPath, [SYNC_SCRIPT, "--out", out], { encoding: "utf8" });
+  assert.equal(result.status, 0, result.stderr);
+
+  const sql = readFileSync(out, "utf8");
+  assert.ok(!sql.includes(RETIRED_INVITE_CODE), "the sync SQL must only carry the current invite code");
+  assert.ok(sql.includes(`'${INVITE_URL}'`), "the sync SQL must carry the current invitation link");
 });
 
 test("the free-tier summary points at the console instead of an unverified fixed amount", () => {
@@ -126,7 +151,7 @@ test("the real sync run turns the declaration into an approved upsert that the A
   assert.ok(statement.includes("'senseaudio'"), "the upsert must be keyed by the declaration id");
   assert.ok(statement.includes("'approved'"), "the upsert must carry status approved");
   assert.ok(statement.includes("'https://api.senseaudio.cn/v1'"));
-  assert.ok(statement.includes("'https://senseaudio.cn/login?inviteCode=6EX3VALX'"));
+  assert.ok(statement.includes(`'${INVITE_URL}'`));
 
   const sqlite = new DatabaseSync(":memory:");
   sqlite.exec(SCHEMA);
