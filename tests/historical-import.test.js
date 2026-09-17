@@ -8,8 +8,9 @@
  *
  * These tests pin the conversion:
  *  - every providers.json entry converts into a declaration the sync script accepts,
- *  - the committed files are exactly that conversion, counts included (no missing entries, no
- *    ghost entries, and the submissions/examples files never become real declarations),
+ *  - the committed files are exactly that conversion plus the explicitly listed post-import
+ *    declarations (POST_IMPORT_DECLARATION_IDS) — no missing entries, no ghost entries, and the
+ *    submissions/examples files never become real declarations,
  *  - the real sync CLI turns the whole directory into an idempotent SQL file that a migrated D1
  *    database executes, and GET /api/providers serves all of it,
  *  - nothing is added to the statically published catalog: providers.json stays facts-only (no
@@ -17,7 +18,9 @@
  *
  * The historical batch is a snapshot: if the runtime catalog is deliberately changed later
  * (a provider is taken offline, a fact is corrected), update the expected conversion here in the
- * same PR — this file is the record of what the import promised.
+ * same PR — this file is the record of what the import promised. A provider added *after* the
+ * import has no providers.json entry, so its id must be registered in POST_IMPORT_DECLARATION_IDS
+ * in that same PR: the count checks below then still fail on an unnoticed ghost declaration.
  */
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
@@ -40,6 +43,13 @@ const ASSETS_IGNORE = readFileSync(new URL("../.assetsignore", import.meta.url),
 
 /** Provenance recorded on every declaration created by the historical import. */
 const IMPORT_MARKER = "static-catalog-import";
+
+/**
+ * Declarations merged after the historical import: they deliberately have no providers.json
+ * entry. Listing them here keeps the counts below honest — adding a provider stays a reviewed,
+ * visible change instead of an unnoticed ghost entry in the declared batch.
+ */
+const POST_IMPORT_DECLARATION_IDS = ["senseaudio"];
 
 /** Provider facts copied verbatim from providers.json; runtime bookkeeping is added on import. */
 const FACT_FIELDS = [
@@ -174,6 +184,17 @@ test("the committed declaration batch is exactly the historical catalog, counts 
     "the imported ids must equal the static catalog ids"
   );
 
+  // Everything without the provenance marker is a post-import declaration and must be listed
+  // explicitly, so a stray extra file cannot silently widen the catalog.
+  assert.deepEqual(
+    declarations
+      .filter(({ declaration }) => declaration.submittedBy !== IMPORT_MARKER)
+      .map(({ declaration }) => declaration.id)
+      .sort(),
+    [...POST_IMPORT_DECLARATION_IDS].sort(),
+    "post-import declarations must be registered in POST_IMPORT_DECLARATION_IDS"
+  );
+
   const byId = new Map(declarations.map((entry) => [entry.declaration.id, entry]));
   assert.ok(
     !byId.has("example-provider"),
@@ -197,7 +218,7 @@ test("the committed declaration batch is exactly the historical catalog, counts 
 
 test("the committed declarations pass the sync CLI and produce an idempotent, servable approved catalog", async (t) => {
   const expectedCount = committedDeclarationNames().length;
-  assert.equal(expectedCount, readCatalog().providers.length);
+  assert.equal(expectedCount, readCatalog().providers.length + POST_IMPORT_DECLARATION_IDS.length);
 
   const outDir = mkdtempSync(join(tmpdir(), "freebuddy-import-sql-"));
   t.after(() => rmSync(outDir, { recursive: true, force: true }));
@@ -234,15 +255,15 @@ test("the committed declarations pass the sync CLI and produce an idempotent, se
   );
   assert.equal(
     sqlite.prepare(`SELECT COUNT(*) AS c FROM providers WHERE submitted_by = '${IMPORT_MARKER}'`).get().c,
-    expectedCount,
-    "the provenance marker must reach D1"
+    readCatalog().providers.length,
+    "the provenance marker must reach D1 for every imported entry"
   );
 
   const { body } = await requestProviders(sqlite);
   assert.deepEqual(
     body.providers.map((provider) => provider.id).sort(),
-    readCatalog().providers.map((provider) => provider.id).sort(),
-    "the runtime API must serve every imported provider"
+    [...readCatalog().providers.map((provider) => provider.id), ...POST_IMPORT_DECLARATION_IDS].sort(),
+    "the runtime API must serve every imported provider plus the registered post-import declarations"
   );
 });
 
@@ -250,7 +271,7 @@ test("the import adds nothing to the statically published catalog", () => {
   const catalog = readCatalog();
 
   // providers.json remains a facts-only static file: the runtime bookkeeping never leaks in.
-  assert.equal(catalog.providers.length, committedDeclarationNames().length);
+  assert.equal(committedDeclarationNames().length, catalog.providers.length + POST_IMPORT_DECLARATION_IDS.length);
   for (const provider of catalog.providers) {
     for (const key of Object.keys(provider)) {
       assert.ok(

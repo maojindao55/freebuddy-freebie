@@ -1,0 +1,39 @@
+{
+  "$schema": "../providers.schema.json",
+  "id": "senseaudio",
+  "name": "商汤 SenseAudio",
+  "region": "cn",
+  "homepage": "https://senseaudio.cn",
+  "consoleUrl": "https://senseaudio.cn/login?inviteCode=6EX3VALX",
+  "freeTierSummary": {
+    "zh-CN": "使用邀请链接注册 SenseAudio 开发者账号，在控制台创建 API Key，即可调用 OpenAI 兼容的 S2 系列对话模型与 TTS / ASR 语音接口；平台按 Token 套餐计费，具体可用额度与赠送活动以控制台为准。",
+    "en": "Register a SenseAudio developer account via the invitation link and create an API key to call the OpenAI-compatible S2 chat models plus TTS and ASR endpoints; usage is billed through Token Plans, so check the console for current quotas and promotional credits."
+  },
+  "protocol": "openai-chat",
+  "baseUrl": "https://api.senseaudio.cn/v1",
+  "envKey": "SENSEAUDIO_API_KEY",
+  "models": [
+    {
+      "id": "senseaudio-s2",
+      "name": "SenseAudio S2"
+    },
+    {
+      "id": "senseaudio-s2-flash",
+      "name": "SenseAudio S2-Flash"
+    },
+    {
+      "id": "senseaudio-s2-lite",
+      "name": "SenseAudio S2-Lite"
+    },
+    {
+      "id": "senseaudio-tts-1.5-260319",
+      "name": "SenseAudio TTS 1.5 (语音合成)"
+    },
+    {
+      "id": "senseaudio-asr-lite-1.5-260319",
+      "name": "SenseAudio ASR Lite 1.5 (语音识别)"
+    }
+  ],
+  "verifiedAt": "2026-09-17",
+  "status": "approved"
+}

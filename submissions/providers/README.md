@@ -59,11 +59,16 @@ submissions/providers/<id>.json     例如 submissions/providers/zhipu.json
    只要有一个文件不合规，脚本会列出每个文件的具体问题并以退出码 1 结束，**不会**输出任何 SQL。
 3. 提交 PR。合并后 workflow 自动同步，页面刷新即可看到新服务商。
 
+## 邀请链接与免费额度
+
+- `consoleUrl` 允许使用带邀请码的官方注册 / 登录链接（例如 `https://senseaudio.cn/login?inviteCode=...`），它是服务商的注册与领 Key 入口；`homepage` 保持普通官方入口，不要带邀请参数。
+- 邀请赠送（代金券 / 免费额度）会随时调整，`freeTierSummary` 只能写有官方依据的事实：**不要**把「注册送 N 元代金券」这类未经核实的固定数额写成确定承诺，改为「具体可用额度以控制台为准」的表述。
+
 ## 历史静态目录导入（2026-09-16）
 
 `providers.json` 里的 16 条历史条目已逐条转换为本目录下的声明（`zhipu.json` 起至 `atria.json`），全部为 `"status": "approved"`，并带导入溯源标记 `"submittedBy": "static-catalog-import"`。转换只补齐运行时字段（`status` / `submittedBy` / `$schema`），`name` / `freeTierSummary` / `baseUrl` / `models` 等服务商事实与 `providers.json` 完全一致，**没有改动 `providers.json` 本身**：静态目录仍是页面的基础目录，按 `id` 合并时静态条目优先。
 
-[`tests/historical-import.test.js`](../../tests/historical-import.test.js) 固定了这次导入的对应关系（每条静态条目 ↔ 每个声明、数量一致、全部通过同步脚本）。如果之后要刻意修改导入批次中的某条声明（例如下线），请在同一 PR 里同步更新该测试的预期。
+[`tests/historical-import.test.js`](../../tests/historical-import.test.js) 固定了这次导入的对应关系（每条静态条目 ↔ 每个声明、数量一致、全部通过同步脚本）。如果之后要刻意修改导入批次中的某条声明（例如下线），请在同一 PR 里同步更新该测试的预期。导入之后新增的声明（例如 `senseaudio`，不在 `providers.json` 里）由该测试里的 `POST_IMPORT_DECLARATION_IDS` 显式登记，新增服务商时要在同一个 PR 里补上，否则测试会按「幽灵条目」失败。
 
 ## 下线服务商
 
