@@ -13,7 +13,7 @@
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, X-FreeBuddy-Device-Id",
+  "Access-Control-Allow-Headers": "Content-Type, Authorization, X-FreeBuddy-Device-Id",
   "Access-Control-Max-Age": "86400"
 };
 
@@ -220,7 +220,13 @@ async function handleApi(request, env) {
 
   const db = findD1Database(env);
 
+  // POST /api/v1/auth/device : Issue or retrieve trial token for onboarding guide
+  if (url.pathname === "/api/v1/auth/device" && request.method === "POST") {
+    return handleDeviceActivation(request, env, url, db);
+  }
+
   // Diagnostic endpoint for verifying bindings
+
   if (url.pathname === "/api/debug" && request.method === "GET") {
     const keys = env ? Object.keys(env) : [];
     let dbStatus = "none";
@@ -499,12 +505,185 @@ async function handleApi(request, env) {
   return jsonResponse({ ok: false, error: "not_found" }, 404);
 }
 
+async function handleDeviceActivation(request, env, url, db) {
+  let body = {};
+  try {
+    body = await request.json();
+  } catch {
+    // body may be empty
+  }
+
+  const deviceId =
+    request.headers.get("x-freebuddy-device-id")?.trim() ||
+    body.deviceId?.trim();
+
+  if (!deviceId || deviceId.length < 8 || deviceId.length > 128) {
+    return jsonResponse(
+      { ok: false, error: "invalid_device_id", message: "无效的客户端设备标识" },
+      400
+    );
+  }
+
+  const hours = parseInt(env?.TRIAL_EXPIRES_HOURS || "48", 10);
+  const now = Date.now();
+  const expiresAt = now + hours * 3600 * 1000;
+
+  let token = null;
+
+  if (db) {
+    try {
+      const existing = await db
+        .prepare("SELECT token, expires_at FROM trial_tokens WHERE device_id = ?")
+        .bind(deviceId)
+        .first();
+      if (existing && existing.token && Number(existing.expires_at) > now) {
+        token = existing.token;
+      }
+    } catch {
+      // trial_tokens table might not exist yet; proceed to generate
+    }
+  }
+
+  if (!token) {
+    token = `fb-trial-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+    if (db) {
+      try {
+        await db
+          .prepare(
+            `INSERT INTO trial_tokens (device_id, token, created_at, expires_at)
+             VALUES (?, ?, ?, ?)
+             ON CONFLICT(device_id) DO UPDATE SET
+               token = excluded.token,
+               created_at = excluded.created_at,
+               expires_at = excluded.expires_at`
+          )
+          .bind(deviceId, token, now, expiresAt)
+          .run();
+      } catch {
+        // write failure is non-fatal
+      }
+    }
+  }
+
+  const defaultModel = env?.DEFAULT_MODEL || "dots3-note-prev";
+
+  return jsonResponse({
+    ok: true,
+    token,
+    baseUrl: `${url.origin}/v1`,
+    envKey: "FREEBUDDY_GUIDE_TOKEN",
+    models: [
+      {
+        id: "auto",
+        name: `Auto (${defaultModel})`,
+        contextWindow: 128000
+      },
+      {
+        id: defaultModel,
+        name: defaultModel,
+        contextWindow: 128000
+      }
+    ],
+    expiresInSeconds: hours * 3600
+  });
+}
+
+async function handleProxy(request, env, url) {
+  const authHeader = request.headers.get("authorization") || "";
+  const token = authHeader.replace(/^Bearer\s+/i, "").trim();
+
+  if (!token) {
+    return jsonResponse(
+      { ok: false, error: "unauthorized", message: "缺少 Authorization Header" },
+      401
+    );
+  }
+
+  const defaultModel = env?.DEFAULT_MODEL || "dots3-note-prev";
+
+  // Intercept /v1/models to always advertise 'auto' and the default model
+  if (url.pathname === "/v1/models" && request.method === "GET") {
+    return jsonResponse({
+      object: "list",
+      data: [
+        { id: "auto", object: "model", created: 1626777600, owned_by: "freebuddy" },
+        { id: defaultModel, object: "model", created: 1626777600, owned_by: "upstream" }
+      ],
+      success: true
+    });
+  }
+
+  const upstreamBase = (env?.NEWAPI_BASE_URL || "http://106.13.104.125:3000").replace(/\/+$/, "");
+  const targetUrl = `${upstreamBase}${url.pathname}${url.search}`;
+
+  const forwardHeaders = new Headers(request.headers);
+  forwardHeaders.set("Host", new URL(upstreamBase).host);
+
+  // If client used trial token, replace with master key; otherwise pass through
+  const masterKey = env?.NEWAPI_API_KEY || "sk-oC77RLyVT8a72hZrghhpszKjD2u2R3gWY7DHxMcBKrJ97XA6";
+  if (token.startsWith("fb-trial-")) {
+    forwardHeaders.set("Authorization", `Bearer ${masterKey}`);
+  } else {
+    forwardHeaders.set("Authorization", `Bearer ${token}`);
+  }
+
+  // Rewrite model: 'auto' -> defaultModel for chat completions
+  let body = request.body;
+  if (request.method === "POST" && url.pathname.includes("/chat/completions")) {
+    try {
+      const json = await request.json();
+      if (json && typeof json === "object") {
+        if (json.model === "auto" || !json.model) {
+          json.model = defaultModel;
+        }
+        body = JSON.stringify(json);
+        forwardHeaders.set("Content-Type", "application/json");
+      }
+    } catch {
+      // fallback to original body
+    }
+  }
+
+  try {
+    const upstreamRes = await fetch(targetUrl, {
+      method: request.method,
+      headers: forwardHeaders,
+      body,
+      redirect: "follow"
+    });
+
+    const responseHeaders = new Headers(upstreamRes.headers);
+    for (const [k, v] of Object.entries(CORS_HEADERS)) {
+      responseHeaders.set(k, v);
+    }
+
+    return new Response(upstreamRes.body, {
+      status: upstreamRes.status,
+      statusText: upstreamRes.statusText,
+      headers: responseHeaders
+    });
+  } catch (err) {
+    return jsonResponse(
+      { ok: false, error: "proxy_error", message: `Upstream error: ${err.message}` },
+      502
+    );
+  }
+}
+
 export default {
   async fetch(request, env, ctx) {
+    if (request.method === "OPTIONS") {
+      return new Response(null, { status: 204, headers: CORS_HEADERS });
+    }
+
     const url = new URL(request.url);
 
     if (url.pathname.startsWith("/api/")) {
       return handleApi(request, env);
+    }
+
+    if (url.pathname.startsWith("/v1/")) {
+      return handleProxy(request, env, url);
     }
 
     // Delegate all static assets to Cloudflare Assets
@@ -515,3 +694,4 @@ export default {
     return new Response("Not Found", { status: 404 });
   }
 };
+

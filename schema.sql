@@ -79,3 +79,15 @@ CREATE TABLE IF NOT EXISTS votes (
 );
 
 CREATE INDEX IF NOT EXISTS idx_votes_provider ON votes(provider_id, vote_date);
+
+-- Trial tokens table: one active trial token per device
+CREATE TABLE IF NOT EXISTS trial_tokens (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  device_id TEXT NOT NULL UNIQUE,
+  token TEXT NOT NULL,
+  created_at INTEGER NOT NULL,
+  expires_at INTEGER NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_trial_device ON trial_tokens(device_id);
+

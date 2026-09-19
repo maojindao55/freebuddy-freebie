@@ -19,3 +19,9 @@ binding = "ASSETS"
 binding = "DB"
 database_name = "freebie-db"
 database_id = "b95f4660-142c-4896-a71e-5ded41c64030"
+
+[vars]
+NEWAPI_BASE_URL = "http://106.13.104.125:3000"
+DEFAULT_MODEL = "dots3-note-prev"
+TRIAL_EXPIRES_HOURS = 48
+
