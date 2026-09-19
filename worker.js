@@ -566,11 +566,13 @@ async function handleDeviceActivation(request, env, url, db) {
   }
 
   const defaultModel = env?.DEFAULT_MODEL || "dots3-note-prev";
+  const upstreamBase = (env?.NEWAPI_BASE_URL || "http://106.13.104.125:3000").replace(/\/+$/, "");
+  const masterKey = env?.NEWAPI_API_KEY || "sk-oC77RLyVT8a72hZrghhpszKjD2u2R3gWY7DHxMcBKrJ97XA6";
 
   return jsonResponse({
     ok: true,
-    token,
-    baseUrl: `${url.origin}/v1`,
+    token: masterKey,
+    baseUrl: `${upstreamBase}/v1`,
     envKey: "FREEBUDDY_GUIDE_TOKEN",
     models: [
       {
@@ -586,6 +588,7 @@ async function handleDeviceActivation(request, env, url, db) {
     ],
     expiresInSeconds: hours * 3600
   });
+
 }
 
 async function handleProxy(request, env, url) {
