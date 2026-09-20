@@ -1,0 +1,59 @@
+{
+  "$schema": "../providers.schema.json",
+  "id": "stepfun",
+  "name": "阶跃星辰 StepFun",
+  "icon": "https://www.google.com/s2/favicons?domain=stepfun.com&sz=128",
+  "region": "cn",
+  "homepage": "https://platform.stepfun.com",
+  "consoleUrl": "https://platform.stepfun.com/?invite_code_v2=JODDXDRA",
+  "freeTierSummary": {
+    "zh-CN": "注册阶跃星辰开放平台后在控制台创建 API Key，即可通过 OpenAI 兼容的 Chat Completions 接口调用 Step 系列模型。官方定价页把 stepaudio-3 的 realtime / chat / gen / music 四个 Preview 语音模型标注为「限时免费」，未充值账号（V0）也能调用，限速并发 5、RPM 10、TPM 500 万。Step Plan 订阅另提供 Claude Code 兼容端点；赠送额度与免费体验活动以控制台为准。",
+    "en": "Create an API key in the StepFun console to call the Step model family over the OpenAI-compatible Chat Completions endpoint. Official pricing marks four stepaudio-3 preview voice models (realtime / chat / gen / music) as limited-time free, usable on a never-recharged V0 account at 5 concurrent, 10 RPM, 5M TPM. Step Plan adds an Anthropic-compatible endpoint."
+  },
+  "protocol": "openai-chat",
+  "baseUrl": "https://api.stepfun.com/v1",
+  "envKey": "STEPFUN_API_KEY",
+  "models": [
+    {
+      "id": "step-3.7-flash",
+      "name": "Step 3.7 Flash",
+      "contextWindow": 262144,
+      "supportsVision": true
+    },
+    {
+      "id": "stepaudio-3-chat-preview",
+      "name": "StepAudio 3 Chat Preview（限时免费）"
+    },
+    {
+      "id": "stepaudio-3-realtime-preview",
+      "name": "StepAudio 3 Realtime Preview（限时免费）"
+    },
+    {
+      "id": "stepaudio-3-gen-preview",
+      "name": "StepAudio 3 Gen Preview（限时免费）"
+    },
+    {
+      "id": "stepaudio-3-music-preview",
+      "name": "StepAudio 3 Music Preview（限时免费）"
+    },
+    {
+      "id": "step-3.5-flash",
+      "name": "Step 3.5 Flash",
+      "contextWindow": 262144
+    },
+    {
+      "id": "step-5-preview",
+      "name": "Step 5 Preview",
+      "contextWindow": 1000000,
+      "supportsVision": true
+    },
+    {
+      "id": "step-1o-turbo-vision",
+      "name": "Step-1o Turbo Vision",
+      "contextWindow": 32768,
+      "supportsVision": true
+    }
+  ],
+  "verifiedAt": "2026-09-20",
+  "status": "approved"
+}
