@@ -1,0 +1,39 @@
+{
+  "$schema": "../providers.schema.json",
+  "id": "tierflow",
+  "name": "TierFlow",
+  "region": "cn",
+  "homepage": "https://tierflow.cn",
+  "consoleUrl": "https://tierflow.cn/register?referral_code=RPsQKzM05355",
+  "freeTierSummary": {
+    "zh-CN": "注册后赠送试用额度，邀请好友注册可额外获得额度；统一兼容 OpenAI 接口，聚合 DeepSeek、GLM、Qwen 等模型。具体赠送额度与活动规则以控制台为准。",
+    "en": "New accounts receive trial credits, with extra credits for inviting friends; the gateway offers OpenAI-compatible access to DeepSeek, GLM and Qwen models. Check the console for current credit amounts and promotion rules."
+  },
+  "protocol": "openai-chat",
+  "baseUrl": "https://tierflow.cn/v1",
+  "envKey": "TIERFLOW_API_KEY",
+  "models": [
+    {
+      "id": "DeepSeek-V4.1-Flash",
+      "name": "DeepSeek V4.1 Flash"
+    },
+    {
+      "id": "GLM-5.3",
+      "name": "GLM-5.3"
+    },
+    {
+      "id": "GLM-5.3-Flash",
+      "name": "GLM-5.3 Flash"
+    },
+    {
+      "id": "GLM-5.3-FlashX",
+      "name": "GLM-5.3 FlashX"
+    },
+    {
+      "id": "Qwen3.8-Flash",
+      "name": "Qwen3.8 Flash"
+    }
+  ],
+  "verifiedAt": "2026-09-21",
+  "status": "approved"
+}
