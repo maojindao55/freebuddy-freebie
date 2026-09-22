@@ -1,0 +1,42 @@
+{
+  "$schema": "../providers.schema.json",
+  "id": "xiaomi-mimo",
+  "name": "小米 MiMo 开放平台",
+  "icon": "xiaomimimo",
+  "region": "cn",
+  "homepage": "https://platform.xiaomimimo.com",
+  "consoleUrl": "https://platform.xiaomimimo.com?ref=J9PUXW",
+  "freeTierSummary": {
+    "zh-CN": "用邀请链接注册小米 MiMo 开放平台，双方各得 ¥10 API 体验金（自到账起 40 天内有效），首单充值再享 9 折。控制台创建 API Key 后即可通过 OpenAI 兼容接口调用 mimo-v2.6-pro（1M 上下文、全模态）/ mimo-v2.6-flash / pro-ultraspeed，定价页当前把 mimo-v2.5-tts 语音合成标为免费。赠送金额与活动期限以控制台为准。",
+    "en": "Register on the Xiaomi MiMo open platform through the invitation link and both sides get ¥10 in API credit (valid 40 days), plus 10% off the first top-up. Create an API key to call mimo-v2.6-pro (1M context, full-modal), mimo-v2.6-flash and pro-ultraspeed over the OpenAI-compatible endpoint; pricing currently lists mimo-v2.5-tts as free. Check the console for promo terms."
+  },
+  "protocol": "openai-chat",
+  "baseUrl": "https://api.xiaomimimo.com/v1",
+  "envKey": "MIMO_API_KEY",
+  "models": [
+    {
+      "id": "mimo-v2.6-pro",
+      "name": "MiMo V2.6 Pro",
+      "contextWindow": 1000000,
+      "supportsVision": true
+    },
+    {
+      "id": "mimo-v2.6-flash",
+      "name": "MiMo V2.6 Flash"
+    },
+    {
+      "id": "mimo-v2.6-pro-ultraspeed",
+      "name": "MiMo V2.6 Pro UltraSpeed"
+    },
+    {
+      "id": "mimo-v2.5-tts",
+      "name": "MiMo V2.5 TTS（语音合成）"
+    },
+    {
+      "id": "mimo-v2.5-asr",
+      "name": "MiMo V2.5 ASR（语音识别）"
+    }
+  ],
+  "verifiedAt": "2026-09-22",
+  "status": "approved"
+}
