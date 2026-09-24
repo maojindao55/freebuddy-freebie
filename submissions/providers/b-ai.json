@@ -47,7 +47,9 @@
       "contextWindow": 64000
     }
   ],
-  "verifiedAt": "2026-09-10",
-  "status": "approved",
-  "submittedBy": "static-catalog-import"
+  "verifiedAt": "2026-09-24",
+  "status": "disabled",
+  "submittedBy": "static-catalog-import",
+  "offlineReason": "2026-09-16 17:00（SGT）起，Qwen3.8-Flash、Hy3、MiMo-V2.5 等限免转为折扣计费，全站模型均已标价；2026-09-18 第三方核验确认无免费模型剩余，仅剩邀请注册赠金。予以下线。",
+  "offlineAt": "2026-09-24"
 }

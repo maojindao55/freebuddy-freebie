@@ -51,6 +51,15 @@ const IMPORT_MARKER = "static-catalog-import";
  */
 const POST_IMPORT_DECLARATION_IDS = ["senseaudio", "stepfun", "tierflow", "xiaomi-mimo"];
 
+/**
+ * Imported declarations deliberately taken offline after the historical import.
+ * Their providers.json entry was removed in the same change, so they no longer
+ * appear in the static catalog; the declaration file stays (status "disabled"
+ * with offlineReason/offlineAt) so the sync keeps writing the offline status to
+ * D1 instead of leaving a stale approved row behind.
+ */
+const DISABLED_IMPORT_DECLARATION_IDS = ["b-ai"];
+
 /** Provider facts copied verbatim from providers.json; runtime bookkeeping is added on import. */
 const FACT_FIELDS = [
   "name",
@@ -171,17 +180,35 @@ test("the committed declaration batch is exactly the historical catalog, counts 
   const catalog = readCatalog();
   const declarations = readCommittedDeclarations();
   const imported = declarations.filter(({ declaration }) => declaration.submittedBy === IMPORT_MARKER);
+  const disabled = imported.filter(({ declaration }) => declaration.status === "disabled");
+  const active = imported.filter(({ declaration }) => declaration.status !== "disabled");
 
-  // Record counts must match: one declaration for every historical entry, no extras.
+  // Deliberately disabled imports stay as offline records; they must be listed
+  // explicitly so an accidental disable cannot hide in the batch.
+  assert.deepEqual(
+    disabled.map(({ declaration }) => declaration.id).sort(),
+    [...DISABLED_IMPORT_DECLARATION_IDS].sort(),
+    "disabled import declarations must be registered in DISABLED_IMPORT_DECLARATION_IDS"
+  );
+  for (const { declaration } of disabled) {
+    assert.equal(declaration.status, "disabled", `${declaration.id} must be disabled`);
+    assert.ok(
+      typeof declaration.offlineReason === "string" && declaration.offlineReason.length > 0,
+      `${declaration.id} must carry an offlineReason`
+    );
+    assert.match(declaration.offlineAt, /^\d{4}-\d{2}-\d{2}$/, `${declaration.id} must carry an offlineAt date`);
+  }
+
+  // Record counts must match: one active declaration for every historical entry, no extras.
   assert.equal(
-    imported.length,
+    active.length,
     catalog.providers.length,
-    `${catalog.providers.length} historical entries must be imported as exactly ${catalog.providers.length} declaration(s)`
+    `${catalog.providers.length} historical entries must be imported as exactly ${catalog.providers.length} active declaration(s)`
   );
   assert.deepEqual(
-    imported.map(({ declaration }) => declaration.id).sort(),
+    active.map(({ declaration }) => declaration.id).sort(),
     catalog.providers.map((provider) => provider.id).sort(),
-    "the imported ids must equal the static catalog ids"
+    "the active imported ids must equal the static catalog ids"
   );
 
   // Everything without the provenance marker is a post-import declaration and must be listed
@@ -218,7 +245,10 @@ test("the committed declaration batch is exactly the historical catalog, counts 
 
 test("the committed declarations pass the sync CLI and produce an idempotent, servable approved catalog", async (t) => {
   const expectedCount = committedDeclarationNames().length;
-  assert.equal(expectedCount, readCatalog().providers.length + POST_IMPORT_DECLARATION_IDS.length);
+  assert.equal(
+    expectedCount,
+    readCatalog().providers.length + POST_IMPORT_DECLARATION_IDS.length + DISABLED_IMPORT_DECLARATION_IDS.length
+  );
 
   const outDir = mkdtempSync(join(tmpdir(), "freebuddy-import-sql-"));
   t.after(() => rmSync(outDir, { recursive: true, force: true }));
@@ -250,12 +280,12 @@ test("the committed declarations pass the sync CLI and produce an idempotent, se
   assert.equal(sqlite.prepare("SELECT COUNT(*) AS c FROM providers").get().c, expectedCount);
   assert.equal(
     sqlite.prepare("SELECT COUNT(*) AS c FROM providers WHERE status = 'approved'").get().c,
-    expectedCount,
-    "every imported declaration must be approved"
+    expectedCount - DISABLED_IMPORT_DECLARATION_IDS.length,
+    "every declaration except the deliberately disabled ones must be approved"
   );
   assert.equal(
     sqlite.prepare(`SELECT COUNT(*) AS c FROM providers WHERE submitted_by = '${IMPORT_MARKER}'`).get().c,
-    readCatalog().providers.length,
+    expectedCount - POST_IMPORT_DECLARATION_IDS.length,
     "the provenance marker must reach D1 for every imported entry"
   );
 
@@ -271,7 +301,10 @@ test("the import adds nothing to the statically published catalog", () => {
   const catalog = readCatalog();
 
   // providers.json remains a facts-only static file: the runtime bookkeeping never leaks in.
-  assert.equal(committedDeclarationNames().length, catalog.providers.length + POST_IMPORT_DECLARATION_IDS.length);
+  assert.equal(
+    committedDeclarationNames().length,
+    catalog.providers.length + POST_IMPORT_DECLARATION_IDS.length + DISABLED_IMPORT_DECLARATION_IDS.length
+  );
   for (const provider of catalog.providers) {
     for (const key of Object.keys(provider)) {
       assert.ok(
