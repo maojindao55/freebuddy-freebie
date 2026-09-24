@@ -1,6 +1,6 @@
 {
   "$schema": "./providers.schema.json",
-  "updatedAt": "2026-09-17",
+  "updatedAt": "2026-09-24",
   "providers": [
     {
       "id": "zhipu",
@@ -614,6 +614,132 @@
         }
       ],
       "verifiedAt": "2026-09-16"
+    },
+    {
+      "id": "cloudflare-workers-ai",
+      "name": "Cloudflare Workers AI",
+      "region": "global",
+      "homepage": "https://workers.cloudflare.com",
+      "consoleUrl": "https://dash.cloudflare.com/profile/api-tokens",
+      "freeTierSummary": {
+        "zh-CN": "Workers Free 计划每天 10,000 Neurons 免费推理额度（每日 00:00 UTC 重置），覆盖 50+ 开源模型，免信用卡。超额后按 $0.011 / 1000 Neurons 计费。接入时把 baseUrl 中的 {account_id} 换成你的 Cloudflare 账户 ID。",
+        "en": "10,000 free Neurons per day on the Workers Free plan (resets daily at 00:00 UTC), covering 50+ open models. No credit card required. Usage beyond the free allocation is billed at $0.011 per 1,000 Neurons. Replace {account_id} in the base URL with your Cloudflare account ID."
+      },
+      "protocol": "openai-chat",
+      "baseUrl": "https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/v1",
+      "envKey": "CLOUDFLARE_API_KEY",
+      "models": [
+        {
+          "id": "@cf/meta/llama-3.3-70b-instruct-fp8-fast",
+          "name": "Llama 3.3 70B Instruct (free)"
+        },
+        {
+          "id": "@cf/deepseek-ai/deepseek-r1-distill-qwen-32b",
+          "name": "DeepSeek R1 Distill Qwen 32B (free)"
+        },
+        {
+          "id": "@cf/qwen/qwen2.5-coder-32b-instruct",
+          "name": "Qwen2.5 Coder 32B (free)"
+        },
+        {
+          "id": "@cf/zai-org/glm-4.7-flash",
+          "name": "GLM-4.7 Flash (free)"
+        },
+        {
+          "id": "@cf/openai/gpt-oss-120b",
+          "name": "GPT-OSS 120B (free)"
+        }
+      ],
+      "verifiedAt": "2026-09-24"
+    },
+    {
+      "id": "mistral-ai",
+      "name": "Mistral AI",
+      "region": "global",
+      "homepage": "https://mistral.ai",
+      "consoleUrl": "https://console.mistral.ai/api-keys",
+      "freeTierSummary": {
+        "zh-CN": "免费计划每月 $10 API 额度（官网定价页明示），免信用卡。token 换算比例官方未公开，具体限额以控制台为准；免费调用可能被用于改进服务（可在控制台关闭）。",
+        "en": "Free plan includes $10/month in API credits (per the official pricing page). No credit card required. Token conversion is not published; actual limits are shown in the console. Free-tier calls may be used to improve services (can be toggled off in the console)."
+      },
+      "protocol": "openai-chat",
+      "baseUrl": "https://api.mistral.ai/v1",
+      "envKey": "MISTRAL_API_KEY",
+      "models": [
+        {
+          "id": "mistral-small-latest",
+          "name": "Mistral Small (free)"
+        },
+        {
+          "id": "mistral-large-latest",
+          "name": "Mistral Large (free)"
+        },
+        {
+          "id": "codestral-latest",
+          "name": "Codestral (free)"
+        }
+      ],
+      "verifiedAt": "2026-09-24"
+    },
+    {
+      "id": "nvidia-nim",
+      "name": "NVIDIA NIM",
+      "region": "global",
+      "homepage": "https://build.nvidia.com",
+      "consoleUrl": "https://build.nvidia.com",
+      "freeTierSummary": {
+        "zh-CN": "build.nvidia.com 提供上百个模型的免费托管推理入口，OpenAI 兼容，免信用卡，需手机号/邮箱验证。主要限制约 40 请求/分钟。模型 ID 可能调整，以官网 catalog 为准。",
+        "en": "Free hosted inference endpoints for 100+ models on build.nvidia.com, OpenAI-compatible. No credit card; phone/email verification required. The main limit is about 40 requests per minute. Model IDs may change; check the official catalog."
+      },
+      "protocol": "openai-chat",
+      "baseUrl": "https://integrate.api.nvidia.com/v1",
+      "envKey": "NVIDIA_API_KEY",
+      "models": [
+        {
+          "id": "deepseek-ai/deepseek-v4-flash-0731",
+          "name": "DeepSeek V4 Flash (free)"
+        },
+        {
+          "id": "nvidia/nemotron-nano-3-30b-a3b",
+          "name": "Nemotron Nano 3 30B (free)"
+        },
+        {
+          "id": "meta/muse-glimmer-30b",
+          "name": "Muse Glimmer 30B (free)"
+        },
+        {
+          "id": "meta/llama-3.3-70b-instruct",
+          "name": "Llama 3.3 70B Instruct (free)"
+        }
+      ],
+      "verifiedAt": "2026-09-24"
+    },
+    {
+      "id": "dots-ai",
+      "name": "小红书 Dots",
+      "region": "cn",
+      "homepage": "https://dots.ai/platform",
+      "consoleUrl": "https://dots.ai/platform/apikeys",
+      "freeTierSummary": {
+        "zh-CN": "小红书 HiLab 官方开放平台 dots.ai，dots3-note-prev 模型当前免费体验、暂不收费（恢复收费前会在官网及文档提前告知）。官方未公布免费额度与截止时间。兼容 OpenAI Chat Completions 与 Anthropic Messages 双协议，认证用 api-key 请求头。",
+        "en": "Official open platform by Xiaohongshu's HiLab (dots.ai). The dots3-note-prev model is currently free of charge during the free trial (billing resumes only after advance notice on the official site and docs). No published quota or end date. Compatible with OpenAI Chat Completions and Anthropic Messages; authenticate with the api-key request header."
+      },
+      "protocol": "openai-chat",
+      "protocols": [
+        "openai-chat",
+        "anthropic"
+      ],
+      "baseUrl": "https://note3-prev-api.askdiandian.com",
+      "envKey": "DOTS_API_KEY",
+      "models": [
+        {
+          "id": "dots3-note-prev",
+          "name": "Dots 3 Note Preview",
+          "contextWindow": 524288,
+          "supportsVision": true
+        }
+      ],
+      "verifiedAt": "2026-09-24"
     }
   ]
 }
