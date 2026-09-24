@@ -191,8 +191,8 @@
       "homepage": "https://openrouter.ai",
       "consoleUrl": "https://openrouter.ai/settings/keys",
       "freeTierSummary": {
-        "zh-CN": "以 :free 结尾的模型完全免费，每天约 50 次调用额度（充值后可达 1000 次/天）。Union Alpha（stealth/union-alpha）限时免费，262K 上下文，支持视觉与工具调用。推荐使用 openrouter/free 自动分配合适的免费模型。",
-        "en": "Models with the :free suffix are completely free (50 req/day, up to 1,000/day after deposit). Union Alpha (stealth/union-alpha) is free for a limited time with 262K context, vision and tool calling. Use openrouter/free to auto-route available models."
+        "zh-CN": "以 :free 结尾的模型完全免费，每天约 50 次调用额度（充值后可达 1000 次/天）。推荐使用 openrouter/free 自动分配合适的免费模型。",
+        "en": "Models with the :free suffix are completely free (50 req/day, up to 1,000/day after deposit). Use openrouter/free to auto-route available models."
       },
       "protocol": "openai-chat",
       "baseUrl": "https://openrouter.ai/api/v1",
@@ -202,12 +202,6 @@
           "id": "openrouter/free",
           "name": "Auto (free router)",
           "contextWindow": 128000
-        },
-        {
-          "id": "stealth/union-alpha",
-          "name": "Union Alpha (free)",
-          "contextWindow": 262144,
-          "supportsVision": true
         },
         {
           "id": "meta-llama/llama-3.3-70b-instruct:free",
@@ -225,7 +219,7 @@
           "contextWindow": 32768
         }
       ],
-      "verifiedAt": "2026-09-17",
+      "verifiedAt": "2026-09-24",
       "icon": "openrouter"
     },
     {
@@ -497,8 +491,8 @@
       "homepage": "https://tokenharbor.ai/models?category=free",
       "consoleUrl": "https://tokenharbor.ai/dashboard/api-keys",
       "freeTierSummary": {
-        "zh-CN": "注册即享免费模型额度(按周期重置),可免费调用 DeepSeek V4 Flash、DeepSeek V4.1 Flash 与 MiMo V2.5;持续补充限免促销模型。提供 OpenAI 与 Anthropic 兼容接口。",
-        "en": "Free monthly allowance after sign-up (resets each period) covering DeepSeek V4 Flash, DeepSeek V4.1 Flash, and MiMo V2.5, with promotional free models added over time. OpenAI- and Anthropic-compatible APIs."
+        "zh-CN": "注册即享免费额度（每 4 周周期重置），当前免费模型为 DeepSeek V4.1 Flash、MiMo V2.6 Flash 与 TH-Rudder；免费名单为促销性质、会随时间轮换，以官网当前页面为准。提供 OpenAI 与 Anthropic 兼容接口。",
+        "en": "Free allowance after sign-up (resets every 4 weeks), currently covering DeepSeek V4.1 Flash, MiMo V2.6 Flash, and TH-Rudder; the free lineup is promotional and rotates — check the official pricing page for the current list. OpenAI- and Anthropic-compatible APIs."
       },
       "protocol": "openai-chat",
       "protocols": [
@@ -509,21 +503,20 @@
       "envKey": "OPENAI_API_KEY",
       "models": [
         {
-          "id": "deepseek-v4-flash:free",
-          "name": "DeepSeek V4 Flash (free)",
-          "supportsVision": true
-        },
-        {
           "id": "deepseek-v4.1-flash:free",
           "name": "DeepSeek V4.1 Flash (free)",
           "supportsVision": true
         },
         {
-          "id": "mimo-v2.5:free",
-          "name": "MiMo V2.5 (free)"
+          "id": "mimo-v2.6-flash:free",
+          "name": "MiMo V2.6 Flash (free)"
+        },
+        {
+          "id": "th-rudder:free",
+          "name": "TH-Rudder (free)"
         }
       ],
-      "verifiedAt": "2026-09-11"
+      "verifiedAt": "2026-09-24"
     },
     {
       "id": "apinex",
