@@ -58,7 +58,7 @@ const POST_IMPORT_DECLARATION_IDS = ["senseaudio", "stepfun", "tierflow", "xiaom
  * with offlineReason/offlineAt) so the sync keeps writing the offline status to
  * D1 instead of leaving a stale approved row behind.
  */
-const DISABLED_IMPORT_DECLARATION_IDS = ["b-ai"];
+const DISABLED_IMPORT_DECLARATION_IDS = ["b-ai", "cerebras"];
 
 /** Provider facts copied verbatim from providers.json; runtime bookkeeping is added on import. */
 const FACT_FIELDS = [

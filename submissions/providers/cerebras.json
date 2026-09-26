@@ -30,7 +30,9 @@
       "contextWindow": 8192
     }
   ],
-  "verifiedAt": "2026-09-10",
-  "status": "approved",
-  "submittedBy": "static-catalog-import"
+  "verifiedAt": "2026-09-26",
+  "status": "disabled",
+  "submittedBy": "static-catalog-import",
+  "offlineReason": "约 2026-08-17 起无卡永久免费层结束（此前开户的老用户保留至该日）；新用户需绑定验证过的支付方式才能获得 $5 一次性试用额度（30 天过期），不绑卡则 Playground/API 保持未激活；官网速率限制文档 FAQ 明确 「Is there a permanently free tier? No.」。不再符合免卡白嫖定位，予以下线。",
+  "offlineAt": "2026-09-26"
 }
