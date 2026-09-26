@@ -7,8 +7,8 @@
   "homepage": "https://modelscope.cn",
   "consoleUrl": "https://modelscope.cn/my/myaccesstoken",
   "freeTierSummary": {
-    "zh-CN": "API-Inference 每天约 2000 次免费调用，覆盖 Qwen2.5-72B / Coder-32B 及 DeepSeek 等主流开源大模型，需绑定阿里云账号并实名。",
-    "en": "API-Inference gives ~2,000 free calls per day across Qwen2.5-72B, Coder-32B, and DeepSeek; requires a linked verified Aliyun account."
+    "zh-CN": "API-Inference 改为「魔粒」积分制：每天签到领 200 魔粒、绑定阿里云账号再得 50（24 小时有效）；轻量模型 0.5 魔粒/次、主流 1 魔粒/次、旗舰 2 魔粒/次，约折合每天 125–500 次调用，需绑定阿里云账号并完成实名认证。",
+    "en": "API-Inference now runs on 魔粒 (Magicube) credits: 200/day for signing in plus 50 for linking an Alibaba Cloud account (valid 24h); light models 0.5/call, standard 1/call, flagship 2/call — roughly 125–500 calls/day. Requires a linked, real-name-verified Alibaba Cloud account."
   },
   "protocol": "openai-chat",
   "baseUrl": "https://api-inference.modelscope.cn/v1",
@@ -35,7 +35,7 @@
       "contextWindow": 64000
     }
   ],
-  "verifiedAt": "2026-09-10",
+  "verifiedAt": "2026-09-26",
   "status": "approved",
   "submittedBy": "static-catalog-import"
 }
