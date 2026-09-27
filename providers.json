@@ -1,6 +1,6 @@
 {
   "$schema": "./providers.schema.json",
-  "updatedAt": "2026-09-26",
+  "updatedAt": "2026-09-27",
   "providers": [
     {
       "id": "zhipu",
@@ -49,8 +49,8 @@
       "homepage": "https://deepseek.com",
       "consoleUrl": "https://platform.deepseek.com/api_keys",
       "freeTierSummary": {
-        "zh-CN": "新用户注册即送 500 万 tokens 免费额度（有效期 30 天），支持 DeepSeek-V3 与 DeepSeek-R1 深度思考推理模型。",
-        "en": "New accounts receive 5M free tokens (valid for 30 days), supporting DeepSeek-V3 and DeepSeek-R1 reasoning models."
+        "zh-CN": "API 按量计费、价格极低；新用户或有赠送体验额度（以控制台为准）。当前模型为 DeepSeek-V4.1-Flash（deepseek-flash）与 DeepSeek-V4-Pro（deepseek-v4-pro），上下文 1M，支持深度思考模式。",
+        "en": "Pay-as-you-go API with very low prices; new accounts may receive trial credits (see console). Current models: DeepSeek-V4.1-Flash (deepseek-flash) and DeepSeek-V4-Pro (deepseek-v4-pro), 1M context, thinking mode supported."
       },
       "protocol": "deepseek",
       "protocols": [
@@ -61,17 +61,17 @@
       "envKey": "DEEPSEEK_API_KEY",
       "models": [
         {
-          "id": "deepseek-chat",
-          "name": "DeepSeek-V3 (Chat)",
-          "contextWindow": 64000
+          "id": "deepseek-flash",
+          "name": "DeepSeek-V4.1-Flash",
+          "contextWindow": 1048576
         },
         {
-          "id": "deepseek-reasoner",
-          "name": "DeepSeek-R1 (推理思考)",
-          "contextWindow": 64000
+          "id": "deepseek-v4-pro",
+          "name": "DeepSeek-V4-Pro",
+          "contextWindow": 1048576
         }
       ],
-      "verifiedAt": "2026-09-10",
+      "verifiedAt": "2026-09-27",
       "icon": "deepseek-color"
     },
     {
@@ -265,30 +265,30 @@
       "homepage": "https://groq.com",
       "consoleUrl": "https://console.groq.com/keys",
       "freeTierSummary": {
-        "zh-CN": "免费层长期稳定，Llama 3.3 70B / 8B 推理速度极高（高达 300~500 tokens/s），受每分钟 tokens (TPM) 及请求数限制。",
-        "en": "Long-standing free tier offering Llama 3.3 70B and 8B at extreme inference speeds (>300 t/s); limited by tokens per minute."
+        "zh-CN": "免费层现提供 GPT-OSS 120B / 20B、Qwen3.8-27B 等模型，推理速度极快；Llama 3.3 70B / 3.1 8B 已于 2026-08-16 从免费层下线（转企业版）。按 TPM / RPM 限流。",
+        "en": "Free tier now serves GPT-OSS 120B/20B and Qwen3.8-27B with very high inference speed; Llama 3.3 70B / 3.1 8B left the free tier on 2026-08-16 (enterprise only). TPM/RPM rate limits apply."
       },
       "protocol": "openai-chat",
       "baseUrl": "https://api.groq.com/openai/v1",
       "envKey": "OPENAI_API_KEY",
       "models": [
         {
-          "id": "llama-3.3-70b-versatile",
-          "name": "Llama 3.3 70B",
+          "id": "openai/gpt-oss-120b",
+          "name": "GPT-OSS 120B",
           "contextWindow": 131072
         },
         {
-          "id": "llama-3.1-8b-instant",
-          "name": "Llama 3.1 8B",
+          "id": "openai/gpt-oss-20b",
+          "name": "GPT-OSS 20B",
           "contextWindow": 131072
         },
         {
-          "id": "qwen-2.5-32b",
-          "name": "Qwen 2.5 32B",
-          "contextWindow": 32768
+          "id": "qwen/qwen3.8-27b",
+          "name": "Qwen3.8-27B",
+          "contextWindow": 131072
         }
       ],
-      "verifiedAt": "2026-09-10",
+      "verifiedAt": "2026-09-27",
       "icon": "groq"
     },
     {
@@ -408,8 +408,8 @@
       "homepage": "https://tokenharbor.ai/models?category=free",
       "consoleUrl": "https://tokenharbor.ai/dashboard/api-keys",
       "freeTierSummary": {
-        "zh-CN": "注册即享免费额度（每 4 周周期重置），当前免费模型为 DeepSeek V4.1 Flash、MiMo V2.6 Flash 与 TH-Rudder；免费名单为促销性质、会随时间轮换，以官网当前页面为准。提供 OpenAI 与 Anthropic 兼容接口。",
-        "en": "Free allowance after sign-up (resets every 4 weeks), currently covering DeepSeek V4.1 Flash, MiMo V2.6 Flash, and TH-Rudder; the free lineup is promotional and rotates — check the official pricing page for the current list. OpenAI- and Anthropic-compatible APIs."
+        "zh-CN": "注册即享免费额度（首次免费请求开启个人滚动 7×24 小时周期，非自然周/自然月重置）；免费路由默认关闭，需在控制台手动 opt-in（同意数据共享条款）。当前免费模型为 DeepSeek V4.1 Flash、MiMo V2.6 Flash 与 TH-Rudder，名单为促销性质会轮换，以官网为准。提供 OpenAI 与 Anthropic 兼容接口。",
+        "en": "Free allowance on signup (your first free request starts a personal rolling 7x24-hour period, not a calendar reset); free routes are off by default and require a dashboard opt-in (data-sharing terms). Current free models: DeepSeek V4.1 Flash, MiMo V2.6 Flash, TH-Rudder; the promo lineup rotates, see the official site. OpenAI- and Anthropic-compatible."
       },
       "protocol": "openai-chat",
       "protocols": [
@@ -433,7 +433,7 @@
           "name": "TH-Rudder (free)"
         }
       ],
-      "verifiedAt": "2026-09-24"
+      "verifiedAt": "2026-09-27"
     },
     {
       "id": "apinex",

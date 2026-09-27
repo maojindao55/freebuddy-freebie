@@ -7,30 +7,30 @@
   "homepage": "https://groq.com",
   "consoleUrl": "https://console.groq.com/keys",
   "freeTierSummary": {
-    "zh-CN": "免费层长期稳定，Llama 3.3 70B / 8B 推理速度极高（高达 300~500 tokens/s），受每分钟 tokens (TPM) 及请求数限制。",
-    "en": "Long-standing free tier offering Llama 3.3 70B and 8B at extreme inference speeds (>300 t/s); limited by tokens per minute."
+    "zh-CN": "免费层现提供 GPT-OSS 120B / 20B、Qwen3.8-27B 等模型，推理速度极快；Llama 3.3 70B / 3.1 8B 已于 2026-08-16 从免费层下线（转企业版）。按 TPM / RPM 限流。",
+    "en": "Free tier now serves GPT-OSS 120B/20B and Qwen3.8-27B with very high inference speed; Llama 3.3 70B / 3.1 8B left the free tier on 2026-08-16 (enterprise only). TPM/RPM rate limits apply."
   },
   "protocol": "openai-chat",
   "baseUrl": "https://api.groq.com/openai/v1",
   "envKey": "OPENAI_API_KEY",
   "models": [
     {
-      "id": "llama-3.3-70b-versatile",
-      "name": "Llama 3.3 70B",
+      "id": "openai/gpt-oss-120b",
+      "name": "GPT-OSS 120B",
       "contextWindow": 131072
     },
     {
-      "id": "llama-3.1-8b-instant",
-      "name": "Llama 3.1 8B",
+      "id": "openai/gpt-oss-20b",
+      "name": "GPT-OSS 20B",
       "contextWindow": 131072
     },
     {
-      "id": "qwen-2.5-32b",
-      "name": "Qwen 2.5 32B",
-      "contextWindow": 32768
+      "id": "qwen/qwen3.8-27b",
+      "name": "Qwen3.8-27B",
+      "contextWindow": 131072
     }
   ],
-  "verifiedAt": "2026-09-10",
+  "verifiedAt": "2026-09-27",
   "status": "approved",
   "submittedBy": "static-catalog-import"
 }
