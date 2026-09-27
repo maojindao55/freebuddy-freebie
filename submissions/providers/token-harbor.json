@@ -6,8 +6,8 @@
   "homepage": "https://tokenharbor.ai/models?category=free",
   "consoleUrl": "https://tokenharbor.ai/dashboard/api-keys",
   "freeTierSummary": {
-    "zh-CN": "注册即享免费额度（每 4 周周期重置），当前免费模型为 DeepSeek V4.1 Flash、MiMo V2.6 Flash 与 TH-Rudder；免费名单为促销性质、会随时间轮换，以官网当前页面为准。提供 OpenAI 与 Anthropic 兼容接口。",
-    "en": "Free allowance after sign-up (resets every 4 weeks), currently covering DeepSeek V4.1 Flash, MiMo V2.6 Flash, and TH-Rudder; the free lineup is promotional and rotates — check the official pricing page for the current list. OpenAI- and Anthropic-compatible APIs."
+    "zh-CN": "注册即享免费额度（首次免费请求开启个人滚动 7×24 小时周期，非自然周/自然月重置）；免费路由默认关闭，需在控制台手动 opt-in（同意数据共享条款）。当前免费模型为 DeepSeek V4.1 Flash、MiMo V2.6 Flash 与 TH-Rudder，名单为促销性质会轮换，以官网为准。提供 OpenAI 与 Anthropic 兼容接口。",
+    "en": "Free allowance on signup (your first free request starts a personal rolling 7x24-hour period, not a calendar reset); free routes are off by default and require a dashboard opt-in (data-sharing terms). Current free models: DeepSeek V4.1 Flash, MiMo V2.6 Flash, TH-Rudder; the promo lineup rotates, see the official site. OpenAI- and Anthropic-compatible."
   },
   "protocol": "openai-chat",
   "protocols": [
@@ -31,7 +31,7 @@
       "name": "TH-Rudder (free)"
     }
   ],
-  "verifiedAt": "2026-09-24",
+  "verifiedAt": "2026-09-27",
   "status": "approved",
   "submittedBy": "static-catalog-import"
 }

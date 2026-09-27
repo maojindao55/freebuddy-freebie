@@ -7,8 +7,8 @@
   "homepage": "https://deepseek.com",
   "consoleUrl": "https://platform.deepseek.com/api_keys",
   "freeTierSummary": {
-    "zh-CN": "新用户注册即送 500 万 tokens 免费额度（有效期 30 天），支持 DeepSeek-V3 与 DeepSeek-R1 深度思考推理模型。",
-    "en": "New accounts receive 5M free tokens (valid for 30 days), supporting DeepSeek-V3 and DeepSeek-R1 reasoning models."
+    "zh-CN": "API 按量计费、价格极低；新用户或有赠送体验额度（以控制台为准）。当前模型为 DeepSeek-V4.1-Flash（deepseek-flash）与 DeepSeek-V4-Pro（deepseek-v4-pro），上下文 1M，支持深度思考模式。",
+    "en": "Pay-as-you-go API with very low prices; new accounts may receive trial credits (see console). Current models: DeepSeek-V4.1-Flash (deepseek-flash) and DeepSeek-V4-Pro (deepseek-v4-pro), 1M context, thinking mode supported."
   },
   "protocol": "deepseek",
   "protocols": [
@@ -19,17 +19,17 @@
   "envKey": "DEEPSEEK_API_KEY",
   "models": [
     {
-      "id": "deepseek-chat",
-      "name": "DeepSeek-V3 (Chat)",
-      "contextWindow": 64000
+      "id": "deepseek-flash",
+      "name": "DeepSeek-V4.1-Flash",
+      "contextWindow": 1048576
     },
     {
-      "id": "deepseek-reasoner",
-      "name": "DeepSeek-R1 (推理思考)",
-      "contextWindow": 64000
+      "id": "deepseek-v4-pro",
+      "name": "DeepSeek-V4-Pro",
+      "contextWindow": 1048576
     }
   ],
-  "verifiedAt": "2026-09-10",
+  "verifiedAt": "2026-09-27",
   "status": "approved",
   "submittedBy": "static-catalog-import"
 }
