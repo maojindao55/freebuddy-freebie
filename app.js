@@ -18,6 +18,8 @@
       filterAll: "全部",
       filterCn: "国内直连",
       filterGlobal: "海外",
+      beFirstReview: "暂无评测，来做第一个吧",
+      viewDetail: "查看详情",
       disclaimer:
         '免费政策随时变化，以各服务商官网为准。发现过期信息欢迎到 <a href="https://github.com/maojindao55/freebuddy-freebie/pulls" target="_blank" rel="noopener noreferrer">GitHub 提交 PR</a>，或 <a href="https://qm.qq.com/q/Obv3kViheo" target="_blank" rel="noopener noreferrer">加入【FreeBuddy白嫖兄弟群】</a> 交流爆料。',
       statusConnecting: "正在连接 FreeBuddy…",
@@ -80,7 +82,8 @@
       qualityMid: "B 级",
       emptyTitle: "未找到匹配的服务商",
       emptyDesc: "尝试更改搜索词，或切换地域筛选",
-      clearSearch: "清空搜索"
+      clearSearch: "清空搜索",
+      moreModels: "还有 {n} 个模型，点击查看详情"
     },
     en: {
       title: "Freebie Buddies",
@@ -91,6 +94,8 @@
       filterAll: "All",
       filterCn: "China (direct)",
       filterGlobal: "Global",
+      beFirstReview: "No reviews yet — be the first",
+      viewDetail: "View details",
       disclaimer:
         'Free tiers change often; the provider\'s website is the source of truth. PRs are welcome on <a href="https://github.com/maojindao55/freebuddy-freebie/pulls" target="_blank" rel="noopener noreferrer">GitHub</a>, or join our <a href="https://qm.qq.com/q/Obv3kViheo" target="_blank" rel="noopener noreferrer">QQ Group Chat</a>.',
       statusConnecting: "Connecting to FreeBuddy…",
@@ -153,7 +158,8 @@
       qualityMid: "Tier B",
       emptyTitle: "No matching providers",
       emptyDesc: "Try adjusting your search terms or filters",
-      clearSearch: "Clear search"
+      clearSearch: "Clear search",
+      moreModels: "{n} more models, open details"
     }
   };
 
@@ -176,6 +182,8 @@
     busy: new Set(),
     summary: {},
     activeModalProviderId: null,
+    modalReturnFocus: null,
+    inertedNodes: [],
     reviewsCache: {},
     submittingVote: new Set(),
     userVotes: (() => {
@@ -498,10 +506,23 @@
     const failedCountEl = node.querySelector(".failed-count");
     if (failedCountEl) failedCountEl.textContent = String(s.failedVotes || 0);
 
-    // 4. Detail button label
+    // 4. Detail button label + collapse empty footer
+    const isEmpty =
+      !(s.reviewCount > 0) &&
+      !(s.workingVotes > 0) &&
+      !(s.failedVotes > 0) &&
+      (s.availability === null || s.availability === undefined);
+    const communityEl = node.querySelector(".card-community");
+    if (communityEl) {
+      communityEl.classList.toggle("is-empty", isEmpty);
+      const hint = communityEl.querySelector(".community-empty-hint");
+      if (hint) hint.textContent = t("beFirstReview");
+    }
     const detailLabel = node.querySelector(".detail-btn-label");
     if (detailLabel) {
-      detailLabel.textContent = t("reviewsCount", { n: s.reviewCount || 0 });
+      detailLabel.textContent = isEmpty && communityEl
+        ? t("viewDetail")
+        : t("reviewsCount", { n: s.reviewCount || 0 });
     }
 
     // 5. Dynamic Grade badge (S / A / B)
@@ -824,6 +845,20 @@
     const modal = document.getElementById("detail-modal");
     if (!modal) return;
 
+    // Remember the trigger only when opening fresh (not when switching providers inside the modal)
+    if (modal.hidden) {
+      const active = document.activeElement;
+      const inside = typeof modal.contains === "function" && active ? modal.contains(active) : false;
+      state.modalReturnFocus = active && active !== document.body && !inside ? active : null;
+    }
+    // Move focus into the modal once it is visible
+    nextFrame(() => {
+      if (modal.hidden || typeof modal.querySelector !== "function") return;
+      if (typeof modal.contains === "function" && modal.contains(document.activeElement)) return;
+      const target = modal.querySelector(".modal-close") || modal.querySelector("button:not([disabled]), [href]");
+      if (target && typeof target.focus === "function") target.focus({ preventScroll: true });
+    });
+
     // Set URL hash without scrolling
     if (location.hash !== `#${provider.id}`) {
       try {
@@ -953,6 +988,7 @@
     // Show modal & prevent body scroll
     modal.hidden = false;
     modal.setAttribute("aria-hidden", "false");
+    setBackgroundInert(true, modal);
     document.body.style.overflow = "hidden";
 
     // Render reviews & fetch
@@ -965,8 +1001,11 @@
     if (!modal) return;
     modal.hidden = true;
     modal.setAttribute("aria-hidden", "true");
+    setBackgroundInert(false);
+    const closedId = state.activeModalProviderId;
     state.activeModalProviderId = null;
     document.body.style.overflow = "";
+    restoreModalFocus(closedId);
 
     // Clear hash without reload
     if (location.hash) {
@@ -974,6 +1013,105 @@
         history.replaceState(null, "", location.pathname + location.search);
       } catch {
         location.hash = "";
+      }
+    }
+  }
+
+  const FOCUSABLE_SELECTOR = "a[href], area[href], button:not([disabled]), input:not([disabled]):not([type='hidden']), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex='-1'])";
+
+  // Make everything behind the open modal non-interactive; only undo what we set ourselves
+  function setBackgroundInert(on, modal) {
+    if (!on) {
+      state.inertedNodes.forEach((node) => {
+        try {
+          node.inert = false;
+          if (typeof node.removeAttribute === "function") node.removeAttribute("inert");
+        } catch {
+          /* ignore */
+        }
+      });
+      state.inertedNodes = [];
+      return;
+    }
+    if (state.inertedNodes.length) return;
+    const parent = (modal && modal.parentElement) || document.body;
+    const children = parent && parent.children ? Array.from(parent.children) : [];
+    children.forEach((node) => {
+      if (!node || node === modal) return;
+      const tag = String(node.tagName || "").toUpperCase();
+      if (tag === "SCRIPT" || tag === "STYLE" || tag === "TEMPLATE") return;
+      if (node.inert || (typeof node.hasAttribute === "function" && node.hasAttribute("inert"))) return;
+      try {
+        node.inert = true;
+        if (typeof node.setAttribute === "function") node.setAttribute("inert", "");
+        state.inertedNodes.push(node);
+      } catch {
+        /* ignore */
+      }
+    });
+  }
+
+  function getModalFocusable(modal) {
+    if (!modal || typeof modal.querySelectorAll !== "function") return [];
+    return Array.from(modal.querySelectorAll(FOCUSABLE_SELECTOR)).filter((el) => {
+      if (el.hidden || (typeof el.closest === "function" && el.closest("[hidden]"))) return false;
+      if (typeof el.getClientRects === "function") return el.getClientRects().length > 0;
+      return true;
+    });
+  }
+
+  function trapModalFocus(e) {
+    if (e.key !== "Tab" || !state.activeModalProviderId) return;
+    const modal = document.getElementById("detail-modal");
+    if (!modal || modal.hidden) return;
+    const items = getModalFocusable(modal);
+    if (!items.length) {
+      e.preventDefault();
+      return;
+    }
+    const first = items[0];
+    const last = items[items.length - 1];
+    const active = document.activeElement;
+    const inside = typeof modal.contains === "function" && active ? modal.contains(active) : false;
+    if (e.shiftKey) {
+      if (!inside || active === first) {
+        e.preventDefault();
+        last.focus();
+      }
+    } else if (!inside || active === last) {
+      e.preventDefault();
+      first.focus();
+    }
+  }
+
+  function nextFrame(fn) {
+    const run = () => {
+      try {
+        fn();
+      } catch {
+        /* focus management is best-effort */
+      }
+    };
+    if (typeof requestAnimationFrame === "function") requestAnimationFrame(run);
+    else setTimeout(run, 0);
+  }
+
+  function restoreModalFocus(providerId) {
+    let target = state.modalReturnFocus;
+    state.modalReturnFocus = null;
+    // Cards may have been re-rendered (vote, filter); fall back to the fresh card brand
+    if (!target || !target.isConnected) {
+      target = null;
+      if (providerId && window.CSS && CSS.escape) {
+        const id = CSS.escape(providerId);
+        target = document.querySelector(`[data-provider-id="${id}"] .card-brand, [data-id="${id}"] .card-brand`);
+      }
+    }
+    if (target && typeof target.focus === "function") {
+      try {
+        target.focus();
+      } catch {
+        /* ignore */
       }
     }
   }
@@ -992,6 +1130,8 @@
     const root = document.getElementById("providers");
     const template = document.getElementById("provider-card");
     root.textContent = "";
+    // Entrance animation plays only on the first real render
+    root.classList.toggle("no-anim", !!state.cardsAnimated);
 
     let list = state.providers.filter((p) => state.region === "all" || p.region === state.region);
 
@@ -1024,6 +1164,8 @@
       });
     }
 
+    if (list.length > 0) state.cardsAnimated = true;
+
     if (list.length === 0 && state.providers.length > 0) {
       const empty = document.createElement("div");
       empty.className = "empty-search-state";
@@ -1042,7 +1184,11 @@
           if (searchInput) searchInput.value = "";
           const clearBtn = document.getElementById("search-clear-btn");
           if (clearBtn) clearBtn.hidden = true;
-          document.querySelectorAll(".filter").forEach((b) => b.classList.toggle("active", b.dataset.region === "all"));
+          document.querySelectorAll(".filter").forEach((b) => {
+            const on = b.dataset.region === "all";
+            b.classList.toggle("active", on);
+            b.setAttribute("aria-selected", String(on));
+          });
           renderCards();
         });
       }
@@ -1121,13 +1267,32 @@
       node.querySelector(".card-summary").textContent = summaryFor(provider);
 
       const models = node.querySelector(".card-models");
-      provider.models.forEach((model) => {
+      const MAX_MODELS = 6;
+      const allModels = Array.isArray(provider.models) ? provider.models : [];
+      allModels.slice(0, MAX_MODELS).forEach((model) => {
         const li = document.createElement("li");
         li.textContent = model.name || model.id;
         li.title = model.id;
         if (model.supportsVision) li.classList.add("vision");
         models.appendChild(li);
       });
+      const hiddenModels = allModels.slice(MAX_MODELS);
+      if (hiddenModels.length > 0) {
+        const more = document.createElement("li");
+        more.className = "models-more";
+        const moreBtn = document.createElement("button");
+        moreBtn.type = "button";
+        moreBtn.className = "models-more-btn";
+        moreBtn.textContent = `+${hiddenModels.length}`;
+        moreBtn.title = hiddenModels.map((m) => m.name || m.id).join("\n");
+        moreBtn.setAttribute("aria-label", t("moreModels", { n: hiddenModels.length }));
+        moreBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          openProviderModal(provider);
+        });
+        more.appendChild(moreBtn);
+        models.appendChild(more);
+      }
 
       const homepage = node.querySelector(".card-homepage");
       const homepageUrl = safeUrl(provider.homepage);
@@ -1173,7 +1338,16 @@
       const cardBrand = node.querySelector(".card-brand");
       if (cardBrand) {
         cardBrand.style.cursor = "pointer";
+        cardBrand.setAttribute("role", "button");
+        cardBrand.tabIndex = 0;
+        cardBrand.setAttribute("aria-label", provider.name || provider.id);
         cardBrand.addEventListener("click", () => openProviderModal(provider));
+        cardBrand.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            openProviderModal(provider);
+          }
+        });
       }
       const quotaBox = node.querySelector(".card-quota-box");
       if (quotaBox) {
@@ -1490,7 +1664,10 @@
   document.querySelectorAll(".filter").forEach((btn) => {
     btn.addEventListener("click", () => {
       state.region = btn.dataset.region;
-      document.querySelectorAll(".filter").forEach((b) => b.classList.toggle("active", b === btn));
+      document.querySelectorAll(".filter").forEach((b) => {
+        b.classList.toggle("active", b === btn);
+        b.setAttribute("aria-selected", String(b === btn));
+      });
       renderCards();
     });
   });
@@ -1544,6 +1721,8 @@
     });
   }
 
+  // Keep Tab / Shift+Tab cycling inside the open detail modal
+  window.addEventListener("keydown", trapModalFocus);
   window.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && state.activeModalProviderId) {
       closeProviderModal();

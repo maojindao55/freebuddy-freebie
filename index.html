@@ -56,9 +56,9 @@
     <main class="page">
       <div class="toolbar">
         <div class="filters" role="tablist" aria-label="Region filter">
-          <button type="button" class="filter active" data-region="all" data-i18n="filterAll">全部</button>
-          <button type="button" class="filter" data-region="cn" data-i18n="filterCn">国内直连</button>
-          <button type="button" class="filter" data-region="global" data-i18n="filterGlobal">海外</button>
+          <button type="button" class="filter active" role="tab" aria-selected="true" data-region="all" data-i18n="filterAll">全部</button>
+          <button type="button" class="filter" role="tab" aria-selected="false" data-region="cn" data-i18n="filterCn">国内直连</button>
+          <button type="button" class="filter" role="tab" aria-selected="false" data-region="global" data-i18n="filterGlobal">海外</button>
         </div>
         <div class="toolbar-controls">
           <div class="sort-wrap">
@@ -128,6 +128,7 @@
 
         <div class="card-community" title="查看真实评测与详情">
           <div class="community-left">
+            <span class="community-empty-hint">暂无评测，来做第一个吧</span>
             <span class="community-rating" title="综合评分">
               <span class="star-icon">★</span>
               <span class="rating-val">-.-</span>
@@ -153,7 +154,7 @@
     </template>
 
     <!-- Provider Details Modal -->
-    <div id="detail-modal" class="modal-backdrop" hidden aria-hidden="true" role="dialog" aria-modal="true">
+    <div id="detail-modal" class="modal-backdrop" hidden aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="modal-title">
       <div class="modal-dialog">
         <header class="modal-header">
           <div class="modal-brand">
@@ -162,7 +163,7 @@
             </div>
             <div class="modal-title-col">
               <div class="modal-title-row">
-                <h2 class="modal-name"></h2>
+                <h2 class="modal-name" id="modal-title"></h2>
                 <span class="modal-quality"></span>
                 <div class="modal-tags"></div>
               </div>

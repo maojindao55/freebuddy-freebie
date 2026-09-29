@@ -49,6 +49,10 @@ export class StubElement {
     this._queries = new Map();
   }
 
+  get parentElement() {
+    return this.parentNode;
+  }
+
   get firstElementChild() {
     return this.children[0] || null;
   }
@@ -95,6 +99,27 @@ export class StubElement {
     return Object.prototype.hasOwnProperty.call(this.attributes, name) ? this.attributes[name] : null;
   }
 
+  hasAttribute(name) {
+    return Object.prototype.hasOwnProperty.call(this.attributes, name);
+  }
+
+  removeAttribute(name) {
+    delete this.attributes[name];
+  }
+
+  // Ancestor walk, so focus-trap code can tell "inside the modal" from "outside".
+  contains(node) {
+    for (let cur = node; cur; cur = cur.parentNode) {
+      if (cur === this) return true;
+    }
+    return false;
+  }
+
+  // Focus is tracked on the most recently created stub document (node:test runs a file serially).
+  focus() {
+    if (StubElement.focusDocument) StubElement.focusDocument.activeElement = this;
+  }
+
   addEventListener(type, handler) {
     if (!this.listeners[type]) this.listeners[type] = [];
     this.listeners[type].push(handler);
@@ -111,14 +136,15 @@ export class StubElement {
     return this._queries.get(selector);
   }
 
-  querySelectorAll() {
-    return [];
+  // Tests can opt in with queryAllHandler(selector) => nodes; the default stays empty.
+  querySelectorAll(selector) {
+    return typeof this.queryAllHandler === "function" ? this.queryAllHandler(selector) || [] : [];
   }
 }
 
 function createDocument(elements) {
   const byId = elements || new Map();
-  return {
+  const doc = {
     documentElement: new StubElement("html"),
     body: new StubElement("body"),
     getElementById(id) {
@@ -133,6 +159,9 @@ function createDocument(elements) {
     },
     addEventListener() {}
   };
+  doc.activeElement = doc.body;
+  StubElement.focusDocument = doc;
+  return doc;
 }
 
 export function jsonResponse(data, status = 200) {
@@ -225,6 +254,18 @@ export function createApp({ routes = {} } = {}) {
 
   const document = createDocument(elements);
 
+  // Mirror index.html's <body> children so setBackgroundInert() has real siblings to lock.
+  const layout = {
+    hero: new StubElement("header"),
+    main: new StubElement("main"),
+    modal: document.getElementById("detail-modal"),
+    script: new StubElement("script")
+  };
+  [layout.hero, layout.main, layout.modal, layout.script].forEach((node) => document.body.appendChild(node));
+
+  // Record window listeners (keydown, ...) so tests can dispatch key events into app.js.
+  const windowListeners = {};
+
   const sandbox = {
     __freebieTestMode: true,
     console: { log() {}, warn() {}, error() {} },
@@ -240,7 +281,9 @@ export function createApp({ routes = {} } = {}) {
     setTimeout,
     clearTimeout,
     alert() {},
-    addEventListener() {},
+    addEventListener(type, handler) {
+      (windowListeners[type] = windowListeners[type] || []).push(handler);
+    },
     FreeBuddyBridge: {
       embedded: false,
       onState: () => () => {},
@@ -266,5 +309,7 @@ export function createApp({ routes = {} } = {}) {
     }
   };
 
-  return { internals, io, elements, document, settle };
+  const dispatchWindow = (type, event) => (windowListeners[type] || []).forEach((handler) => handler(event));
+
+  return { internals, io, elements, document, settle, layout, windowListeners, dispatchWindow };
 }

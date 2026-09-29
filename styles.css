@@ -3,8 +3,8 @@
   --primary: #10b981;
   --primary-hover: #059669;
   --primary-dark: #047857;
-  --primary-light: rgba(16, 185, 129, 0.12);
-  --primary-subtle: rgba(16, 185, 129, 0.05);
+  --primary-light: rgba(15, 169, 104, 0.12);
+  --primary-subtle: rgba(15, 169, 104, 0.05);
 
   --bg: #f8fafc;
   --panel: #ffffff;
@@ -48,8 +48,8 @@
   --primary: #10b981;
   --primary-hover: #34d399;
   --primary-dark: #059669;
-  --primary-light: rgba(16, 185, 129, 0.18);
-  --primary-subtle: rgba(16, 185, 129, 0.08);
+  --primary-light: rgba(15, 169, 104, 0.18);
+  --primary-subtle: rgba(15, 169, 104, 0.08);
 
   --bg: #090e1a;
   --panel: #10192e;
@@ -251,7 +251,7 @@ a:hover {
   font-weight: 600;
   color: var(--primary-dark);
   background: var(--primary-light);
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  border: 1px solid rgba(15, 169, 104, 0.3);
   border-radius: 999px;
   line-height: 1.4;
   white-space: nowrap;
@@ -541,7 +541,7 @@ a:hover {
 }
 
 .card:hover {
-  border-color: rgba(16, 185, 129, 0.45);
+  border-color: rgba(15, 169, 104, 0.45);
   transform: translateY(-2px);
   box-shadow: 0 0 0 3px var(--primary-subtle), var(--shadow-lg);
 }
@@ -722,13 +722,13 @@ a:hover {
 .q-top {
   background: var(--primary-light);
   color: var(--primary-dark);
-  border: 1px solid rgba(16, 185, 129, 0.4);
-  box-shadow: 0 0 6px rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(15, 169, 104, 0.4);
+  box-shadow: 0 0 6px rgba(15, 169, 104, 0.15);
 }
 :root[data-theme="dark"] .q-top {
   color: var(--primary-hover);
-  background: rgba(16, 185, 129, 0.15);
-  border-color: rgba(16, 185, 129, 0.4);
+  background: rgba(15, 169, 104, 0.15);
+  border-color: rgba(15, 169, 104, 0.4);
 }
 
 .q-high {
@@ -753,9 +753,9 @@ a:hover {
   gap: 3px;
   padding: 1.5px 7px;
   border-radius: 999px;
-  background: rgba(16, 185, 129, 0.1);
+  background: rgba(15, 169, 104, 0.1);
   color: #059669;
-  border: 1px solid rgba(16, 185, 129, 0.28);
+  border: 1px solid rgba(15, 169, 104, 0.28);
   font-size: 10.5px;
   font-weight: 600;
   line-height: 1.35;
@@ -764,9 +764,9 @@ a:hover {
   vertical-align: middle;
 }
 :root[data-theme="dark"] .card-imported {
-  background: rgba(16, 185, 129, 0.16);
+  background: rgba(15, 169, 104, 0.16);
   color: #34d399;
-  border-color: rgba(16, 185, 129, 0.35);
+  border-color: rgba(15, 169, 104, 0.35);
 }
 .card-imported::before {
   content: "✓";
@@ -914,13 +914,13 @@ a:hover {
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
-  box-shadow: 0 1px 2px rgba(16, 185, 129, 0.2);
+  box-shadow: 0 1px 2px rgba(15, 169, 104, 0.2);
   transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease;
 }
 
 .import-btn:hover:not(:disabled) {
   background: var(--primary-hover);
-  box-shadow: 0 3px 8px rgba(16, 185, 129, 0.35);
+  box-shadow: 0 3px 8px rgba(15, 169, 104, 0.35);
   transform: translateY(-1px);
 }
 
@@ -933,13 +933,13 @@ a:hover {
 .import-btn.secondary {
   background: var(--primary-light);
   color: var(--primary-dark);
-  border: 1px solid rgba(16, 185, 129, 0.35);
+  border: 1px solid rgba(15, 169, 104, 0.35);
   box-shadow: none;
 }
 
 :root[data-theme="dark"] .import-btn.secondary {
   color: var(--primary-hover);
-  border-color: rgba(16, 185, 129, 0.45);
+  border-color: rgba(15, 169, 104, 0.45);
 }
 
 .import-btn.secondary:hover:not(:disabled) {
@@ -1704,7 +1704,7 @@ a:hover {
 .review-form-status.success {
   background: var(--primary-light);
   color: var(--primary-dark);
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  border: 1px solid rgba(15, 169, 104, 0.3);
 }
 
 /* Reviews List in Modal */
@@ -1837,13 +1837,14 @@ a:hover {
 :root {
   --primary: #0fa968;
   --primary-hover: #0b8f58;
+  --primary-dark: #087a4b;
   --primary-light: rgba(15, 169, 104, 0.12);
   --primary-subtle: rgba(15, 169, 104, 0.05);
   --bg: #f6f7f9;
   --border: rgba(15, 23, 42, 0.08);
   --border-strong: rgba(15, 23, 42, 0.14);
   --text-2: #4b5563;
-  --text-3: #8a94a6;
+  --text-3: #6b7280; /* ≥4.5:1 on --bg, WCAG AA */
   --radius-lg: 16px;
   --radius-xl: 20px;
   --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04), 0 1px 1px rgba(15, 23, 42, 0.03);
@@ -1901,7 +1902,7 @@ body {
 }
 .card-summary { color: var(--text-2); line-height: 1.65; }
 .card-models li { border-radius: 8px; border: 1px solid var(--border); background: var(--surface-sunken); }
-.card-actions { border-top: 1px solid var(--border); }
+.card-actions { padding-top: 8px; }
 .import-btn {
   border-radius: 10px; font-weight: 600;
   background: linear-gradient(180deg, #14b877, var(--primary));
@@ -1912,3 +1913,30 @@ body {
 .modal-backdrop { backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); background: rgba(15, 23, 42, 0.45); }
 .modal-dialog { border-radius: 22px; border: 1px solid var(--border); box-shadow: var(--shadow-xl); }
 @media (prefers-reduced-motion: reduce) { .card:hover { transform: none; } }
+
+/* Empty community footer: collapse zeros into a single hint */
+.community-empty-hint { font-size: 12px; color: var(--text-3); }
+.card-community:not(.is-empty) .community-empty-hint { display: none; }
+.card-community.is-empty .community-rating,
+.card-community.is-empty .community-divider,
+.card-community.is-empty .community-avail,
+.card-community.is-empty .community-votes { display: none; }
+.card-community.is-empty .open-detail-btn { border-color: transparent; background: transparent; }
+/* P1: models +N chip, keyboard focus on brand, first-render-only entrance */
+.card-models { max-height: none; }
+.card-models li.models-more {
+  font-family: inherit; font-weight: 600; cursor: help;
+  color: var(--primary-dark); background: var(--primary-subtle); border-color: var(--primary-light);
+}
+:root[data-theme="dark"] .card-models li.models-more { color: var(--primary); }
+.card-brand:focus-visible { outline: 2px solid var(--primary); outline-offset: 4px; border-radius: 12px; }
+.grid.no-anim > .card { animation: none; }
+
+/* P2: +N chip is a real button that opens the detail modal */
+.card-models li.models-more { padding: 0; cursor: pointer; }
+.models-more-btn {
+  all: unset; box-sizing: border-box; display: block;
+  padding: 2px 7px; cursor: pointer; font: inherit; color: inherit;
+}
+.card-models li.models-more:hover { border-color: var(--primary); }
+.card-models li.models-more:focus-within { outline: 2px solid var(--primary); outline-offset: -2px; }

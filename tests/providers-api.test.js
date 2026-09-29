@@ -465,7 +465,7 @@ test("the migration also builds the constrained providers table on a fresh datab
   // schema.sql must stay usable for fresh installs and must not clobber the migrated table.
   sqlite.exec(SCHEMA);
 
-  assert.deepEqual(tableNames(sqlite).sort(), ["providers", "providers_quarantine", "reviews", "votes"]);
+  assert.deepEqual(tableNames(sqlite).sort(), ["providers", "providers_quarantine", "reviews", "trial_tokens", "votes"]);
   insertProvider(sqlite);
   assert.throws(
     () => insertProvider(sqlite, { id: "fresh-http", base_url: "http://api.plain.example.com/v1" }),
