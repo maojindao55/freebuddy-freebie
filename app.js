@@ -82,7 +82,8 @@
       qualityMid: "B 级",
       emptyTitle: "未找到匹配的服务商",
       emptyDesc: "尝试更改搜索词，或切换地域筛选",
-      clearSearch: "清空搜索"
+      clearSearch: "清空搜索",
+      moreModels: "还有 {n} 个模型，点击查看详情"
     },
     en: {
       title: "Freebie Buddies",
@@ -157,7 +158,8 @@
       qualityMid: "Tier B",
       emptyTitle: "No matching providers",
       emptyDesc: "Try adjusting your search terms or filters",
-      clearSearch: "Clear search"
+      clearSearch: "Clear search",
+      moreModels: "{n} more models, open details"
     }
   };
 
@@ -1158,8 +1160,17 @@
       if (hiddenModels.length > 0) {
         const more = document.createElement("li");
         more.className = "models-more";
-        more.textContent = `+${hiddenModels.length}`;
-        more.title = hiddenModels.map((m) => m.name || m.id).join("\n");
+        const moreBtn = document.createElement("button");
+        moreBtn.type = "button";
+        moreBtn.className = "models-more-btn";
+        moreBtn.textContent = `+${hiddenModels.length}`;
+        moreBtn.title = hiddenModels.map((m) => m.name || m.id).join("\n");
+        moreBtn.setAttribute("aria-label", t("moreModels", { n: hiddenModels.length }));
+        moreBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          openProviderModal(provider);
+        });
+        more.appendChild(moreBtn);
         models.appendChild(more);
       }
 

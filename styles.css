@@ -1931,3 +1931,12 @@ body {
 :root[data-theme="dark"] .card-models li.models-more { color: var(--primary); }
 .card-brand:focus-visible { outline: 2px solid var(--primary); outline-offset: 4px; border-radius: 12px; }
 .grid.no-anim > .card { animation: none; }
+
+/* P2: +N chip is a real button that opens the detail modal */
+.card-models li.models-more { padding: 0; cursor: pointer; }
+.models-more-btn {
+  all: unset; box-sizing: border-box; display: block;
+  padding: 2px 7px; cursor: pointer; font: inherit; color: inherit;
+}
+.card-models li.models-more:hover { border-color: var(--primary); }
+.card-models li.models-more:focus-within { outline: 2px solid var(--primary); outline-offset: -2px; }
