@@ -18,6 +18,8 @@
       filterAll: "全部",
       filterCn: "国内直连",
       filterGlobal: "海外",
+      beFirstReview: "暂无评测，来做第一个吧",
+      viewDetail: "查看详情",
       disclaimer:
         '免费政策随时变化，以各服务商官网为准。发现过期信息欢迎到 <a href="https://github.com/maojindao55/freebuddy-freebie/pulls" target="_blank" rel="noopener noreferrer">GitHub 提交 PR</a>，或 <a href="https://qm.qq.com/q/Obv3kViheo" target="_blank" rel="noopener noreferrer">加入【FreeBuddy白嫖兄弟群】</a> 交流爆料。',
       statusConnecting: "正在连接 FreeBuddy…",
@@ -91,6 +93,8 @@
       filterAll: "All",
       filterCn: "China (direct)",
       filterGlobal: "Global",
+      beFirstReview: "No reviews yet — be the first",
+      viewDetail: "View details",
       disclaimer:
         'Free tiers change often; the provider\'s website is the source of truth. PRs are welcome on <a href="https://github.com/maojindao55/freebuddy-freebie/pulls" target="_blank" rel="noopener noreferrer">GitHub</a>, or join our <a href="https://qm.qq.com/q/Obv3kViheo" target="_blank" rel="noopener noreferrer">QQ Group Chat</a>.',
       statusConnecting: "Connecting to FreeBuddy…",
@@ -497,10 +501,23 @@
     const failedCountEl = node.querySelector(".failed-count");
     if (failedCountEl) failedCountEl.textContent = String(s.failedVotes || 0);
 
-    // 4. Detail button label
+    // 4. Detail button label + collapse empty footer
+    const isEmpty =
+      !(s.reviewCount > 0) &&
+      !(s.workingVotes > 0) &&
+      !(s.failedVotes > 0) &&
+      (s.availability === null || s.availability === undefined);
+    const communityEl = node.querySelector(".card-community");
+    if (communityEl) {
+      communityEl.classList.toggle("is-empty", isEmpty);
+      const hint = communityEl.querySelector(".community-empty-hint");
+      if (hint) hint.textContent = t("beFirstReview");
+    }
     const detailLabel = node.querySelector(".detail-btn-label");
     if (detailLabel) {
-      detailLabel.textContent = t("reviewsCount", { n: s.reviewCount || 0 });
+      detailLabel.textContent = isEmpty && communityEl
+        ? t("viewDetail")
+        : t("reviewsCount", { n: s.reviewCount || 0 });
     }
 
     // 5. Dynamic Grade badge (S / A / B)
@@ -1041,7 +1058,11 @@
           if (searchInput) searchInput.value = "";
           const clearBtn = document.getElementById("search-clear-btn");
           if (clearBtn) clearBtn.hidden = true;
-          document.querySelectorAll(".filter").forEach((b) => b.classList.toggle("active", b.dataset.region === "all"));
+          document.querySelectorAll(".filter").forEach((b) => {
+            const on = b.dataset.region === "all";
+            b.classList.toggle("active", on);
+            b.setAttribute("aria-selected", String(on));
+          });
           renderCards();
         });
       }
@@ -1489,7 +1510,10 @@
   document.querySelectorAll(".filter").forEach((btn) => {
     btn.addEventListener("click", () => {
       state.region = btn.dataset.region;
-      document.querySelectorAll(".filter").forEach((b) => b.classList.toggle("active", b === btn));
+      document.querySelectorAll(".filter").forEach((b) => {
+        b.classList.toggle("active", b === btn);
+        b.setAttribute("aria-selected", String(b === btn));
+      });
       renderCards();
     });
   });
