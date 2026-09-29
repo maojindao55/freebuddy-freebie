@@ -18,7 +18,7 @@
 
   --text: #0f172a;
   --text-2: #475569;
-  --text-3: #94a3b8;
+  --text-3: #7c8aa0;
   --text-inverse: #ffffff;
 
   --brand: var(--primary);
@@ -63,7 +63,7 @@
 
   --text: #f8fafc;
   --text-2: #cbd5e1;
-  --text-3: #64748b;
+  --text-3: #7d8ba3;
   --text-inverse: #ffffff;
 
   --tag-bg: rgba(255, 255, 255, 0.07);
@@ -113,6 +113,47 @@ a:hover {
   border: 0;
 }
 
+::selection {
+  background: var(--primary-light);
+  color: var(--text);
+}
+
+/* Keyboard focus ring — only for keyboard users, never on mouse click */
+:where(button, a, select, input, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.search-box input:focus-visible,
+.review-form-author:focus-visible,
+.review-form-content:focus-visible {
+  outline: none;
+}
+
+/* Thin scrollbars for inner scroll areas */
+.modal-body,
+.reviews-list {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+  overscroll-behavior: contain;
+}
+
+.modal-body::-webkit-scrollbar,
+.reviews-list::-webkit-scrollbar { width: 6px; }
+.modal-body::-webkit-scrollbar-thumb,
+.reviews-list::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 999px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 /* ==========================================================================
    Hero Section (FavsHub Tokens style)
    ========================================================================== */
@@ -129,6 +170,16 @@ a:hover {
 
 :root.embedded .hero {
   padding: 16px 20px 14px;
+}
+
+/* Sticky header on wide screens so search stays reachable while scrolling */
+@media (min-width: 860px) {
+  .hero {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    box-shadow: 0 1px 0 var(--border), 0 6px 16px -12px rgba(15, 23, 42, 0.18);
+  }
 }
 
 .hero-inner, .page {
@@ -434,20 +485,30 @@ a:hover {
 }
 
 .sort-select {
-  background: var(--panel);
+  -webkit-appearance: none;
+  appearance: none;
+  background-color: var(--panel);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 9px center;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   color: var(--text-2);
   cursor: pointer;
   font-family: inherit;
   font-size: 12.5px;
-  padding: 6px 10px;
+  padding: 6px 28px 6px 10px;
   outline: none;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
+.sort-select:hover {
+  border-color: var(--border-strong);
+}
+
 .sort-select:focus {
   border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px var(--primary-light);
 }
 
 .toolbar-meta {
@@ -480,9 +541,42 @@ a:hover {
 }
 
 .card:hover {
-  border-color: var(--primary);
+  border-color: rgba(16, 185, 129, 0.45);
   transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 0 0 3px var(--primary-subtle), var(--shadow-lg);
+}
+
+/* Staggered entrance on (re)render */
+.grid > .card {
+  animation: cardIn 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.grid > .card:nth-child(2) { animation-delay: 30ms; }
+.grid > .card:nth-child(3) { animation-delay: 60ms; }
+.grid > .card:nth-child(4) { animation-delay: 90ms; }
+.grid > .card:nth-child(5) { animation-delay: 120ms; }
+.grid > .card:nth-child(6) { animation-delay: 150ms; }
+.grid > .card:nth-child(n+7) { animation-delay: 180ms; }
+
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Loading skeleton while the catalog is still empty */
+.grid:empty::before,
+.grid:empty::after {
+  content: "";
+  height: 232px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: linear-gradient(90deg, var(--surface-sunken) 25%, var(--surface-hover) 50%, var(--surface-sunken) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.3s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
 }
 
 .card-body {
@@ -579,6 +673,7 @@ a:hover {
 .tag {
   padding: 2px 7px;
   border-radius: 5px;
+  border: 1px solid transparent;
   background: var(--tag-bg);
   color: var(--text-2);
   font-size: 11px;
@@ -784,7 +879,9 @@ a:hover {
 .card-links {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 6px;
+  min-width: 0;
 }
 
 .card-link {
@@ -825,6 +922,12 @@ a:hover {
   background: var(--primary-hover);
   box-shadow: 0 3px 8px rgba(16, 185, 129, 0.35);
   transform: translateY(-1px);
+}
+
+.import-btn:active:not(:disabled),
+.vote-btn:active:not(:disabled),
+.review-form-submit:active:not(:disabled) {
+  transform: scale(0.97);
 }
 
 .import-btn.secondary {
@@ -1697,17 +1800,35 @@ a:hover {
 
 @media (max-width: 640px) {
   .hero { padding: 14px 16px; }
+  .hero-slogan { white-space: normal; }
+  .search-box { min-width: 0; }
   .page { padding: 14px 14px 40px; }
+  .toolbar { align-items: stretch; }
+  .filters { width: 100%; }
+  .filter { flex: 1; }
   .grid { grid-template-columns: 1fr; }
-  .modal-backdrop { padding: 0; }
+
+  /* Modal becomes a bottom sheet */
+  .modal-backdrop {
+    padding: 0;
+    align-items: flex-end;
+  }
   .modal-dialog {
     max-width: 100%;
-    max-height: 100vh;
-    height: 100vh;
-    border-radius: 0;
-    border: none;
+    max-height: 92vh;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    border-bottom: none;
+    animation: sheetUp 0.28s cubic-bezier(0.16, 1, 0.3, 1);
   }
+  .modal-header { padding: 14px 16px; }
+  .modal-body { padding: 16px; }
   .modal-facts-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+  .health-avail-box { align-items: flex-start; }
+}
+
+@keyframes sheetUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
 }
