@@ -183,6 +183,7 @@
     summary: {},
     activeModalProviderId: null,
     modalReturnFocus: null,
+    inertedNodes: [],
     reviewsCache: {},
     submittingVote: new Set(),
     userVotes: (() => {
@@ -986,6 +987,7 @@
     // Show modal & prevent body scroll
     modal.hidden = false;
     modal.setAttribute("aria-hidden", "false");
+    setBackgroundInert(true, modal);
     document.body.style.overflow = "hidden";
 
     // Render reviews & fetch
@@ -998,6 +1000,7 @@
     if (!modal) return;
     modal.hidden = true;
     modal.setAttribute("aria-hidden", "true");
+    setBackgroundInert(false);
     const closedId = state.activeModalProviderId;
     state.activeModalProviderId = null;
     document.body.style.overflow = "";
@@ -1010,6 +1013,73 @@
       } catch {
         location.hash = "";
       }
+    }
+  }
+
+  const FOCUSABLE_SELECTOR = "a[href], area[href], button:not([disabled]), input:not([disabled]):not([type='hidden']), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex='-1'])";
+
+  // Make everything behind the open modal non-interactive; only undo what we set ourselves
+  function setBackgroundInert(on, modal) {
+    if (!on) {
+      state.inertedNodes.forEach((node) => {
+        try {
+          node.inert = false;
+          if (typeof node.removeAttribute === "function") node.removeAttribute("inert");
+        } catch {
+          /* ignore */
+        }
+      });
+      state.inertedNodes = [];
+      return;
+    }
+    if (state.inertedNodes.length) return;
+    const parent = (modal && modal.parentElement) || document.body;
+    const children = parent && parent.children ? Array.from(parent.children) : [];
+    children.forEach((node) => {
+      if (!node || node === modal) return;
+      const tag = String(node.tagName || "").toUpperCase();
+      if (tag === "SCRIPT" || tag === "STYLE" || tag === "TEMPLATE") return;
+      if (node.inert || (typeof node.hasAttribute === "function" && node.hasAttribute("inert"))) return;
+      try {
+        node.inert = true;
+        if (typeof node.setAttribute === "function") node.setAttribute("inert", "");
+        state.inertedNodes.push(node);
+      } catch {
+        /* ignore */
+      }
+    });
+  }
+
+  function getModalFocusable(modal) {
+    if (!modal || typeof modal.querySelectorAll !== "function") return [];
+    return Array.from(modal.querySelectorAll(FOCUSABLE_SELECTOR)).filter((el) => {
+      if (el.hidden || (typeof el.closest === "function" && el.closest("[hidden]"))) return false;
+      if (typeof el.getClientRects === "function") return el.getClientRects().length > 0;
+      return true;
+    });
+  }
+
+  function trapModalFocus(e) {
+    if (e.key !== "Tab" || !state.activeModalProviderId) return;
+    const modal = document.getElementById("detail-modal");
+    if (!modal || modal.hidden) return;
+    const items = getModalFocusable(modal);
+    if (!items.length) {
+      e.preventDefault();
+      return;
+    }
+    const first = items[0];
+    const last = items[items.length - 1];
+    const active = document.activeElement;
+    const inside = typeof modal.contains === "function" && active ? modal.contains(active) : false;
+    if (e.shiftKey) {
+      if (!inside || active === first) {
+        e.preventDefault();
+        last.focus();
+      }
+    } else if (!inside || active === last) {
+      e.preventDefault();
+      first.focus();
     }
   }
 
@@ -1650,6 +1720,8 @@
     });
   }
 
+  // Keep Tab / Shift+Tab cycling inside the open detail modal
+  window.addEventListener("keydown", trapModalFocus);
   window.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && state.activeModalProviderId) {
       closeProviderModal();
