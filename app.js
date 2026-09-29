@@ -182,6 +182,7 @@
     busy: new Set(),
     summary: {},
     activeModalProviderId: null,
+    modalReturnFocus: null,
     reviewsCache: {},
     submittingVote: new Set(),
     userVotes: (() => {
@@ -842,6 +843,20 @@
     const modal = document.getElementById("detail-modal");
     if (!modal) return;
 
+    // Remember the trigger only when opening fresh (not when switching providers inside the modal)
+    if (modal.hidden) {
+      const active = document.activeElement;
+      const inside = typeof modal.contains === "function" && active ? modal.contains(active) : false;
+      state.modalReturnFocus = active && active !== document.body && !inside ? active : null;
+    }
+    // Move focus into the modal once it is visible
+    nextFrame(() => {
+      if (modal.hidden || typeof modal.querySelector !== "function") return;
+      if (typeof modal.contains === "function" && modal.contains(document.activeElement)) return;
+      const target = modal.querySelector(".modal-close") || modal.querySelector("button:not([disabled]), [href]");
+      if (target && typeof target.focus === "function") target.focus({ preventScroll: true });
+    });
+
     // Set URL hash without scrolling
     if (location.hash !== `#${provider.id}`) {
       try {
@@ -983,8 +998,10 @@
     if (!modal) return;
     modal.hidden = true;
     modal.setAttribute("aria-hidden", "true");
+    const closedId = state.activeModalProviderId;
     state.activeModalProviderId = null;
     document.body.style.overflow = "";
+    restoreModalFocus(closedId);
 
     // Clear hash without reload
     if (location.hash) {
@@ -992,6 +1009,38 @@
         history.replaceState(null, "", location.pathname + location.search);
       } catch {
         location.hash = "";
+      }
+    }
+  }
+
+  function nextFrame(fn) {
+    const run = () => {
+      try {
+        fn();
+      } catch {
+        /* focus management is best-effort */
+      }
+    };
+    if (typeof requestAnimationFrame === "function") requestAnimationFrame(run);
+    else setTimeout(run, 0);
+  }
+
+  function restoreModalFocus(providerId) {
+    let target = state.modalReturnFocus;
+    state.modalReturnFocus = null;
+    // Cards may have been re-rendered (vote, filter); fall back to the fresh card brand
+    if (!target || !target.isConnected) {
+      target = null;
+      if (providerId && window.CSS && CSS.escape) {
+        const id = CSS.escape(providerId);
+        target = document.querySelector(`[data-provider-id="${id}"] .card-brand, [data-id="${id}"] .card-brand`);
+      }
+    }
+    if (target && typeof target.focus === "function") {
+      try {
+        target.focus();
+      } catch {
+        /* ignore */
       }
     }
   }
