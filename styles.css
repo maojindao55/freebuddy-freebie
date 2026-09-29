@@ -1922,3 +1922,12 @@ body {
 .card-community.is-empty .community-avail,
 .card-community.is-empty .community-votes { display: none; }
 .card-community.is-empty .open-detail-btn { border-color: transparent; background: transparent; }
+/* P1: models +N chip, keyboard focus on brand, first-render-only entrance */
+.card-models { max-height: none; }
+.card-models li.models-more {
+  font-family: inherit; font-weight: 600; cursor: help;
+  color: var(--primary-dark); background: var(--primary-subtle); border-color: var(--primary-light);
+}
+:root[data-theme="dark"] .card-models li.models-more { color: var(--primary); }
+.card-brand:focus-visible { outline: 2px solid var(--primary); outline-offset: 4px; border-radius: 12px; }
+.grid.no-anim > .card { animation: none; }

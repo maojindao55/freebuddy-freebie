@@ -1008,6 +1008,8 @@
     const root = document.getElementById("providers");
     const template = document.getElementById("provider-card");
     root.textContent = "";
+    // Entrance animation plays only on the first real render
+    root.classList.toggle("no-anim", !!state.cardsAnimated);
 
     let list = state.providers.filter((p) => state.region === "all" || p.region === state.region);
 
@@ -1039,6 +1041,8 @@
         return sb - sa;
       });
     }
+
+    if (list.length > 0) state.cardsAnimated = true;
 
     if (list.length === 0 && state.providers.length > 0) {
       const empty = document.createElement("div");
@@ -1141,13 +1145,23 @@
       node.querySelector(".card-summary").textContent = summaryFor(provider);
 
       const models = node.querySelector(".card-models");
-      provider.models.forEach((model) => {
+      const MAX_MODELS = 6;
+      const allModels = Array.isArray(provider.models) ? provider.models : [];
+      allModels.slice(0, MAX_MODELS).forEach((model) => {
         const li = document.createElement("li");
         li.textContent = model.name || model.id;
         li.title = model.id;
         if (model.supportsVision) li.classList.add("vision");
         models.appendChild(li);
       });
+      const hiddenModels = allModels.slice(MAX_MODELS);
+      if (hiddenModels.length > 0) {
+        const more = document.createElement("li");
+        more.className = "models-more";
+        more.textContent = `+${hiddenModels.length}`;
+        more.title = hiddenModels.map((m) => m.name || m.id).join("\n");
+        models.appendChild(more);
+      }
 
       const homepage = node.querySelector(".card-homepage");
       const homepageUrl = safeUrl(provider.homepage);
@@ -1193,7 +1207,16 @@
       const cardBrand = node.querySelector(".card-brand");
       if (cardBrand) {
         cardBrand.style.cursor = "pointer";
+        cardBrand.setAttribute("role", "button");
+        cardBrand.tabIndex = 0;
+        cardBrand.setAttribute("aria-label", provider.name || provider.id);
         cardBrand.addEventListener("click", () => openProviderModal(provider));
+        cardBrand.addEventListener("keydown", (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            openProviderModal(provider);
+          }
+        });
       }
       const quotaBox = node.querySelector(".card-quota-box");
       if (quotaBox) {
