@@ -357,7 +357,7 @@
     const recognizedPlatforms = new Set([
       "zhipu", "google-ai-studio", "modelscope", "deepseek", "siliconflow",
       "volcengine", "openrouter", "groq", "dashscope", "sensenova", "senseaudio", "cerebras", "stepfun",
-      "xiaomi-mimo"
+      "xiaomi-mimo", "lightvela"
     ]);
     if (recognizedPlatforms.has(provider.id)) {
       score += 25;
