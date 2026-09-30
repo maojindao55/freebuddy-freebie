@@ -30,6 +30,8 @@ const LOCAL_ONLY = [
   "tests/sync-providers.test.js",
   "migrations/0001_providers_constraints.sql",
   "migrations/0002_providers_status_disabled.sql",
+  "migrations/0004_providers_status_disabled_v2.sql",
+  "tests/migration-0004.test.js",
   "submissions/providers/README.md",
   "submissions/providers/zhipu.json",
   "submissions/providers.schema.json",

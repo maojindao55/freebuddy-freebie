@@ -44,6 +44,8 @@ CREATE INDEX IF NOT EXISTS idx_reviews_provider ON reviews(provider_id, created_
 -- migrations/0002_providers_status_disabled.sql rebuilds the table once more to
 -- accept 'disabled' (same data-preserving design) — run
 -- `npx wrangler d1 migrations apply freebie-db --remote` and both are applied in order.
+-- A database that already ran 0003 (claim_guide) must NOT re-run 0002, which would drop that
+-- column: use migrations/0004_providers_status_disabled_v2.sql, the claim_guide-preserving variant.
 CREATE TABLE IF NOT EXISTS providers (
   id TEXT PRIMARY KEY CHECK (id GLOB '[a-z0-9]*' AND id NOT GLOB '*[^a-z0-9_-]*' AND length(id) <= 64),
   name TEXT NOT NULL CHECK (length(trim(name)) > 0 AND length(name) <= 80),
