@@ -25,7 +25,11 @@ import { test } from "node:test";
 
 const README = readFileSync(new URL("../README.md", import.meta.url), "utf8");
 const SYNC_GENERATOR = fileURLToPath(new URL("../scripts/sync-providers.mjs", import.meta.url));
-const MIGRATIONS = ["0001_providers_constraints.sql", "0002_providers_status_disabled.sql"].map((name) => ({
+const MIGRATIONS = [
+  "0001_providers_constraints.sql",
+  "0002_providers_status_disabled.sql",
+  "0004_providers_status_disabled_v2.sql",
+].map((name) => ({
   name,
   text: readFileSync(new URL(`../migrations/${name}`, import.meta.url), "utf8"),
 }));
@@ -69,6 +73,7 @@ test("file-reading D1 examples use the --command= equals form, never the space-s
     '--command="$(< schema.sql)"',
     '--command="$(< migrations/0001_providers_constraints.sql)"',
     '--command="$(< migrations/0002_providers_status_disabled.sql)"',
+    '--command="$(< migrations/0004_providers_status_disabled_v2.sql)"',
     '--command="$(< .wrangler/sync-providers.sql)"',
   ];
   for (const command of fileCommands) {
