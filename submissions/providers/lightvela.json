@@ -1,0 +1,20 @@
+{
+  "$schema": "../providers.schema.json",
+  "id": "lightvela",
+  "name": "LightVela",
+  "region": "cn",
+  "homepage": "https://lightvela.ai",
+  "consoleUrl": "https://lightvela.ai",
+  "freeTierSummary": {
+    "zh-CN": "LightVela 是腾讯 Lighthouse 构建的云端 Hermes Agent。官网标注新用户可免费试用 1 个月并附带 AI 积分，激活后可通过 OpenAI 兼容接口 token.lightvela.ai 调用 auto 模型。积分额度、消耗规则与活动期限以控制台和官方文档为准。",
+    "en": "LightVela is a cloud Hermes Agent built by Tencent Lighthouse. The site advertises a 1-month free trial with AI credits for new users; after activation the auto model is available over the OpenAI-compatible endpoint token.lightvela.ai. Credit amounts, usage rules and promo terms are subject to the console and official docs."
+  },
+  "protocol": "openai-chat",
+  "baseUrl": "https://token.lightvela.ai/v1",
+  "envKey": "OPENAI_API_KEY",
+  "models": [
+    { "id": "auto", "name": "Auto" }
+  ],
+  "verifiedAt": "2026-09-30",
+  "status": "approved"
+}
