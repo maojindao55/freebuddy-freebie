@@ -105,12 +105,14 @@ npx wrangler d1 migrations apply freebie-db --remote
 # 或者按需直接执行单个迁移文件
 npx wrangler d1 execute freebie-db --remote --command="$(< migrations/0001_providers_constraints.sql)"
 npx wrangler d1 execute freebie-db --remote --command="$(< migrations/0002_providers_status_disabled.sql)"
+npx wrangler d1 execute freebie-db --remote --command="$(< migrations/0004_providers_status_disabled_v2.sql)"
 ```
 
 | 迁移 | 作用 | 适用 |
 | --- | --- | --- |
 | `0001_providers_constraints.sql` | 给旧的宽松 `providers` 表补上 CHECK 约束 | 跑过旧 `schema.sql`、表里还没有约束的库 |
-| `0002_providers_status_disabled.sql` | 把 `status` 取值集合扩展为 `pending / approved / disabled / rejected` | 跑过 `0001`、需要支持「显式下线」的库 |
+| `0002_providers_status_disabled.sql` | 把 `status` 取值集合扩展为 `pending / approved / disabled / rejected` | 跑过 `0001`、需要支持「显式下线」的库（**尚未执行 `0003` 的库才用**） |
+| `0004_providers_status_disabled_v2.sql` | 与 `0002` 相同，但重建表时保留 `0003` 新增的 `claim_guide` 列 | **已执行 `0003`**、`status` 仍不含 `disabled` 的库（如当前生产库）。对这类库只执行 `0004`，**不要**用 `migrations apply`，否则会先重跑 `0002` 而丢失 `claim_guide` 数据 |
 
 两个迁移都是一条流程：新建带约束的表 → 原样复制合规记录（所有状态全部保留）→ 把不满足新约束的旧记录写入 `providers_quarantine` 并记录 `failed_checks` 原因 → 断言「合规记录一条不少 + 隔离条数对得上」→ 全部通过后才替换旧表并重建 `idx_providers_status`。任何断言失败都会直接报错中止，旧表保持原样，不会静默丢数据。
 

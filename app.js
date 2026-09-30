@@ -32,6 +32,7 @@
       protocolDeepseek: "DeepSeek",
       homepage: "官网",
       getKey: "领取 Key",
+      claimGuideLabel: "领取步骤",
       import: "一键导入",
       importAgain: "再导入一个",
       importing: "等待 FreeBuddy 确认…",
@@ -108,6 +109,7 @@
       protocolDeepseek: "DeepSeek",
       homepage: "Website",
       getKey: "Get API key",
+      claimGuideLabel: "How to claim",
       import: "Import",
       importAgain: "Import another",
       importing: "Waiting for FreeBuddy…",
@@ -307,6 +309,11 @@
   function summaryFor(provider) {
     const summary = provider.freeTierSummary || {};
     return summary[state.locale] || summary.en || Object.values(summary)[0] || "";
+  }
+
+  function claimGuideFor(provider) {
+    const guide = (provider && provider.claimGuide) || {};
+    return guide[state.locale] || guide.en || Object.values(guide)[0] || [];
   }
 
   function getFaviconFallback(provider) {
@@ -929,6 +936,20 @@
     // Overview & Summary
     modal.querySelector(".modal-summary").textContent = summaryFor(provider);
 
+    // Claim guide: ordered steps, rendered as plain text only.
+    const guideBox = modal.querySelector(".modal-claim-guide");
+    if (guideBox) {
+      const steps = claimGuideFor(provider);
+      const list = guideBox.querySelector(".modal-claim-steps");
+      list.textContent = "";
+      steps.forEach((step) => {
+        const li = document.createElement("li");
+        li.textContent = step;
+        list.appendChild(li);
+      });
+      guideBox.hidden = steps.length === 0;
+    }
+
     // Links (https only — never trust a provider object built elsewhere)
     const homepage = modal.querySelector(".modal-homepage");
     const homepageUrl = safeUrl(provider.homepage);
@@ -1477,6 +1498,16 @@
         if (typeof text === "string" && text) summary[lang] = text;
       });
       if (Object.keys(summary).length > 0) provider.freeTierSummary = summary;
+    }
+
+    if (raw.claimGuide && typeof raw.claimGuide === "object" && !Array.isArray(raw.claimGuide)) {
+      const guide = {};
+      Object.entries(raw.claimGuide).forEach(([lang, steps]) => {
+        if (!Array.isArray(steps)) return;
+        const clean = steps.filter((s) => typeof s === "string" && s.trim()).map((s) => s.trim());
+        if (clean.length > 0) guide[lang] = clean;
+      });
+      if (Object.keys(guide).length > 0) provider.claimGuide = guide;
     }
 
     provider.protocol = PROVIDER_PROTOCOLS.includes(raw.protocol) ? raw.protocol : "openai-chat";

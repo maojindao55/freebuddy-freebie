@@ -44,6 +44,8 @@ CREATE INDEX IF NOT EXISTS idx_reviews_provider ON reviews(provider_id, created_
 -- migrations/0002_providers_status_disabled.sql rebuilds the table once more to
 -- accept 'disabled' (same data-preserving design) — run
 -- `npx wrangler d1 migrations apply freebie-db --remote` and both are applied in order.
+-- A database that already ran 0003 (claim_guide) must NOT re-run 0002, which would drop that
+-- column: use migrations/0004_providers_status_disabled_v2.sql, the claim_guide-preserving variant.
 CREATE TABLE IF NOT EXISTS providers (
   id TEXT PRIMARY KEY CHECK (id GLOB '[a-z0-9]*' AND id NOT GLOB '*[^a-z0-9_-]*' AND length(id) <= 64),
   name TEXT NOT NULL CHECK (length(trim(name)) > 0 AND length(name) <= 80),
@@ -52,6 +54,7 @@ CREATE TABLE IF NOT EXISTS providers (
   homepage TEXT CHECK (homepage IS NULL OR homepage GLOB 'https://*'),
   console_url TEXT CHECK (console_url IS NULL OR console_url GLOB 'https://*'),
   free_tier_summary TEXT CHECK (free_tier_summary IS NULL OR (json_valid(free_tier_summary) AND json_type(free_tier_summary) = 'object')),
+  claim_guide TEXT CHECK (claim_guide IS NULL OR (json_valid(claim_guide) AND json_type(claim_guide) = 'object')),
   protocol TEXT NOT NULL CHECK (protocol IN ('openai-chat', 'openai-responses', 'anthropic', 'deepseek')),
   protocols TEXT CHECK (protocols IS NULL OR (json_valid(protocols) AND json_type(protocols) = 'array')),
   base_url TEXT NOT NULL CHECK (base_url GLOB 'https://*'),

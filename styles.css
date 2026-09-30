@@ -1940,3 +1940,33 @@ body {
 }
 .card-models li.models-more:hover { border-color: var(--primary); }
 .card-models li.models-more:focus-within { outline: 2px solid var(--primary); outline-offset: -2px; }
+
+.modal-claim-guide {
+  margin-top: 12px;
+}
+
+.modal-claim-guide[hidden] {
+  display: none;
+}
+
+.modal-claim-guide-title {
+  margin: 0 0 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.modal-claim-steps {
+  margin: 0;
+  padding: 10px 14px 10px 32px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text);
+}
+
+.modal-claim-steps li + li {
+  margin-top: 4px;
+}

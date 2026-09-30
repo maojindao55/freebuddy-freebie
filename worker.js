@@ -174,6 +174,18 @@ function toProviderObject(row) {
     if (Object.keys(summary).length > 0) provider.freeTierSummary = summary;
   }
 
+  // claim_guide: JSON object of language code -> ordered array of step strings.
+  const claimGuide = parseJsonSafe(row.claim_guide, null);
+  if (claimGuide && typeof claimGuide === "object" && !Array.isArray(claimGuide)) {
+    const guide = {};
+    for (const [lang, steps] of Object.entries(claimGuide)) {
+      if (!Array.isArray(steps)) continue;
+      const clean = steps.filter((s) => typeof s === "string" && s.trim()).map((s) => s.trim());
+      if (clean.length > 0) guide[lang] = clean;
+    }
+    if (Object.keys(guide).length > 0) provider.claimGuide = guide;
+  }
+
   provider.protocol = PROVIDER_PROTOCOLS.includes(row.protocol) ? row.protocol : "openai-chat";
 
   const protocols = parseJsonSafe(row.protocols, null);
@@ -261,16 +273,27 @@ async function handleApi(request, env) {
       return jsonResponse({ ok: true, providers: [] });
     }
     try {
-      const rows = await db
-        .prepare(
-          `SELECT id, name, icon, region, homepage, console_url, free_tier_summary,
-                  protocol, protocols, base_url, env_key, models, context_window, verified_at,
-                  created_at
-           FROM providers
-           WHERE status = 'approved'
-           ORDER BY created_at DESC, id ASC`
-        )
-        .all();
+      // claim_guide arrives with migration 0003. Until it has been applied, fall back to the
+      // pre-0003 column list so a deploy-order gap never empties the whole catalog.
+      const selectProviders = (withClaimGuide) =>
+        db
+          .prepare(
+            `SELECT id, name, icon, region, homepage, console_url, free_tier_summary,${withClaimGuide ? " claim_guide," : ""}
+                    protocol, protocols, base_url, env_key, models, context_window, verified_at,
+                    created_at
+             FROM providers
+             WHERE status = 'approved'
+             ORDER BY created_at DESC, id ASC`
+          )
+          .all();
+      let rows;
+      try {
+        rows = await selectProviders(true);
+      } catch (err) {
+        if (!/claim_guide/.test(String(err && err.message))) throw err;
+        console.warn("[api/providers] claim_guide column missing, run migration 0003");
+        rows = await selectProviders(false);
+      }
 
       const providers = [];
       for (const row of rows?.results || []) {
