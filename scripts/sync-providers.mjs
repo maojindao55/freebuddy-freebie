@@ -58,6 +58,8 @@ const MAX_NAME_LENGTH = 80;
 const MAX_URL_LENGTH = 2048;
 const MAX_MODELS = 50;
 const MAX_SUMMARY_LENGTH = 400;
+const MAX_GUIDE_STEPS = 10;
+const MAX_GUIDE_STEP_LENGTH = 200;
 const MAX_OFFLINE_REASON_LENGTH = 400;
 const MAX_SUBMITTED_BY_LENGTH = 39;
 
@@ -71,6 +73,7 @@ const ALLOWED_FIELDS = new Set([
   "homepage",
   "consoleUrl",
   "freeTierSummary",
+  "claimGuide",
   "protocol",
   "protocols",
   "baseUrl",
@@ -95,6 +98,7 @@ const ROW_COLUMNS = [
   "homepage",
   "console_url",
   "free_tier_summary",
+  "claim_guide",
   "protocol",
   "protocols",
   "base_url",
@@ -292,6 +296,40 @@ function parseFreeTierSummary(value, messages) {
   return Object.keys(summary).length > 0 ? summary : null;
 }
 
+function parseClaimGuide(value, messages) {
+  if (value === undefined) return null;
+  if (!isPlainObject(value)) {
+    messages.push("claimGuide: must be an object of language code -> array of steps");
+    return null;
+  }
+  const langs = Object.keys(value).sort();
+  if (langs.length === 0) {
+    messages.push("claimGuide: must contain at least one language entry");
+    return null;
+  }
+  const guide = {};
+  for (const lang of langs) {
+    if (!SUMMARY_LANG_PATTERN.test(lang)) {
+      messages.push("claimGuide: invalid language key " + JSON.stringify(lang));
+      continue;
+    }
+    const steps = value[lang];
+    if (!Array.isArray(steps) || steps.length === 0 || steps.length > MAX_GUIDE_STEPS) {
+      messages.push("claimGuide." + lang + ": must be an array of 1-" + MAX_GUIDE_STEPS + " steps");
+      continue;
+    }
+    const clean = [];
+    steps.forEach((step, index) => {
+      const text = requireTrimmedText(step, "claimGuide." + lang + "[" + index + "]", messages, {
+        maxLength: MAX_GUIDE_STEP_LENGTH
+      });
+      if (text !== null) clean.push(text);
+    });
+    if (clean.length === steps.length) guide[lang] = clean;
+  }
+  return Object.keys(guide).length > 0 ? guide : null;
+}
+
 function parseProtocols(value, messages) {
   if (value === undefined) return null;
   if (!Array.isArray(value) || value.length === 0) {
@@ -354,6 +392,7 @@ export function validateDeclaration(raw, messages = []) {
   const homepage = optionalUrl(raw.homepage, "homepage", messages);
   const consoleUrl = optionalUrl(raw.consoleUrl, "consoleUrl", messages);
   const freeTierSummary = parseFreeTierSummary(raw.freeTierSummary, messages);
+  const claimGuide = parseClaimGuide(raw.claimGuide, messages);
 
   let protocol = null;
   if (raw.protocol === undefined) {
@@ -437,6 +476,7 @@ export function validateDeclaration(raw, messages = []) {
       homepage,
       console_url: consoleUrl,
       free_tier_summary: freeTierSummary === null ? null : JSON.stringify(freeTierSummary),
+      claim_guide: claimGuide === null ? null : JSON.stringify(claimGuide),
       protocol,
       protocols: protocols === null ? null : JSON.stringify(protocols),
       base_url: baseUrl,

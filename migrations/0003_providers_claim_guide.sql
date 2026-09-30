@@ -1,0 +1,13 @@
+-- 0003_providers_claim_guide.sql
+-- 给已存在的 D1 `providers` 表新增 `claim_guide` 列（领取免费额度的分步指引，JSON 对象：
+-- 语言代码 -> 步骤数组）。schema.sql 已同步更新，但它只对全新数据库生效。
+--
+-- 必须在合并带有 claimGuide 的声明之前执行：sync-providers.mjs 的 upsert 会写 claim_guide，
+-- 旧表没有这一列时同步任务会失败。
+--
+-- 执行方式（等号写法，避免以 -- 开头的内容被当成新选项）：
+--   npx wrangler d1 execute freebie-db --remote --command="$(< migrations/0003_providers_claim_guide.sql)"
+--
+-- 本迁移不是幂等的：列已存在时 SQLite 会报 duplicate column name，说明已经执行过，无需重跑。
+-- 旧行的 claim_guide 为 NULL，满足 CHECK。
+ALTER TABLE providers ADD COLUMN claim_guide TEXT CHECK (claim_guide IS NULL OR (json_valid(claim_guide) AND json_type(claim_guide) = 'object'));

@@ -49,6 +49,18 @@
       "additionalProperties": { "type": "string", "minLength": 1, "maxLength": 400 },
       "description": "免费政策简述，键为语言代码（zh-CN / en）。"
     },
+    "claimGuide": {
+      "type": "object",
+      "minProperties": 1,
+      "maxProperties": 10,
+      "additionalProperties": {
+        "type": "array",
+        "minItems": 1,
+        "maxItems": 10,
+        "items": { "type": "string", "minLength": 1, "maxLength": 200 }
+      },
+      "description": "领取免费额度的步骤，键为语言代码（zh-CN / en），值为按顺序排列的步骤数组。"
+    },
     "protocol": {
       "enum": ["openai-chat", "openai-responses", "anthropic", "deepseek"],
       "description": "决定 FreeBuddy 用哪个基座 CLI 承载。"
