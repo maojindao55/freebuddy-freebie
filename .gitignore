@@ -7,3 +7,5 @@ node_modules/
 
 # Shell-expansion / typo artifacts (e.g. `> {r[p.protocol]`), never user content
 {r\[p.protocol\]
+.agents/
+.sessions/
