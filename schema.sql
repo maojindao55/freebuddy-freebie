@@ -52,6 +52,7 @@ CREATE TABLE IF NOT EXISTS providers (
   homepage TEXT CHECK (homepage IS NULL OR homepage GLOB 'https://*'),
   console_url TEXT CHECK (console_url IS NULL OR console_url GLOB 'https://*'),
   free_tier_summary TEXT CHECK (free_tier_summary IS NULL OR (json_valid(free_tier_summary) AND json_type(free_tier_summary) = 'object')),
+  claim_guide TEXT CHECK (claim_guide IS NULL OR (json_valid(claim_guide) AND json_type(claim_guide) = 'object')),
   protocol TEXT NOT NULL CHECK (protocol IN ('openai-chat', 'openai-responses', 'anthropic', 'deepseek')),
   protocols TEXT CHECK (protocols IS NULL OR (json_valid(protocols) AND json_type(protocols) = 'array')),
   base_url TEXT NOT NULL CHECK (base_url GLOB 'https://*'),

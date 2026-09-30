@@ -472,3 +472,59 @@ test("the migration also builds the constrained providers table on a fresh datab
     /CHECK constraint failed/
   );
 });
+
+const MIGRATION_0003 = readFileSync(new URL("../migrations/0003_providers_claim_guide.sql", import.meta.url), "utf8");
+
+test("claim_guide is served as claimGuide and dirty entries are filtered out", async () => {
+  const sqlite = migratedDatabase();
+  insertProvider(sqlite, {
+    id: "with-guide",
+    base_url: "https://api.with-guide.example.com/v1",
+    claim_guide: JSON.stringify({
+      "zh-CN": ["  注册账号  ", "", 42, "创建 API Key"],
+      en: "not an array"
+    })
+  });
+  insertProvider(sqlite, { id: "without-guide", base_url: "https://api.without-guide.example.com/v1" });
+
+  const { body } = await requestProviders(sqlite);
+  const byId = Object.fromEntries(body.providers.map((provider) => [provider.id, provider]));
+
+  assert.deepEqual(byId["with-guide"].claimGuide, { "zh-CN": ["注册账号", "创建 API Key"] });
+  assert.equal(byId["without-guide"].claimGuide, undefined, "a NULL claim_guide must expose no claimGuide");
+});
+
+test("a table without claim_guide still serves the whole catalog until 0003 is applied", async () => {
+  const sqlite = new DatabaseSync(":memory:");
+  sqlite.exec(LOOSE_TABLE_SQL);
+  insertProvider(sqlite);
+
+  const { body } = await requestProviders(sqlite);
+  assert.deepEqual(body.providers.map((provider) => provider.id), ["runtime-alpha"]);
+  assert.equal(body.providers[0].claimGuide, undefined);
+});
+
+test("migration 0003 adds a constrained claim_guide column to an existing table", async () => {
+  const sqlite = new DatabaseSync(":memory:");
+  sqlite.exec(LOOSE_TABLE_SQL);
+  insertProvider(sqlite);
+
+  sqlite.exec(MIGRATION_0003);
+
+  const columns = sqlite.prepare("PRAGMA table_info(providers)").all().map((column) => column.name);
+  assert.ok(columns.includes("claim_guide"), "0003 must add claim_guide");
+  assert.equal(sqlite.prepare("SELECT claim_guide FROM providers WHERE id = 'runtime-alpha'").get().claim_guide, null);
+
+  sqlite.prepare("UPDATE providers SET claim_guide = ? WHERE id = 'runtime-alpha'").run(JSON.stringify({ en: ["Sign up"] }));
+  const { body } = await requestProviders(sqlite);
+  assert.deepEqual(body.providers[0].claimGuide, { en: ["Sign up"] });
+
+  assert.throws(
+    () => sqlite.prepare("UPDATE providers SET claim_guide = ? WHERE id = 'runtime-alpha'").run("not json"),
+    /CHECK constraint failed/
+  );
+  assert.throws(
+    () => sqlite.prepare("UPDATE providers SET claim_guide = ? WHERE id = 'runtime-alpha'").run(JSON.stringify(["a"])),
+    /CHECK constraint failed/
+  );
+});
