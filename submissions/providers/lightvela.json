@@ -2,18 +2,35 @@
   "$schema": "../providers.schema.json",
   "id": "lightvela",
   "name": "LightVela",
-  "region": "cn",
-  "homepage": "https://lightvela.ai",
-  "consoleUrl": "https://lightvela.ai",
+  "region": "global",
+  "homepage": "https://lightvela.ai/?ref=22XEL4PM7L",
+  "consoleUrl": "https://lightvela.ai/?ref=22XEL4PM7L",
   "freeTierSummary": {
-    "zh-CN": "LightVela 是腾讯 Lighthouse 构建的云端 Hermes Agent。官网标注新用户可免费试用 1 个月并附带 AI 积分，激活后可通过 OpenAI 兼容接口 token.lightvela.ai 调用 auto 模型。积分额度、消耗规则与活动期限以控制台和官方文档为准。",
-    "en": "LightVela is a cloud Hermes Agent built by Tencent Lighthouse. The site advertises a 1-month free trial with AI credits for new users; after activation the auto model is available over the OpenAI-compatible endpoint token.lightvela.ai. Credit amounts, usage rules and promo terms are subject to the console and official docs."
+    "zh-CN": "注册即可免费体验一个月会员：2 核 CPU / 8 GB 内存云端环境、50 GB 存储，每月 4500 模型积分；通过云端环境取得 API Key 后可用 OpenAI 兼容接口调用。",
+    "en": "Sign up for a free one-month membership: a cloud environment with 2 CPU cores / 8 GB RAM, 50 GB storage, and 4,500 model credits per month; get an API key from the cloud environment and call it via an OpenAI-compatible API."
+  },
+  "claimGuide": {
+    "zh-CN": [
+      "打开 LightVela 官网并注册账号，领取免费一个月会员",
+      "进入云端对话，让它把 /home/agentuser/.hermes/.env 打包成 1.env.zip",
+      "下载并解压 1.env.zip，取出其中的 CUSTOM_API_KEY",
+      "将 CUSTOM_API_KEY 作为 API Key，接口地址使用 CUSTOM_BASE_URL（即 https://token.lightvela.ai/v1）"
+    ],
+    "en": [
+      "Open the LightVela website and sign up to claim the free one-month membership",
+      "Open the cloud chat and ask it to pack /home/agentuser/.hermes/.env into 1.env.zip",
+      "Download and unzip 1.env.zip, then copy CUSTOM_API_KEY from it",
+      "Use CUSTOM_API_KEY as the API key and CUSTOM_BASE_URL (https://token.lightvela.ai/v1) as the endpoint"
+    ]
   },
   "protocol": "openai-chat",
   "baseUrl": "https://token.lightvela.ai/v1",
   "envKey": "OPENAI_API_KEY",
   "models": [
-    { "id": "auto", "name": "Auto" }
+    {
+      "id": "auto",
+      "name": "Auto"
+    }
   ],
   "verifiedAt": "2026-09-30",
   "status": "approved"
