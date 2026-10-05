@@ -47,14 +47,25 @@ const LOCAL_ONLY = [
   ".assetsignore"
 ];
 
-/** Files the page and the deployment need — these must keep being published. */
+/** Files the pages and the deployment need — these must keep being published. */
 const PUBLISHED = [
+  // Landing site at the asset root (freebuddy.si /).
   "index.html",
   "styles.css",
-  "app.js",
-  "freebuddy-bridge.js",
-  "providers.json",
-  "providers.schema.json",
+  "main.js",
+  "404.html",
+  "favicon.ico",
+  "robots.txt",
+  "sitemap.xml",
+  "assets/hero.jpg",
+  // Freebie page under /freebie/.
+  "freebie/index.html",
+  "freebie/styles.css",
+  "freebie/app.js",
+  "freebie/freebuddy-bridge.js",
+  "freebie/providers.json",
+  "freebie/providers.schema.json",
+  // Deployment wiring.
   "worker.js",
   "_headers",
   "wrangler.toml"

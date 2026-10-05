@@ -35,7 +35,7 @@ import { validateDeclaration } from "../scripts/sync-providers.mjs";
 import { requestProviders } from "./helpers/d1-stub.mjs";
 
 const REPO_ROOT = fileURLToPath(new URL("..", import.meta.url));
-const CATALOG_PATH = join(REPO_ROOT, "providers.json");
+const CATALOG_PATH = join(REPO_ROOT, "freebie", "providers.json");
 const DECLARATION_DIR = join(REPO_ROOT, "submissions", "providers");
 const SYNC_SCRIPT = fileURLToPath(new URL("../scripts/sync-providers.mjs", import.meta.url));
 const SCHEMA = readFileSync(new URL("../schema.sql", import.meta.url), "utf8");

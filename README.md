@@ -1,32 +1,37 @@
-# FreeBuddy 白嫖专区页面
+# FreeBuddy 落地页 + 白嫖专区页面
 
-这是 FreeBuddy 侧栏「白嫖」入口内嵌的外部页面。它是一个无构建步骤的静态站点，已部署在 Cloudflare 上；修改 `providers.json` 并推送到 `main` 分支即可自动触发构建上线，无需发布 FreeBuddy 新版本。
+这个仓库托管两个无构建步骤的静态页面，由同一个 Cloudflare Worker（`worker.js`）发布：
 
-- **线上地址**：https://freebuddy-freebie.binbinzhaili.workers.dev/
+- **落地页**：https://freebuddy.si/ —— 仓库根目录的 `index.html` / `styles.css` / `main.js` / `assets/`（源码从 freebuddy 主仓库的 `site/` 迁入，主仓库不再维护）
+- **白嫖页**：https://freebuddy.si/freebie/ —— `freebie/` 子目录，FreeBuddy 侧栏「白嫖」入口内嵌的外部页面
+
+修改 `freebie/providers.json` 并推送到 `main` 分支即可自动触发部署上线，无需发布 FreeBuddy 新版本。旧地址 `https://freebuddy-freebie.binbinzhaili.workers.dev/` 仍然可用：`worker.js` 把 `*.workers.dev` 上的 `/` 与旧的根路径资源**内部重写**到 `/freebie/`（不发重定向），保证旧版客户端 iframe 的 origin 不变、postMessage 桥不断。
+
 - **交流群聊**：[点击链接加入群聊【FreeBuddy白嫖兄弟群】](https://qm.qq.com/q/Obv3kViheo)
 
 ## 目录
 
 | 文件 | 作用 |
 | --- | --- |
-| `index.html` / `styles.css` / `app.js` | 页面本体，渲染服务商卡片、筛选、导入按钮 |
-| `freebuddy-bridge.js` | 与 FreeBuddy 通信的 postMessage 客户端（协议 v1） |
-| `providers.json` | 静态服务商目录（历史基础目录，按 `id` 与运行时目录合并，静态条目优先） |
-| `providers.schema.json` | 静态目录的 JSON Schema，编辑器会据此校验 |
+| `index.html` / `styles.css` / `main.js` / `404.html` / `assets/` | 落地页本体（freebuddy.si 根路径），另有 `favicon.ico` / `robots.txt` / `sitemap.xml` |
+| `freebie/index.html` / `freebie/styles.css` / `freebie/app.js` | 白嫖页本体，渲染服务商卡片、筛选、导入按钮 |
+| `freebie/freebuddy-bridge.js` | 与 FreeBuddy 通信的 postMessage 客户端（协议 v1） |
+| `freebie/providers.json` | 静态服务商目录（历史基础目录，按 `id` 与运行时目录合并，静态条目优先） |
+| `freebie/providers.schema.json` | 静态目录的 JSON Schema，编辑器会据此校验 |
 | `submissions/providers/` | **D1 运行时服务商声明**：一个文件一个服务商，PR 合并后由 workflow 同步进 D1。规范见 [submissions/providers/README.md](./submissions/providers/README.md) |
 | `submissions/examples/` | 可直接复制的声明示例（不会被同步） |
 | `scripts/sync-providers.mjs` | 校验全部声明并生成确定性 upsert SQL（原生 Node，无依赖），只输出不直接连库 |
 | `scripts/check-d1-preflight.mjs` | workflow 写入前的只读 preflight：用当前凭据运行 `wrangler d1 list --json`，确认 `freebie-db`（UUID `b95f…`）可见，否则以清晰错误中止；不输出 Token / 账号 ID |
-| `worker.js` | Cloudflare Worker：评测/投票 API、`GET /api/providers` 运行时目录、静态资源回退 |
+| `worker.js` | Cloudflare Worker：评测/投票 API、`GET /api/providers` 运行时目录、`*.workers.dev` 旧路径到 `/freebie/` 的内部重写、静态资源回退 |
 | `schema.sql` | D1 表结构（`reviews`、`votes`、`providers`），全新数据库使用 |
 | `migrations/` | D1 迁移脚本，已有数据库升级用（`0001` 补约束、`0002` 扩展 `disabled` 状态，均保留数据且中断后可安全重跑） |
 | `.github/workflows/sync-providers.yml` | `main` 上的声明变更 → 生成 SQL → D1 preflight（凭据能看到 `freebie-db` 才继续）→ `wrangler d1 execute --remote --command`（写入库前先执行一次 `schema.sql`，首次同步自动建表） |
 | `tests/` | `node --test` 测试（Node ≥ 22.13.0），不参与静态资源发布 |
-| `_headers` | Cloudflare Pages 响应头（CORS 及安全策略） |
-| `.assetsignore` | 发布排除清单（语法同 `.gitignore`）：`node_modules/`、`.wrangler/`、`.codebuddy/`、`tests/`、`migrations/`、`submissions/`、`scripts/`、`.github/` 等本地文件不会上传为公开资源；页面 HTML/JS/JSON/CSS 与 `worker.js`、`_headers`、`wrangler.toml` 照常发布 |
-| `wrangler.toml` | Cloudflare 项目配置：D1 binding，以及固定项目账号的顶层 `account_id`（不是密钥；workflow 因此不再需要 `CLOUDFLARE_ACCOUNT_ID` Secret） |
+| `_headers` | 静态资源响应头（CORS 及安全策略）：`/*` 基线、`/assets/*` immutable 缓存、`/freebie/*` 保留 no-referrer、`/freebie/providers.json` 短缓存 + ACAO |
+| `.assetsignore` | 发布排除清单（语法同 `.gitignore`）：`node_modules/`、`.wrangler/`、`.codebuddy/`、`tests/`、`migrations/`、`submissions/`、`scripts/`、`.github/` 等本地文件不会上传为公开资源；落地页与 `freebie/` 下的页面文件、`worker.js`、`_headers`、`wrangler.toml` 照常发布 |
+| `wrangler.toml` | Cloudflare 项目配置：`freebuddy.si` custom domain、D1 binding、静态资源 404 回退，以及固定项目账号的顶层 `account_id`（不是密钥；workflow 因此不再需要 `CLOUDFLARE_ACCOUNT_ID` Secret） |
 
-## 维护 providers.json
+## 维护 freebie/providers.json
 
 每个服务商一条记录：
 
@@ -69,7 +74,7 @@
   | `rejected` | 审核不通过 | 否 |
 
 - 该接口输出的是「已审核 + 应用层校验后」的数据，**不承诺**与 `providers.schema.json` 完全一致：Worker 会逐条校验 ID、name、region、protocol、models 非空与 URL 安全（仅接受 `https:`），不安全的 `homepage` / `consoleUrl` / `icon` 会被清空，无法使用的记录会被丢弃；`schema.sql` 中的 CHECK 只是数据库兜底，不能替代 JSON Schema。
-- 首页先渲染 `providers.json`，再异步加载 `api/providers`（3 秒超时后放弃），按 `id` 合并、静态目录优先；接口失败、超时或数据格式异常时都保留静态目录，页面照常可用。
+- 白嫖页先渲染 `freebie/providers.json`，再异步加载 `/api/providers`（3 秒超时后放弃），按 `id` 合并、静态目录优先；接口失败、超时或数据格式异常时都保留静态目录，页面照常可用。
 
 ### 数据库初始化与迁移顺序
 
@@ -215,7 +220,7 @@ Agent 会自动根据 [CONTRIBUTING_AGENT.md](./CONTRIBUTING_AGENT.md) 与 `prov
 
 ### ✍️ 方式二：手动在 GitHub 网页端修改提交
 
-1. 打开 [providers.json](https://github.com/maojindao55/freebuddy-freebie/blob/main/providers.json) 文件。
+1. 打开 [providers.json](https://github.com/maojindao55/freebuddy-freebie/blob/main/freebie/providers.json) 文件。
 2. 点击右上角的 🖊（Edit this file）铅笔图标。
 3. 参考 [CONTRIBUTING_AGENT.md](./CONTRIBUTING_AGENT.md) 字段规范，在 `providers` 列表中添加或修改你的服务商信息，并更新顶部的 `updatedAt` 日期。
 4. 页面底部填写 Commit 说明，选择 **Create a new branch for this commit and start a pull request** 并点击确认即可！
@@ -231,6 +236,8 @@ Agent 会自动根据 [CONTRIBUTING_AGENT.md](./CONTRIBUTING_AGENT.md) 与 `prov
 
 ## 本地预览
 
+仓库根目录即静态资源根：落地页在 `http://localhost:8788/`，白嫖页在 `http://localhost:8788/freebie/`。
+
 ```bash
 npx serve . -l 8788
 # 或
@@ -240,7 +247,7 @@ python3 -m http.server 8788
 让 FreeBuddy 加载本地页面：
 
 ```bash
-VITE_FREEBIE_PAGE_URL=http://localhost:8788/ npm run dev
+VITE_FREEBIE_PAGE_URL=http://localhost:8788/freebie/ npm run dev
 ```
 
 ## 测试

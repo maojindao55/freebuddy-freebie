@@ -2,8 +2,10 @@
 # 静态资源目录 —— 凡是没有在这里排除的文件都会作为公开资源上传。格式与 .gitignore 相同
 # （Cloudflare 文档：.assetsignore "takes the same format as .gitignore"）。
 #
-# 只发布页面运行和部署需要的东西：index.html / styles.css / app.js / freebuddy-bridge.js /
-# providers.json / providers.schema.json，以及 worker.js、_headers、wrangler.toml。
+# 只发布页面运行和部署需要的东西：落地页（index.html / styles.css / main.js /
+# 404.html / favicon.ico / robots.txt / sitemap.xml / assets/）与白嫖页
+# （freebie/index.html / styles.css / app.js / freebuddy-bridge.js /
+# providers.json / providers.schema.json），以及 worker.js、_headers、wrangler.toml。
 # tests/assets-ignore.test.js 会用 git 的 ignore 引擎逐条验证这些模式。
 
 # 依赖与本地工具产物（绝不发布）

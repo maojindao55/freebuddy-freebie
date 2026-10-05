@@ -28,7 +28,7 @@ const CATALOG = {
 function routes() {
   return {
     "./providers.json": () => jsonResponse(CATALOG),
-    "./api/summary": () => jsonResponse({ ok: true, summary: {} })
+    "/api/summary": () => jsonResponse({ ok: true, summary: {} })
   };
 }
 

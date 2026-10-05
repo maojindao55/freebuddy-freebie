@@ -7,7 +7,8 @@
  * - GET /api/reviews?providerId=xxx : Recent reviews and stats for a specific provider
  * - POST /api/reviews : Submit or update a review (authenticated via FreeBuddy client)
  * - POST /api/votes : Submit daily availability vote (authenticated via FreeBuddy client)
- * - Static Assets fallback for index.html, app.js, styles.css, providers.json, etc.
+ * - Static Assets fallback: the landing site lives at the asset root, the freebie
+ *   page under /freebie/; legacy *.workers.dev root URLs are rewritten internally.
  */
 
 const CORS_HEADERS = {
@@ -696,6 +697,39 @@ async function handleProxy(request, env, url) {
   }
 }
 
+/**
+ * Paths that used to serve the freebie page from the *.workers.dev root before the
+ * page moved under /freebie/. Old FreeBuddy builds pin the iframe origin to the
+ * workers.dev hostname and reject bridge messages from any other origin, so these
+ * paths are rewritten internally (never redirected) to keep the origin unchanged.
+ */
+const LEGACY_FREEBIE_PATHS = new Set([
+  "/",
+  "/styles.css",
+  "/app.js",
+  "/freebuddy-bridge.js",
+  "/providers.json",
+  "/providers.schema.json"
+]);
+
+/**
+ * Child requests from the landing page (opened as /index.html) need the site files
+ * at the asset root instead of the freebie copies. The freebie iframe either sends
+ * no Referer at all (Referrer-Policy: no-referrer) or the iframe URL itself ("/"),
+ * so any Referer pointing at another page means the request came from the site.
+ */
+function isLegacyFreebieRequest(request, pathname) {
+  if (pathname === "/") return true;
+  const referer = request.headers.get("referer");
+  if (!referer) return true;
+  try {
+    const refererPath = new URL(referer).pathname;
+    return refererPath === "/" || LEGACY_FREEBIE_PATHS.has(refererPath);
+  } catch {
+    return true;
+  }
+}
+
 export default {
   async fetch(request, env, ctx) {
     if (request.method === "OPTIONS") {
@@ -710,6 +744,17 @@ export default {
 
     if (url.pathname.startsWith("/v1/")) {
       return handleProxy(request, env, url);
+    }
+
+    if (
+      env?.ASSETS &&
+      url.hostname.endsWith(".workers.dev") &&
+      LEGACY_FREEBIE_PATHS.has(url.pathname) &&
+      isLegacyFreebieRequest(request, url.pathname)
+    ) {
+      const assetUrl = new URL(request.url);
+      assetUrl.pathname = "/freebie" + (url.pathname === "/" ? "/" : url.pathname);
+      return env.ASSETS.fetch(new Request(assetUrl, request));
     }
 
     // Delegate all static assets to Cloudflare Assets

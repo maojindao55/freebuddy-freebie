@@ -599,7 +599,7 @@
 
   async function fetchReviews(providerId) {
     try {
-      const res = await fetch(`./api/reviews?providerId=${encodeURIComponent(providerId)}`);
+      const res = await fetch(`/api/reviews?providerId=${encodeURIComponent(providerId)}`);
       if (!res.ok) return;
       const data = await res.json();
       if (data && data.ok) {
@@ -1459,7 +1459,7 @@
 
   async function loadCommunitySummary() {
     try {
-      const res = await fetch("./api/summary");
+      const res = await fetch("/api/summary");
       if (!res.ok) return;
       const data = await res.json();
       if (data && data.ok && data.summary) {
@@ -1628,7 +1628,7 @@
   }
 
   async function fetchRuntimeProviders() {
-    const result = await fetchJsonWithTimeout("./api/providers", { cache: "no-cache" }, RUNTIME_FETCH_TIMEOUT_MS);
+    const result = await fetchJsonWithTimeout("/api/providers", { cache: "no-cache" }, RUNTIME_FETCH_TIMEOUT_MS);
     if (!result.ok) {
       // Expected on static-only deploys, timeouts and broken rows included: keep the static catalog.
       if (result.reason !== "timeout") console.warn("[freebie] runtime providers unavailable:", result.reason);

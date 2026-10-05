@@ -1,269 +1,287 @@
 <!doctype html>
 <html lang="zh-CN">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="referrer" content="no-referrer" />
-    <title>白嫖兄弟 · FreeBuddy 免费模型专区</title>
-    <meta
-      name="description"
-      content="汇总提供免费额度或免费模型的大模型服务商，一键导入 FreeBuddy 生成可直接使用的自定义 Agent。"
-    />
-    <link rel="stylesheet" href="./styles.css" />
-    <script>
-      if (window.parent !== window || new URLSearchParams(location.search).get("embed") === "1") {
-        document.documentElement.classList.add("embedded");
-      }
-    </script>
-  </head>
-  <body>
-    <header class="hero">
-      <div class="hero-inner">
-        <div class="hero-brand">
-          <span class="hero-mark" aria-hidden="true">🎁</span>
-          <div class="hero-copy">
-            <div class="hero-title-row">
-              <h1 data-i18n="title">白嫖兄弟</h1>
-              <span class="hero-badge" data-i18n="subtitle">免费专区</span>
-            </div>
-            <p class="hero-slogan" data-i18n="slogan">不白嫖无兄弟，让穷兄弟也能用得上AI</p>
-          </div>
-        </div>
-        <div class="hero-toolbar">
-          <div class="search-box">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="search-icon" aria-hidden="true">
-              <circle cx="11" cy="11" r="8"/>
-              <path d="m21 21-4.3-4.3"/>
-            </svg>
-            <input type="text" id="search-input" placeholder="搜索服务商、额度或模型..." autocomplete="off" data-i18n-placeholder="searchPlaceholder" />
-            <button type="button" id="search-clear-btn" class="search-clear-btn" hidden aria-label="清空搜索" title="清空搜索">✕</button>
-          </div>
-          <div class="hero-actions">
-            <div class="hero-status" id="host-status" role="status"></div>
-            <button type="button" class="refresh-btn" id="refresh-btn" data-i18n-title="refresh" title="刷新页面" aria-label="刷新页面">
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="refresh-icon" aria-hidden="true">
-                <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
-                <path d="M21 3v5h-5"/>
-                <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
-                <path d="M3 21v-5h5"/>
-              </svg>
-            </button>
-          </div>
-        </div>
-      </div>
-    </header>
-
-    <main class="page">
-      <div class="toolbar">
-        <div class="filters" role="tablist" aria-label="Region filter">
-          <button type="button" class="filter active" role="tab" aria-selected="true" data-region="all" data-i18n="filterAll">全部</button>
-          <button type="button" class="filter" role="tab" aria-selected="false" data-region="cn" data-i18n="filterCn">国内直连</button>
-          <button type="button" class="filter" role="tab" aria-selected="false" data-region="global" data-i18n="filterGlobal">海外</button>
-        </div>
-        <div class="toolbar-controls">
-          <div class="sort-wrap">
-            <label for="sort-select" class="sr-only" data-i18n="sortLabel">排序方式</label>
-            <select id="sort-select" class="sort-select" aria-label="排序方式">
-              <option value="default" data-i18n="sortDefault">综合排序 (最新)</option>
-              <option value="rating" data-i18n="sortRating">评分最高</option>
-              <option value="avail" data-i18n="sortAvail">可用度优先</option>
-            </select>
-          </div>
-          <div class="toolbar-meta" id="catalog-meta"></div>
-        </div>
-      </div>
-
-      <section class="grid" id="providers" aria-live="polite"></section>
-
-      <p class="disclaimer" data-i18n-html="disclaimer">
-        免费政策随时变化，以各服务商官网为准。发现过期信息欢迎到 <a href="https://github.com/maojindao55/freebuddy-freebie/pulls" target="_blank" rel="noopener noreferrer">GitHub 提交 PR</a>，或 <a href="https://qm.qq.com/q/Obv3kViheo" target="_blank" rel="noopener noreferrer">加入【FreeBuddy白嫖兄弟群】</a> 交流爆料。
-      </p>
-    </main>
-
-    <template id="provider-card">
-      <article class="card">
-        <div class="card-body">
-          <header class="card-head">
-            <div class="card-brand">
-              <div class="card-icon-wrap">
-                <img class="card-icon" alt="" hidden loading="lazy" />
-                <span class="card-icon-fallback" hidden>🤖</span>
-              </div>
-              <div class="card-title-group">
-                <div class="card-name-row">
-                  <h2 class="card-name"></h2>
-                  <span class="pin-mark" hidden title="推荐">📌</span>
-                  <span class="card-imported" hidden></span>
-                </div>
-                <div class="card-tags"></div>
-              </div>
-            </div>
-            <div class="card-head-badges">
-              <span class="card-quality"></span>
-            </div>
-          </header>
-
-          <div class="card-quota-box">
-            <div class="quota-head">
-              <span class="quota-label" data-i18n="quotaLabel">免费额度</span>
-            </div>
-            <p class="card-summary"></p>
-          </div>
-
-          <div class="card-models-wrap">
-            <div class="models-head">
-              <span class="models-label" data-i18n="modelsLabel">主力模型</span>
-            </div>
-            <ul class="card-models"></ul>
-          </div>
-
-          <footer class="card-actions">
-            <div class="card-links">
-              <a class="card-link card-homepage" rel="noopener noreferrer" target="_blank"></a>
-              <a class="card-link card-console" rel="noopener noreferrer" target="_blank"></a>
-            </div>
-            <button type="button" class="import-btn"></button>
-          </footer>
-        </div>
-
-        <div class="card-community" title="查看真实评测与详情">
-          <div class="community-left">
-            <span class="community-empty-hint">暂无评测，来做第一个吧</span>
-            <span class="community-rating" title="综合评分">
-              <span class="star-icon">★</span>
-              <span class="rating-val">-.-</span>
-              <span class="rating-count">(0)</span>
-            </span>
-            <span class="community-divider">·</span>
-            <div class="community-avail" title="可用度反馈">
-              <span class="avail-dot">●</span>
-              <span class="avail-text">暂无反馈</span>
-            </div>
-            <span class="community-divider">·</span>
-            <div class="community-votes">
-              <span class="stat-working" title="还能用">👍 <span class="working-count">0</span></span>
-              <span class="stat-failed" title="已失效">👎 <span class="failed-count">0</span></span>
-            </div>
-          </div>
-          <button type="button" class="open-detail-btn" title="查看真实评测与详情">
-            <span class="detail-btn-label">评测详情 (0)</span>
-            <span class="detail-btn-arrow">➔</span>
-          </button>
-        </div>
-      </article>
-    </template>
-
-    <!-- Provider Details Modal -->
-    <div id="detail-modal" class="modal-backdrop" hidden aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-      <div class="modal-dialog">
-        <header class="modal-header">
-          <div class="modal-brand">
-            <div class="modal-icon-wrap">
-              <img class="modal-icon" alt="" hidden loading="lazy" />
-            </div>
-            <div class="modal-title-col">
-              <div class="modal-title-row">
-                <h2 class="modal-name" id="modal-title"></h2>
-                <span class="modal-quality"></span>
-                <div class="modal-tags"></div>
-              </div>
-              <p class="modal-verified"></p>
-            </div>
-          </div>
-          <button type="button" class="modal-close-btn" id="modal-close-btn" aria-label="关闭" title="关闭 (Esc)">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
-          </button>
-        </header>
-
-        <div class="modal-body">
-          <!-- Facts Grid -->
-          <div class="modal-facts-grid">
-            <div class="modal-fact">
-              <span class="fact-label" data-i18n="factRegion">区域网络</span>
-              <span class="fact-value fact-region-val">-</span>
-            </div>
-            <div class="modal-fact">
-              <span class="fact-label" data-i18n="factProtocol">接口协议</span>
-              <span class="fact-value fact-proto-val">-</span>
-            </div>
-            <div class="modal-fact">
-              <span class="fact-label" data-i18n="factDefaultModel">首选模型</span>
-              <span class="fact-value fact-model-val">-</span>
-            </div>
-            <div class="modal-fact">
-              <span class="fact-label" data-i18n="factQuality">品质分级</span>
-              <span class="fact-value fact-quality-val">-</span>
-            </div>
-          </div>
-
-          <!-- Overview & Quick Actions -->
-          <section class="modal-section modal-overview">
-            <h3 class="modal-section-title" data-i18n="quotaLabel">免费额度 / 特性</h3>
-            <div class="modal-quota-box">
-              <p class="modal-summary"></p>
-            </div>
-            <div class="modal-claim-guide" hidden>
-              <h4 class="modal-claim-guide-title" data-i18n="claimGuideLabel">领取步骤</h4>
-              <ol class="modal-claim-steps"></ol>
-            </div>
-            <div class="modal-quick-links">
-              <a class="modal-link modal-homepage" rel="noopener noreferrer" target="_blank"></a>
-              <a class="modal-link modal-console" rel="noopener noreferrer" target="_blank"></a>
-              <button type="button" class="import-btn modal-import-btn"></button>
-            </div>
-          </section>
-
-          <!-- Models List -->
-          <section class="modal-section">
-            <h3 class="modal-section-title" data-i18n="supportedModels">支持模型与特性</h3>
-            <ul class="modal-models card-models"></ul>
-          </section>
-
-          <!-- Community Health Board -->
-          <section class="modal-section modal-health-card">
-            <div class="health-header">
-              <div class="health-score-box">
-                <div class="health-score-num">-.-</div>
-                <div class="health-score-meta">
-                  <div class="health-score-stars">★★★★★</div>
-                  <div class="health-score-label">综合评分 (<span class="health-score-count">0</span>)</div>
-                </div>
-              </div>
-              <div class="health-avail-box">
-                <div class="health-avail-pill community-avail">
-                  <span class="avail-dot">●</span>
-                  <span class="avail-text">暂无反馈</span>
-                </div>
-                <div class="health-avail-tip" data-i18n="healthAvailTip">基于社区近 24 小时反馈统计</div>
-              </div>
-            </div>
-            <div class="health-vote-row">
-              <span class="health-vote-label" data-i18n="votePrompt">您今日实测可用吗？</span>
-              <div class="vote-group">
-                <button type="button" class="vote-btn modal-vote-working" data-vote="working">
-                  <span class="vote-icon">👍</span> <span class="vote-text" data-i18n="working">还能用</span> (<span class="vote-count">0</span>)
-                </button>
-                <button type="button" class="vote-btn modal-vote-failed" data-vote="failed">
-                  <span class="vote-icon">👎</span> <span class="vote-text" data-i18n="failed">已失效</span> (<span class="vote-count">0</span>)
-                </button>
-              </div>
-            </div>
-          </section>
-
-          <!-- Community Reviews -->
-          <section class="modal-section modal-reviews-section">
-            <h3 class="modal-section-title"><span data-i18n="reviewsTitle">社区真实评测</span> (<span class="modal-reviews-count">0</span>)</h3>
-            <div class="modal-review-input-zone"></div>
-            <div class="modal-reviews-list reviews-list"></div>
-          </section>
-        </div>
-      </div>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#f6f5f1" />
+  <title>FreeBuddy — 本地 Coding Agent 桌面工作台</title>
+  <meta name="description" content="在一个界面里并排使用 Codex、ClaudeCode、Cursor、Devin、Cline、Antigravity、Kimi、DeepSeek 等 14 款本地 Coding Agent，支持 Diff 审阅、Mermaid 渲染和多 Agent 团队协作。免费开源，支持 macOS / Windows / Linux。" />
+  <meta property="og:title" content="FreeBuddy — A desktop workbench for local coding agents" />
+  <meta property="og:description" content="Run Codex, ClaudeCode, Cursor, Devin, Cline, Antigravity and more side by side. Line-by-line diff review, multi-agent team workflows. Free & open source." />
+  <link rel="canonical" href="https://freebuddy.si/" />
+  <meta property="og:url" content="https://freebuddy.si/" />
+  <meta property="og:image" content="https://freebuddy.si/assets/hero.jpg" />
+  <meta property="og:image:width" content="1600" />
+  <meta property="og:image:height" content="999" />
+  <meta property="og:site_name" content="FreeBuddy" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="https://freebuddy.si/assets/hero.jpg" />
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/touch-icon-180.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/styles.css?v=10041720" />
+</head>
+<body>
+  <header class="nav">
+    <div class="container wide nav-inner">
+      <a class="logo" href="#">
+        <img src="/assets/logo-28.png" srcset="/assets/logo-28.png 1x, /assets/logo-56.png 2x, /assets/logo-84.png 3x" alt="" width="28" height="28" />
+        <span>FreeBuddy</span>
+      </a>
+      <nav class="nav-links">
+        <a href="#features" data-i18n="nav.features">功能</a>
+        <a href="#agents" data-i18n="nav.agents">支持的 Agent</a>
+        <a class="gh-star" href="https://github.com/maojindao55/freebuddy" target="_blank" rel="noopener" aria-label="Star FreeBuddy on GitHub"><svg class="gh-ico" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg><span class="gh-star-label">Star</span><span class="gh-star-count" id="gh-stars"></span></a>
+        <button class="lang-toggle" id="lang-toggle" type="button">EN</button>
+        <a class="nav-cta" href="#download" data-i18n="nav.download">下载</a>
+      </nav>
     </div>
+  </header>
 
-    <script src="./freebuddy-bridge.js"></script>
-    <script src="./app.js"></script>
-  </body>
+  <main>
+    <section class="hero">
+      <div class="container wide">
+        <span class="pill"><span class="dot"></span><span data-i18n="hero.badge">v0.10 已发布 · 开源免费</span></span>
+        <h1>
+          <span data-i18n="hero.title1">所有 Coding Agent，</span><br />
+          <span class="gradient-text" data-i18n="hero.title2">一个工作台搞定</span>
+        </h1>
+        <p class="lead" data-i18n="hero.lead">并排运行 Codex、Claude Code、Cursor 等 14 款本地 Agent，每次改动都能逐行审阅。</p>
+        <div class="cta hero-cta">
+          <a class="btn btn-primary" id="primary-download" href="#download"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v8.5M4.5 7 8 10.5 11.5 7M2.5 13.5h11"/></svg><span class="pd-label" data-i18n="hero.download">免费下载</span><span class="pd-tag" id="os-label" hidden></span></a>
+          <a class="hero-agents" href="#agents" aria-label="Supported agents">
+          <span class="ha-ic" title="Codex"><img src="/assets/agents/openai.webp" alt="Codex" width="20" height="20" decoding="async" /></span>
+          <span class="ha-ic" title="Claude Code"><img src="/assets/agents/claude.webp" alt="Claude Code" width="20" height="20" decoding="async" /></span>
+          <span class="ha-ic" title="Cursor"><img src="/assets/agents/cursor.webp" alt="Cursor" width="20" height="20" decoding="async" /></span>
+          <span class="ha-ic" title="Antigravity"><img src="/assets/agents/gemini.webp" alt="Antigravity" width="20" height="20" decoding="async" /></span>
+          <span class="ha-ic" title="OpenCode"><img src="/assets/agents/opencode.webp" alt="OpenCode" width="20" height="20" decoding="async" /></span>
+          <span class="ha-ic" title="Kimi"><img src="/assets/agents/kimi.webp" alt="Kimi" width="20" height="20" decoding="async" /></span>
+          <span class="ha-ic" title="Qoder"><img src="/assets/agents/qoder.webp" alt="Qoder" width="20" height="20" decoding="async" /></span>
+          <span class="ha-ic" title="CodeBuddy"><img src="/assets/agents/codebuddy.webp" alt="CodeBuddy" width="20" height="20" decoding="async" /></span>
+          <span class="ha-ic" title="Grok"><img src="/assets/agents/grok.webp" alt="Grok" width="20" height="20" decoding="async" /></span>
+          <span class="ha-ic" title="DeepSeek Harness"><img src="/assets/agents/deepseek.webp" alt="DeepSeek Harness" width="20" height="20" decoding="async" /></span>
+          <span class="ha-ic" title="ZCode"><img src="/assets/agents/zhipu.webp" alt="ZCode" width="20" height="20" decoding="async" /></span>
+          <span class="ha-ic" title="Cline"><img src="/assets/agents/cline.webp" alt="Cline" width="20" height="20" decoding="async" /></span>
+          <span class="ha-ic" title="Devin"><img src="/assets/agents/devin.webp" alt="Devin" width="20" height="20" decoding="async" /></span>
+          <span class="ha-ic" title="Pi"><img src="/assets/agents/pi.svg" alt="Pi" width="20" height="20" decoding="async" /></span>
+        </a>
+        </div>
+        <div class="window demo">
+          <div class="window-bar"><i></i><i></i><i></i><span class="demo-title">FreeBuddy</span></div>
+
+          <div class="demo-view fb" data-view="hero">
+    <aside class="fb-side">
+      <div class="fb-brand"><img src="/assets/logo-28.png" srcset="/assets/logo-28.png 1x, /assets/logo-56.png 2x, /assets/logo-84.png 3x" alt="" class="fb-logo" width="26" height="26"><div class="fb-brand-text"><b>FreeBuddy</b></div><button type="button" class="fb-search" aria-label="搜索会话" data-i18n-attr="aria-label:demo.aSearch"><svg viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5 14 14"/></svg></button></div>
+      <nav class="fb-nav" aria-label="工作区导航" data-i18n-attr="aria-label:demo.aNav"><button type="button" class="fb-nav-item active"><i class="fb-ic"><svg viewBox="0 0 16 16"><path d="M8 3v10M3 8h10"/></svg></i><span><span data-i18n="demo.navNew">新会话</span></span></button><button type="button" class="fb-nav-item"><i class="fb-ic"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.5"/><path d="M8 5v3l2 1.5"/></svg></i><span><span data-i18n="demo.navScheduled">定时任务</span></span></button><button type="button" class="fb-nav-item"><i class="fb-ic"><svg viewBox="0 0 16 16"><circle cx="6" cy="6" r="2.3"/><circle cx="11.5" cy="7" r="1.8"/><path d="M2 13c.6-2.4 2.2-3.5 4-3.5s3.4 1.1 4 3.5M10.5 10.2c1.6 0 2.9.9 3.5 2.8"/></svg></i><span><span data-i18n="demo.navTeams">团队</span></span></button><button type="button" class="fb-nav-item"><i class="fb-ic"><svg viewBox="0 0 16 16"><rect x="2.5" y="6" width="11" height="7.5" rx="1"/><path d="M8 6v7.5M2.5 9h11M8 6C6.5 3 4.5 3.5 5 5s3 1 3 1 2.5.5 3-1-1.5-2-3 1"/></svg></i><span><span data-i18n="demo.navFreebie">白嫖</span></span></button></nav>
+      <div class="fb-convs"><div class="fb-group"><div class="fb-group-title"><span class="fb-folder"></span>freebuddy</div><button type="button" class="fb-conv active"><span class="fb-av sm img"><img src="/assets/agents/openai.webp" alt=""></span><span class="fb-conv-main"><span class="fb-conv-title"><span data-i18n="demo.c1">下载区自动匹配最新版本</span></span></span><span class="fb-run" aria-label="Agent 运行中" data-i18n-attr="aria-label:demo.aRunning"></span></button><button type="button" class="fb-conv"><span class="fb-av sm img"><img src="/assets/agents/claude.webp" alt=""></span><span class="fb-conv-main"><span class="fb-conv-title"><span data-i18n="demo.c2">修复 Windows 安装包签名</span></span></span><span class="fb-unread" aria-label="未读会话" data-i18n-attr="aria-label:demo.aUnread"></span></button><button type="button" class="fb-conv"><span class="fb-av sm img"><img src="/assets/agents/kimi.webp" alt=""></span><span class="fb-conv-main"><span class="fb-conv-title"><span data-i18n="demo.c3">README 中英文同步</span></span></span></button></div><div class="fb-group"><div class="fb-group-title"><span class="fb-folder"></span>agent-bridge</div><button type="button" class="fb-conv"><span class="fb-av sm img"><img src="/assets/agents/openai.webp" alt=""></span><span class="fb-conv-main"><span class="fb-conv-title"><span data-i18n="demo.c4">接入 Kimi CLI 适配器</span></span></span></button></div></div>
+      <div class="fb-hostmenu" role="menu"><div class="fb-hostmenu-h"><span class="fb-foot-dot"></span><span data-i18n="demo.hm.local">本机 · 已连接</span></div><button type="button" role="menuitem" data-act="settings"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="2.2"/><path d="M8 1.8v1.8M8 12.4v1.8M1.8 8h1.8M12.4 8h1.8M3.6 3.6l1.3 1.3M11.1 11.1l1.3 1.3M3.6 12.4l1.3-1.3M11.1 4.9l1.3-1.3"/></svg><span data-i18n="demo.hm.settings">设置</span><kbd>⌘,</kbd></button><button type="button" role="menuitem" data-act="update"><svg viewBox="0 0 16 16"><path d="M13 8a5 5 0 1 1-1.5-3.5M13 2.5v3h-3"/></svg><span data-i18n="demo.hm.update">检查更新</span></button><hr><button type="button" role="menuitem" data-act="about"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.5"/><path d="M8 7.2V11M8 5v.1"/></svg><span data-i18n="demo.hm.about">关于 FreeBuddy</span></button></div><button type="button" class="fb-foot" aria-haspopup="menu" aria-expanded="false"><span class="fb-av sm host">本</span><span><span data-i18n="demo.host">本机</span></span><span class="fb-foot-dot"></span></button>
+    </aside>
+    <section class="fb-main">
+      <header class="fb-titlebar"><strong class="fb-title"><span data-i18n="demo.c1">下载区自动匹配最新版本</span></strong><div class="fb-tb-actions"><span class="fb-tb-btn" title="转交上下文" data-i18n-attr="title:demo.aHandoff"><svg viewBox="0 0 16 16"><circle cx="4" cy="8" r="1.6"/><circle cx="12" cy="4" r="1.6"/><circle cx="12" cy="12" r="1.6"/><path d="M5.5 7.2 10.5 4.8M5.5 8.8l5 2.4"/></svg></span><span class="fb-tb-btn" title="调试日志" data-i18n-attr="title:demo.aLogs"><svg viewBox="0 0 16 16"><path d="M4 2.5v4a3 3 0 0 0 6 0v-4M7 9.5v1.5a3 3 0 0 0 6 0V9"/><circle cx="13" cy="7.5" r="1.4"/></svg></span></div></header>
+      <div class="fb-stream"><div class="fb-m fb-m-user"><div class="fb-m-bubble"><p><span data-i18n="demo.u1">把官网下载区改成自动匹配 GitHub 最新 Release，Mac 按芯片区分安装包。</span></p></div></div><div class="fb-m fb-m-agent"><span class="fb-m-avatar"><img src="/assets/agents/openai.webp" alt="Codex"></span><div class="fb-m-bubble"><div class="fb-proc"><div class="fb-proc-row done"><i></i><span data-i18n="demo.read">读取</span><code>site/index.html</code></div><div class="fb-proc-row done"><i></i><span data-i18n="demo.edit">编辑</span><code>site/main.js</code><em class="add">+48</em><em class="del">−12</em></div><div class="fb-proc-row run"><i></i><span data-i18n="demo.runAudit">运行 Playwright 审计 · 1440px / 390px</span></div></div><p class="fb-m-text"><span data-i18n="demo.b1a">已保留 HTML 兜底直链，再由 JS 通过 GitHub API 按</span> <code>ASSET_RULES</code> <span data-i18n="demo.b1b">匹配安装包，结果缓存 1 小时</span><span class="fb-caret"></span></p></div></div></div><div class="fb-cmp"><div class="fb-picker" aria-hidden="true"><div class="fb-picker-h" data-i18n="demo.nt.pick">选择 Agent</div><button type="button" class="fb-pick sel" data-agent="codex"><img src="/assets/agents/openai.webp" alt=""><span>Codex</span><small>gpt-5</small></button><button type="button" class="fb-pick" data-agent="claude"><img src="/assets/agents/claude.webp" alt=""><span>Claude Code</span><small>sonnet</small></button><button type="button" class="fb-pick" data-agent="kimi"><img src="/assets/agents/kimi.webp" alt=""><span>Kimi CLI</span><small>k2</small></button><button type="button" class="fb-pick" data-agent="qwen"><img src="/assets/agents/qwen.webp" alt=""><span>Qwen Code</span><small>qwen3-coder</small></button></div><div class="fb-cmp-input"><span data-i18n="demo.placeholder">输入消息，@ 引用文件，/ 调用命令</span><span class="fb-caret"></span></div><div class="fb-cmp-actions"><span class="fb-cmp-chip"><img src="/assets/agents/openai.webp" alt=""><b>Codex</b></span><button type="button" class="fb-cmp-send" aria-label="发送" data-i18n-attr="aria-label:demo.aSend"><svg viewBox="0 0 16 16"><path d="M8 13V3M4 7l4-4 4 4"/></svg></button></div></div>
+    </section>
+    <aside class="fb-detail">
+      <section class="fb-card"><div class="fb-card-h"><span><span data-i18n="demo.activeAgent">当前 Agent</span></span></div><div class="fb-lockup"><span class="fb-av lg img"><img src="/assets/agents/openai.webp" alt=""></span><div><strong>Codex</strong><small><span data-i18n="demo.agentMeta">本地 Agent · gpt-5</span></small></div></div></section>
+      <section class="fb-card"><div class="fb-card-h"><span><span data-i18n="demo.runState">运行状态</span></span><em class="fb-live"><span data-i18n="demo.live">1 个运行中</span></em></div>
+        <dl class="fb-dl"><div><dt><span data-i18n="demo.project">项目</span></dt><dd>freebuddy</dd></div><div><dt><span data-i18n="demo.workspace">工作区</span></dt><dd class="mono">~/www/freebuddy</dd></div><div><dt><span data-i18n="demo.session">会话 ID</span></dt><dd class="mono">019a3f…c27e</dd></div><div><dt><span data-i18n="demo.messages">消息</span></dt><dd>6</dd></div><div><dt><span data-i18n="demo.turns">Agent 轮次</span></dt><dd>3</dd></div><div><dt><span data-i18n="demo.duration">耗时</span></dt><dd>2m 14s</dd></div><div><dt><span data-i18n="demo.ttft">首字延迟</span></dt><dd>0.8s</dd></div><div><dt><span data-i18n="demo.cache">缓存命中率</span></dt><dd>72%</dd></div></dl>
+      </section>
+    </aside>
+  <div class="fb-set" aria-hidden="true"><div class="fb-set-win" role="dialog" aria-label="设置" data-i18n-attr="aria-label:demo.hm.settings"><nav class="fb-set-nav"><div class="fb-set-title"><span data-i18n="demo.hm.settings">设置</span></div><h6><span data-i18n="demo.set.ai">AI 能力</span></h6><button type="button" class="it active" data-tab="cli"><span data-i18n="demo.set.cli">CLI Agent</span></button><button type="button" class="it" data-tab="providers"><span data-i18n="demo.set.providers">服务商</span></button><span class="it"><span data-i18n="demo.set.skills">Skills</span></span><span class="it"><span data-i18n="demo.set.plugins">插件</span></span><h6><span data-i18n="demo.set.data">数据与洞察</span></h6><span class="it"><span data-i18n="demo.set.feed">信息卡片</span></span><span class="it"><span data-i18n="demo.set.usage">用量</span></span><h6><span data-i18n="demo.set.system">系统</span></h6><span class="it"><span data-i18n="demo.set.general">通用</span></span><span class="it"><span data-i18n="demo.set.remote">共享</span></span><span class="it"><span data-i18n="demo.set.about">关于</span></span></nav><div class="fb-set-body"><button type="button" class="fb-set-close" aria-label="关闭" data-i18n-attr="aria-label:demo.set.close"><svg viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8"/></svg></button><div class="fb-set-pane" data-pane="cli"><div class="fb-set-h"><div><b>CLI Agent</b><small><span data-i18n="demo.set.cliSub">自动检测本机已安装的 CLI Agent，可覆盖启动命令和模型</span></small></div><span class="fb-set-add"><span data-i18n="demo.set.rescan">重新检测</span></span></div><div class="fb-set-list"><div class="fb-set-row"><span class="fb-av md img"><img src="/assets/agents/openai.webp" alt=""></span><div class="main"><b>Codex</b><small>codex · v0.46.0 · gpt-5</small></div><span class="fb-pill"><span data-i18n="demo.set.installed">已安装</span></span></div><div class="fb-set-row"><span class="fb-av md img"><img src="/assets/agents/claude.webp" alt=""></span><div class="main"><b>Claude Code</b><small>claude · v2.0.14 · sonnet</small></div><span class="fb-pill"><span data-i18n="demo.set.installed">已安装</span></span></div><div class="fb-set-row"><span class="fb-av md img"><img src="/assets/agents/kimi.webp" alt=""></span><div class="main"><b>Kimi CLI</b><small>kimi · v0.42.0 · kimi-k2</small></div><span class="fb-pill"><span data-i18n="demo.set.installed">已安装</span></span></div><div class="fb-set-row"><span class="fb-av md img"><img src="/assets/agents/gemini.webp" alt=""></span><div class="main"><b>Gemini CLI</b><small>gemini</small></div><span class="fb-pill off"><span data-i18n="demo.set.notInstalled">未安装</span></span><span class="fb-set-btn"><span data-i18n="demo.set.install">安装</span></span></div><div class="fb-set-row"><span class="fb-av md img"><img src="/assets/agents/qwen.webp" alt=""></span><div class="main"><b>Qwen Code</b><small>qwen</small></div><span class="fb-pill off"><span data-i18n="demo.set.notInstalled">未安装</span></span><span class="fb-set-btn"><span data-i18n="demo.set.install">安装</span></span></div></div></div><div class="fb-set-pane" data-pane="providers" hidden><div class="fb-set-h"><div><b><span data-i18n="demo.set.providers">服务商</span></b><small><span data-i18n="demo.set.provSub">统一管理模型服务的 API Key 与 Base URL</span></small></div><span class="fb-set-add primary">+ <span data-i18n="demo.set.addProv">添加服务商</span></span></div><div class="fb-set-list"><div class="fb-set-row"><span class="fb-av md img"><img src="/assets/agents/openai.webp" alt=""></span><div class="main"><b>OpenAI</b><small>api.openai.com/v1</small></div><span class="fb-set-meta">12 <span data-i18n="demo.set.models">个模型</span></span><span class="fb-tg on" role="switch" aria-checked="true"></span></div><div class="fb-set-row"><span class="fb-av md img"><img src="/assets/agents/claude.webp" alt=""></span><div class="main"><b>Anthropic</b><small>api.anthropic.com</small></div><span class="fb-set-meta">6 <span data-i18n="demo.set.models">个模型</span></span><span class="fb-tg on" role="switch" aria-checked="true"></span></div><div class="fb-set-row"><span class="fb-av md img"><img src="/assets/agents/deepseek.webp" alt=""></span><div class="main"><b>DeepSeek</b><small>api.deepseek.com</small></div><span class="fb-set-meta">2 <span data-i18n="demo.set.models">个模型</span></span><span class="fb-tg on" role="switch" aria-checked="true"></span></div><div class="fb-set-row off"><span class="fb-av md img"><img src="/assets/agents/kimi.webp" alt=""></span><div class="main"><b>Moonshot</b><small>api.moonshot.cn/v1</small></div><span class="fb-set-meta">5 <span data-i18n="demo.set.models">个模型</span></span><span class="fb-tg" role="switch" aria-checked="false"></span></div><div class="fb-set-row off"><span class="fb-av md img"><img src="/assets/agents/openrouter.webp" alt=""></span><div class="main"><b>OpenRouter</b><small>openrouter.ai/api/v1</small></div><span class="fb-set-meta">300+ <span data-i18n="demo.set.models">个模型</span></span><span class="fb-tg" role="switch" aria-checked="false"></span></div></div></div></div></div></div><span class="fb-cursor" aria-hidden="true"><svg viewBox="0 0 20 20"><path d="M4 2.5 15.5 11l-5.2.9 3 5.6-2.2 1.1-3-5.6L4 16.6z"/></svg></span></div>
+  <div class="demo-view fb" data-view="team" hidden>
+    <aside class="fb-side">
+      <div class="fb-brand"><img src="/assets/logo-28.png" srcset="/assets/logo-28.png 1x, /assets/logo-56.png 2x, /assets/logo-84.png 3x" alt="" class="fb-logo" width="26" height="26"><div class="fb-brand-text"><b>FreeBuddy</b></div><button type="button" class="fb-search" aria-label="搜索会话" data-i18n-attr="aria-label:demo.aSearch"><svg viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5 14 14"/></svg></button></div>
+      <nav class="fb-nav" aria-label="工作区导航" data-i18n-attr="aria-label:demo.aNav"><button type="button" class="fb-nav-item"><i class="fb-ic"><svg viewBox="0 0 16 16"><path d="M8 3v10M3 8h10"/></svg></i><span><span data-i18n="demo.navNew">新会话</span></span></button><button type="button" class="fb-nav-item"><i class="fb-ic"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.5"/><path d="M8 5v3l2 1.5"/></svg></i><span><span data-i18n="demo.navScheduled">定时任务</span></span></button><button type="button" class="fb-nav-item active"><i class="fb-ic"><svg viewBox="0 0 16 16"><circle cx="6" cy="6" r="2.3"/><circle cx="11.5" cy="7" r="1.8"/><path d="M2 13c.6-2.4 2.2-3.5 4-3.5s3.4 1.1 4 3.5M10.5 10.2c1.6 0 2.9.9 3.5 2.8"/></svg></i><span><span data-i18n="demo.navTeams">团队</span></span></button><button type="button" class="fb-nav-item"><i class="fb-ic"><svg viewBox="0 0 16 16"><rect x="2.5" y="6" width="11" height="7.5" rx="1"/><path d="M8 6v7.5M2.5 9h11M8 6C6.5 3 4.5 3.5 5 5s3 1 3 1 2.5.5 3-1-1.5-2-3 1"/></svg></i><span><span data-i18n="demo.navFreebie">白嫖</span></span></button></nav>
+      <div class="fb-convs"><div class="fb-group"><div class="fb-group-title"><span class="fb-folder"></span>freebuddy</div><button type="button" class="fb-conv active"><span class="fb-av sm img"><img src="/assets/agents/claude.webp" alt=""></span><span class="fb-conv-main"><span class="fb-conv-title"><span data-i18n="demo.c5">发布 v0.10.26</span></span></span><span class="fb-run" aria-label="Agent 运行中" data-i18n-attr="aria-label:demo.aRunning"></span></button><button type="button" class="fb-conv"><span class="fb-av sm img"><img src="/assets/agents/openai.webp" alt=""></span><span class="fb-conv-main"><span class="fb-conv-title"><span data-i18n="demo.c1">下载区自动匹配最新版本</span></span></span></button><button type="button" class="fb-conv"><span class="fb-av sm img"><img src="/assets/agents/kimi.webp" alt=""></span><span class="fb-conv-main"><span class="fb-conv-title"><span data-i18n="demo.c3">README 中英文同步</span></span></span><span class="fb-unread" aria-label="未读会话" data-i18n-attr="aria-label:demo.aUnread"></span></button></div></div>
+      <div class="fb-foot"><span class="fb-av sm host">本</span><span><span data-i18n="demo.host">本机</span></span><span class="fb-foot-dot"></span></div>
+    </aside>
+    <section class="fb-main">
+      <header class="fb-titlebar"><strong class="fb-title"><span data-i18n="demo.c5">发布 v0.10.26</span></strong><div class="fb-tb-actions"><span class="fb-tb-btn" title="转交上下文" data-i18n-attr="title:demo.aHandoff"><svg viewBox="0 0 16 16"><circle cx="4" cy="8" r="1.6"/><circle cx="12" cy="4" r="1.6"/><circle cx="12" cy="12" r="1.6"/><path d="M5.5 7.2 10.5 4.8M5.5 8.8l5 2.4"/></svg></span><span class="fb-tb-btn" title="调试日志" data-i18n-attr="title:demo.aLogs"><svg viewBox="0 0 16 16"><path d="M4 2.5v4a3 3 0 0 0 6 0v-4M7 9.5v1.5a3 3 0 0 0 6 0V9"/><circle cx="13" cy="7.5" r="1.4"/></svg></span></div></header>
+      <div class="fb-stream"><div class="fb-m fb-m-user"><div class="fb-m-bubble"><p><span data-i18n="demo.u2">准备发布 v0.10.26：修好 Windows 签名，Mac 双架构，发布前让我审批。</span></p></div></div><div class="fb-m-route"><span class="fb-m-route-avs"><img src="/assets/agents/claude.webp" alt=""><img src="/assets/agents/openai.webp" alt=""><img src="/assets/agents/kimi.webp" alt=""></span><b data-i18n="demo.teamName">标准交付团队</b><span class="fb-m-route-flow" data-i18n="demo.routeFlow">规划 → 实现 → 评审</span></div><div class="fb-m fb-m-agent"><span class="fb-m-avatar"><img src="/assets/agents/claude.webp" alt="Claude Code"></span><div class="fb-m-bubble"><div class="fb-m-name">Claude Code<small data-i18n="demo.plan">规划</small></div><p class="fb-m-text"><span data-i18n="demo.b2">方案已确认，交给 Codex 实现；评审通过后进入发布审批。</span></p></div></div><div class="fb-m fb-m-agent"><span class="fb-m-avatar"><img src="/assets/agents/openai.webp" alt="Codex"></span><div class="fb-m-bubble"><div class="fb-m-name">Codex<small data-i18n="demo.build">实现</small></div><div class="fb-proc"><div class="fb-proc-row done"><i></i><span data-i18n="demo.edit">编辑</span><code>electron-builder.yml</code><em class="add">+9</em><em class="del">−3</em></div><div class="fb-proc-row run"><i></i><span data-i18n="demo.edit">编辑</span><code>scripts/release.mjs</code></div></div><p class="fb-m-text"><span data-i18n="demo.b3">正在拆分 arm64 / x64 产物</span><span class="fb-caret"></span></p></div></div></div><div class="fb-cmp"><div class="fb-cmp-input"><span data-i18n="demo.placeholder">输入消息，@ 引用文件，/ 调用命令</span><span class="fb-caret"></span></div><div class="fb-cmp-actions"><span class="fb-cmp-chip"><img src="/assets/agents/claude.webp" alt="">Claude Code</span><span class="fb-cmp-chip on" data-i18n="demo.teamExec">团队模式</span><button type="button" class="fb-cmp-send" aria-label="发送" data-i18n-attr="aria-label:demo.aSend"><svg viewBox="0 0 16 16"><path d="M8 13V3M4 7l4-4 4 4"/></svg></button></div></div>
+    </section>
+    <aside class="fb-detail">
+      <section class="fb-card fb-run-panel">
+        <div class="fb-run-h"><b><span data-i18n="demo.teamName">标准交付团队</span></b><span class="fb-run-status"><span data-i18n="demo.running">运行中</span></span></div>
+        <div class="fb-progress"><div class="fb-bar"><i style="width:40%"></i></div><span>2 / 5</span></div>
+        <div class="fb-run-actions"><button type="button"><span data-i18n="demo.pause">暂停</span></button><button type="button" class="danger"><span data-i18n="demo.stop">停止</span></button></div>
+        <ol class="fb-steps"><li class="fb-step done"><button type="button" class="fb-step-btn"><span class="fb-step-dot"></span><span class="fb-step-main"><span class="fb-step-title"><span data-i18n="demo.s1">需求分析</span></span><span class="fb-step-meta"><span class="fb-av xs img"><img src="/assets/agents/claude.webp" alt=""></span>Claude Code</span></span><span class="fb-step-status"><span data-i18n="demo.done">完成</span></span></button><div class="fb-step-detail"><span data-i18n="demo.d1">拆解发布清单：签名、Release 说明、下载区校验</span></div></li><li class="fb-step done"><button type="button" class="fb-step-btn"><span class="fb-step-dot"></span><span class="fb-step-main"><span class="fb-step-title"><span data-i18n="demo.s2">方案设计</span></span><span class="fb-step-meta"><span class="fb-av xs img"><img src="/assets/agents/claude.webp" alt=""></span>Claude Code</span></span><span class="fb-step-status"><span data-i18n="demo.done">完成</span></span></button><div class="fb-step-detail"><span data-i18n="demo.d2">确定 Windows 签名改走 CI，Mac 产物分 arm64 / x64</span></div></li><li class="fb-step running"><button type="button" class="fb-step-btn"><span class="fb-step-dot"></span><span class="fb-step-main"><span class="fb-step-title"><span data-i18n="demo.build">实现</span></span><span class="fb-step-meta"><span class="fb-av xs img"><img src="/assets/agents/openai.webp" alt=""></span>Codex<span class=fb-badge><span data-i18n="demo.write">写入</span></span></span></span><span class="fb-step-status"><span data-i18n="demo.running">运行中</span></span></button><div class="fb-step-detail"><span data-i18n="demo.d3">正在修改 electron-builder.yml 与 release 脚本</span></div></li><li class="fb-step pending"><button type="button" class="fb-step-btn"><span class="fb-step-dot"></span><span class="fb-step-main"><span class="fb-step-title"><span data-i18n="demo.s4">代码评审</span></span><span class="fb-step-meta"><span class="fb-av xs img"><img src="/assets/agents/kimi.webp" alt=""></span>Kimi</span></span><span class="fb-step-status"><span data-i18n="demo.pending">等待</span></span></button><div class="fb-step-detail"><span data-i18n="demo.d4">等待实现完成后审查改动</span></div></li><li class="fb-step gate"><button type="button" class="fb-step-btn"><span class="fb-step-dot"></span><span class="fb-step-main"><span class="fb-step-title"><span data-i18n="demo.s5">发布审批</span></span><span class="fb-step-meta"><span class="fb-av xs 你">你</span><span data-i18n="demo.you">你</span></span></span><span class="fb-step-status"><span data-i18n="demo.gate">待审批</span></span></button><div class="fb-step-detail"><span data-i18n="demo.d5">审批关卡：确认后才会推送 tag</span></div></li></ol>
+      </section>
+    </aside>
+  </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="features" class="section">
+      <div class="container">
+        <h2 class="section-title" data-i18n="features.title">为 Agent 时代的开发者而生</h2>
+        <p class="section-sub" data-i18n="features.sub">不用再在一堆终端窗口之间来回切换。</p>
+
+        <div class="feature">
+          <div class="feature-text">
+            <span class="tag">01</span>
+            <h3 data-i18n="f1.title">多 Agent 并排工作</h3>
+            <p data-i18n="f1.desc">自动检测本机已安装的 Agent，内置 14 款主流 Agent 适配。能在终端里运行的 CLI 工具，就能在 FreeBuddy 里用。</p>
+          </div>
+          <div class="feature-media">
+            <div class="window fx" data-fx="multi"><div class="window-bar"><i></i><i></i><i></i><span class="demo-title" data-i18n="fx.m.title">FreeBuddy · 3 个会话并行</span></div><div class="fx-body fx-multi"><div class="fx-detect"><span class="fx-dot"></span><span data-i18n="fx.m.detect">已检测到 14 款 Agent</span><span class="fx-avs"><img src="/assets/agents/openai.webp" alt=""><img src="/assets/agents/claude.webp" alt=""><img src="/assets/agents/kimi.webp" alt=""><img src="/assets/agents/gemini.webp" alt=""><img src="/assets/agents/qwen.webp" alt=""><img src="/assets/agents/deepseek.webp" alt=""><em>+8</em></span></div><div class="fx-cols"><div class="fx-pane"><div class="fx-ph"><img src="/assets/agents/openai.webp" alt=""><b>Codex</b><small>gpt-5</small><span class="fx-run"></span></div><div class="fx-lines"><p style="--i:0"><i></i><span data-i18n="fx.m.a1">读取 site/main.js</span></p><p style="--i:1"><i></i><span data-i18n="fx.m.a2">编辑 loadRelease() +48 −12</span></p><p style="--i:2"><i></i><span data-i18n="fx.m.a4">检查 API 限流降级</span></p><p style="--i:3"><i></i><span data-i18n="fx.m.a5">写入 localStorage 缓存</span></p><p style="--i:4"><i></i><span data-i18n="fx.m.a6">编辑 site/index.html +6 −2</span></p><p style="--i:5"><i></i><span data-i18n="fx.m.a7">运行 Playwright 审计</span></p><p style="--i:6"><i></i><span data-i18n="fx.m.a8">修复 390px 横向溢出</span></p><p style="--i:7"><i></i><span data-i18n="fx.m.a3">测试通过 · 12 passed</span></p></div></div><div class="fx-pane"><div class="fx-ph"><img src="/assets/agents/claude.webp" alt=""><b>Claude Code</b><small>sonnet</small><span class="fx-run"></span></div><div class="fx-lines"><p style="--i:0"><i></i><span data-i18n="fx.m.b1">分析 Windows 签名失败</span></p><p style="--i:1"><i></i><span data-i18n="fx.m.b2">修改 electron-builder.yml</span></p><p style="--i:2"><i></i><span data-i18n="fx.m.b4">定位证书路径错误</span></p><p style="--i:3"><i></i><span data-i18n="fx.m.b5">补充 CSC_LINK 环境变量</span></p><p style="--i:4"><i></i><span data-i18n="fx.m.b6">重跑 Windows x64 打包</span></p><p style="--i:5"><i></i><span data-i18n="fx.m.b7">signtool 校验通过</span></p><p style="--i:6"><i></i><span data-i18n="fx.m.b8">更新 Release 说明</span></p><p style="--i:7"><i></i><span data-i18n="fx.m.b3">生成签名证书配置</span></p></div></div><div class="fx-pane"><div class="fx-ph"><img src="/assets/agents/kimi.webp" alt=""><b>Kimi CLI</b><small>k2</small><span class="fx-run"></span></div><div class="fx-lines"><p style="--i:0"><i></i><span data-i18n="fx.m.c1">对比 README 中英文</span></p><p style="--i:1"><i></i><span data-i18n="fx.m.c2">补齐 3 处缺失段落</span></p><p style="--i:2"><i></i><span data-i18n="fx.m.c4">翻译 Team 章节</span></p><p style="--i:3"><i></i><span data-i18n="fx.m.c5">校对术语表 12 条</span></p><p style="--i:4"><i></i><span data-i18n="fx.m.c6">修正 4 处链接锚点</span></p><p style="--i:5"><i></i><span data-i18n="fx.m.c7">统一代码块语言标注</span></p><p style="--i:6"><i></i><span data-i18n="fx.m.c8">生成 diff 预览</span></p><p style="--i:7"><i></i><span data-i18n="fx.m.c3">同步完成 · 等待确认</span></p></div></div></div></div></div>
+          </div>
+        </div>
+
+        <div class="feature reverse">
+          <div class="feature-text">
+            <span class="tag">02</span>
+            <h3 data-i18n="f2.title">Workflow Teams 团队协作</h3>
+            <p data-i18n="f2.desc">用团队模板编排多 Agent 工作流：Codex 负责实现，ClaudeCode 负责 Review，Kimi 负责测试，并行推进。</p>
+          </div>
+          <div class="feature-media">
+            <div class="window fx" data-fx="team"><div class="window-bar"><i></i><i></i><i></i><span class="demo-title" data-i18n="fx.t.title">标准交付团队 · 运行中</span></div><div class="fx-body fx-team"><div class="fx-flow"><div class="fx-track"><i></i></div><div class="fx-node" style="--i:0"><span class="fx-node-av"><img src="/assets/agents/claude.webp" alt=""></span><b data-i18n="fx.t.s1">规划</b><small>Claude Code</small><span class="fx-node-st"></span></div><div class="fx-node" style="--i:1"><span class="fx-node-av"><img src="/assets/agents/openai.webp" alt=""></span><b data-i18n="fx.t.s2">实现</b><small>Codex</small><span class="fx-node-st"></span></div><div class="fx-node" style="--i:2"><span class="fx-node-av"><img src="/assets/agents/claude.webp" alt=""></span><b data-i18n="fx.t.s3">Review</b><small>Claude Code</small><span class="fx-node-st"></span></div><div class="fx-node" style="--i:3"><span class="fx-node-av"><img src="/assets/agents/kimi.webp" alt=""></span><b data-i18n="fx.t.s4">测试</b><small>Kimi CLI</small><span class="fx-node-st"></span></div></div><div class="fx-log"><p style="--i:0"><img src="/assets/agents/claude.webp" alt=""><span data-i18n="fx.t.l1">方案已确认：拆分 arm64 / x64 产物</span></p><p style="--i:1"><img src="/assets/agents/openai.webp" alt=""><span data-i18n="fx.t.l2">编辑 scripts/release.mjs +36 −8</span></p><p style="--i:2"><img src="/assets/agents/claude.webp" alt=""><span data-i18n="fx.t.l3">Review 通过，1 条建议已采纳</span></p><p style="--i:3"><img src="/assets/agents/kimi.webp" alt=""><span data-i18n="fx.t.l4">并行测试 · 24 / 24 通过</span></p></div></div></div>
+          </div>
+        </div>
+
+        <div class="feature">
+          <div class="feature-text">
+            <span class="tag">03</span>
+            <h3 data-i18n="f3.title">BYOK 自带 Key</h3>
+            <p data-i18n="f3.desc">Codex、ClaudeCode、DeepSeek Harness 支持接入第三方或代理 API。模型供应商统一管理，DeepSeek 等模型随时热切换。</p>
+          </div>
+          <div class="feature-media">
+            <div class="window fx" data-fx="byok"><div class="window-bar"><i></i><i></i><i></i><span class="demo-title" data-i18n="fx.b.title">设置 · 服务商</span></div><div class="fx-body fx-byok"><div class="fx-plist"><div class="fx-prow" style="--i:0" data-p="openai"><img src="/assets/agents/openai.webp" alt=""><div><b>OpenAI</b><small>api.openai.com/v1</small></div><em>12 <span data-i18n="demo.set.models">个模型</span></em><span class="fb-tg on"></span></div><div class="fx-prow" style="--i:1" data-p="claude"><img src="/assets/agents/claude.webp" alt=""><div><b>Anthropic</b><small>api.anthropic.com</small></div><em>6 <span data-i18n="demo.set.models">个模型</span></em><span class="fb-tg on"></span></div><div class="fx-prow" style="--i:2" data-p="deepseek"><img src="/assets/agents/deepseek.webp" alt=""><div><b>DeepSeek</b><small>api.deepseek.com</small></div><em>2 <span data-i18n="demo.set.models">个模型</span></em><span class="fb-tg on"></span></div><div class="fx-prow off" style="--i:3" data-p="openrouter"><img src="/assets/agents/openrouter.webp" alt=""><div><b>OpenRouter</b><small>openrouter.ai/api/v1</small></div><em>300+ <span data-i18n="demo.set.models">个模型</span></em><span class="fb-tg"></span></div></div><div class="fx-switch"><div class="fx-sw-h"><img src="/assets/agents/openai.webp" alt=""><b>Codex</b><span data-i18n="fx.b.hot">模型热切换</span></div><div class="fx-models"><span class="fx-model" data-p="openai"><img src="/assets/agents/openai.webp" alt="">gpt-5</span><span class="fx-model" data-p="deepseek"><img src="/assets/agents/deepseek.webp" alt="">deepseek-chat</span><span class="fx-model" data-p="claude"><img src="/assets/agents/claude.webp" alt="">claude-sonnet-4.5</span></div><p class="fx-sw-note"><span class="fx-dot"></span><span data-i18n="fx.b.note">无需重启会话，下一轮即生效</span></p></div><div class="fx-btoast"><span class="fx-dot"></span><span data-i18n="fx.b.added">已接入 OpenRouter · 300+ 个模型</span></div></div></div>
+          </div>
+        </div>
+
+        <div class="feature reverse">
+          <div class="feature-text">
+            <span class="tag">04</span>
+            <h3 data-i18n="f4.title">Agent 用量看板</h3>
+            <p data-i18n="f4.desc">实时查看 Codex、Antigravity 的用量和额度重置时间，Codex 多账号热切换，无需重新登录。</p>
+          </div>
+          <div class="feature-media">
+            <div class="window fx" data-fx="usage"><div class="window-bar"><i></i><i></i><i></i><span class="demo-title" data-i18n="fx.u.title">用量看板</span></div><div class="fx-body fx-usage"><div class="fx-ucard"><div class="fx-uh"><img src="/assets/agents/openai.webp" alt=""><b>Codex</b><span class="fx-acct"><span class="fx-acct-a">work@team.dev</span><span class="fx-acct-b">me@gmail.com</span></span></div><div class="fx-meters"><div class="fx-meter"><div class="fx-mh"><span data-i18n="fx.u.5h">5 小时额度</span><b class="fx-pct" data-to="68">0%</b></div><div class="fx-mbar"><i style="--to:68%"></i></div><small><span data-i18n="fx.u.reset">重置于</span> 1h 42m</small></div><div class="fx-meter"><div class="fx-mh"><span data-i18n="fx.u.week">本周额度</span><b class="fx-pct" data-to="41">0%</b></div><div class="fx-mbar"><i style="--to:41%"></i></div><small><span data-i18n="fx.u.reset">重置于</span> 3d 6h</small></div></div></div><div class="fx-ucard"><div class="fx-uh"><img src="/assets/agents/gemini.webp" alt=""><b>Antigravity</b><span class="fx-tag">Pro</span></div><div class="fx-meters"><div class="fx-meter"><div class="fx-mh"><span data-i18n="fx.u.5h">5 小时额度</span><b class="fx-pct" data-to="23">0%</b></div><div class="fx-mbar"><i style="--to:23%"></i></div><small><span data-i18n="fx.u.reset">重置于</span> 3h 15m</small></div><div class="fx-meter"><div class="fx-mh"><span data-i18n="fx.u.week">本周额度</span><b class="fx-pct" data-to="57">0%</b></div><div class="fx-mbar"><i style="--to:57%"></i></div><small><span data-i18n="fx.u.reset">重置于</span> 5d 2h</small></div></div></div><div class="fx-toast"><span class="fx-dot"></span><span data-i18n="fx.u.toast">已切换账号，无需重新登录</span></div></div></div>
+          </div>
+        </div>
+
+        <div class="mini-grid">
+          <div class="mini">
+            <div class="mini-icon">📰</div>
+            <h4 data-i18n="m1.title">FeedRSS 卡片</h4>
+            <p data-i18n="m1.desc">等 Agent 跑任务的时候，顺手刷刷最新资讯。</p>
+          </div>
+          <div class="mini">
+            <div class="mini-icon">💥</div>
+            <h4 data-i18n="m2.title">Code Whip</h4>
+            <p data-i18n="m2.desc">Agent 太慢？抽它一鞭子，提速也解压。</p>
+          </div>
+          <div class="mini">
+            <div class="mini-icon">⚙️</div>
+            <h4 data-i18n="m3.title">一站式 Agent 管理</h4>
+            <p data-i18n="m3.desc">检测运行时、一键安装、自定义路径、模型、参数和环境变量。</p>
+          </div>
+          <div class="mini">
+            <div class="mini-icon">🔀</div>
+            <h4 data-i18n="m4.title">文件变更 Diff 面板</h4>
+            <p data-i18n="m4.desc">逐文件查看 Agent 的改动：行号、增删高亮、上下文折叠，审代码不用切 IDE。</p>
+          </div>
+          <div class="mini">
+            <div class="mini-icon">📊</div>
+            <h4 data-i18n="m5.title">Mermaid 图表渲染</h4>
+            <p data-i18n="m5.desc">Agent 画的流程图、时序图直接渲染出来，不用再复制到别处看。</p>
+          </div>
+          <div class="mini">
+            <div class="mini-icon">🖱️</div>
+            <h4 data-i18n="m6.title">右键直接打开</h4>
+            <p data-i18n="m6.desc">在 Finder 或资源管理器里右键文件夹，一步进入 FreeBuddy 工作区。</p>
+          </div>
+          <div class="mini">
+            <div class="mini-icon">🔔</div>
+            <h4 data-i18n="m7.title">未读会话筛选</h4>
+            <p data-i18n="m7.desc">多个 Agent 同时在跑？侧边栏一键筛出有新回复的会话。</p>
+          </div>
+          <div class="mini">
+            <div class="mini-icon">🧭</div>
+            <h4 data-i18n="m8.title">Pi 新手引导</h4>
+            <p data-i18n="m8.desc">自带运行时的官方引导 Agent，装好即用，带你快速上手。</p>
+          </div>
+          <div class="mini">
+            <div class="mini-icon">🔌</div>
+            <h4 data-i18n="m9.title">ACP 协议接入</h4>
+            <p data-i18n="m9.desc">Devin、Cline 通过 ACP 适配器接入，和其他 Agent 一样统一管理。</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="agents" class="section section-alt">
+      <div class="container center">
+        <h2 class="section-title" data-i18n="agents.title">开箱即用的 Agent</h2>
+        <p class="section-sub" data-i18n="agents.sub">兼容所有 CLI 形态的 AI 编程工具。</p>
+        <div class="agents">
+          <span class="agent"><img src="/assets/agents/openai.webp" alt="" width="32" height="32" loading="lazy" />Codex</span>
+          <span class="agent"><img src="/assets/agents/claude.webp" alt="" width="32" height="32" loading="lazy" />ClaudeCode</span>
+          <span class="agent"><img src="/assets/agents/opencode.webp" alt="" width="32" height="32" loading="lazy" />OpenCode</span>
+          <span class="agent"><img src="/assets/agents/cursor.webp" alt="" width="32" height="32" loading="lazy" />Cursor</span>
+          <span class="agent"><img src="/assets/agents/kimi.webp" alt="" width="32" height="32" loading="lazy" />Kimi</span>
+          <span class="agent"><img src="/assets/agents/qoder.webp" alt="" width="32" height="32" loading="lazy" />Qoder</span>
+          <span class="agent"><img src="/assets/agents/codebuddy.webp" alt="" width="32" height="32" loading="lazy" />CodeBuddy</span>
+          <span class="agent"><img src="/assets/agents/grok.webp" alt="" width="32" height="32" loading="lazy" />Grok</span>
+          <span class="agent"><img src="/assets/agents/gemini.webp" alt="" width="32" height="32" loading="lazy" />Antigravity</span>
+          <span class="agent"><img src="/assets/agents/deepseek.webp" alt="" width="32" height="32" loading="lazy" />DeepSeek Harness</span>
+          <span class="agent"><img src="/assets/agents/zhipu.webp" alt="" width="32" height="32" loading="lazy" />ZCode</span>
+          <span class="agent"><img src="/assets/agents/cline.webp" alt="" width="32" height="32" loading="lazy" />Cline</span>
+          <span class="agent"><img src="/assets/agents/devin.webp" alt="" width="32" height="32" loading="lazy" />Devin</span>
+          <span class="agent"><img src="/assets/agents/pi.svg" alt="" width="32" height="32" loading="lazy" />Pi</span>
+          <span class="agent agent-more" data-i18n="agents.more">+ 任意 CLI Agent</span>
+        </div>
+      </div>
+    </section>
+
+    <section id="download" class="section section-dark">
+      <div class="container center">
+        <h2 class="section-title" data-i18n="dl.title">立即开始</h2>
+        <p class="section-sub" data-i18n="dl.sub">选择你的平台，几秒钟装好。</p>
+        <div class="dl-grid">
+          <div class="dl-card">
+            <strong>macOS</strong><span>.dmg · <span data-ver>v0.10.25</span></span>
+            <div class="dl-links">
+              <a data-asset="mac-arm" href="https://github.com/maojindao55/freebuddy/releases/download/v0.10.25/FreeBuddy_macOS-Apple-Silicon-v0.10.25.dmg">Apple Silicon</a>
+              <a data-asset="mac-intel" href="https://github.com/maojindao55/freebuddy/releases/download/v0.10.25/FreeBuddy_macOS-Intel-v0.10.25.dmg">Intel</a>
+            </div>
+          </div>
+          <div class="dl-card">
+            <strong>Windows</strong><span>x64 · <span data-ver>v0.10.25</span></span>
+            <div class="dl-links">
+              <a data-asset="win" href="https://github.com/maojindao55/freebuddy/releases/download/v0.10.25/FreeBuddy_Windows_x64-v0.10.25.exe">.exe</a>
+            </div>
+          </div>
+          <div class="dl-card">
+            <strong>Linux</strong><span>x64 · <span data-ver>v0.10.25</span></span>
+            <div class="dl-links">
+              <a data-asset="deb" href="https://github.com/maojindao55/freebuddy/releases/download/v0.10.25/FreeBuddy_Ubuntu_x64-v0.10.25.deb">.deb</a>
+              <a data-asset="appimage" href="https://github.com/maojindao55/freebuddy/releases/download/v0.10.25/FreeBuddy_Linux_x64-v0.10.25.AppImage">.AppImage</a>
+            </div>
+          </div>
+        </div>
+        <div class="terminal">
+          <code><span class="prompt">$</span> brew install --cask maojindao55/freebuddy/freebuddy</code>
+          <button class="copy" type="button" data-copy="brew install --cask maojindao55/freebuddy/freebuddy" data-i18n="dl.copy">复制</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-inner">
+      <span>© 2026 FreeBuddy · MIT License</span>
+      <span>
+        <a href="https://github.com/maojindao55/freebuddy" target="_blank" rel="noopener">GitHub</a> ·
+        <a href="https://github.com/maojindao55/freebuddy/blob/main/CHANGELOG.md" target="_blank" rel="noopener">Changelog</a> ·
+        <a href="https://qm.qq.com/q/Lgu4uyIWCC" target="_blank" rel="noopener" data-i18n="footer.qq">QQ 群</a>
+      </span>
+    </div>
+  </footer>
+
+  <script src="/main.js?v=10041720" defer></script>
+</body>
 </html>

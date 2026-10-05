@@ -8,9 +8,19 @@ main = "worker.js"
 # 不要改成其他账号的 ID：D1 binding 和 `wrangler d1 ...` 都依赖它。
 account_id = "ca3b2549d8dcb98799c42e7b56f4e912"
 
+# freebuddy.si 是绑定到本 Worker 的自定义域名（zone 与项目同属上面的账号，
+# custom domain 的硬要求）：根路径是落地页，/freebie/ 是白嫖页，/api/* 与
+# /v1/* 在两个域名下行为一致。*.workers.dev 域名保持可用，旧版客户端的
+# iframe 仍从那里加载白嫖页（worker.js 里做内部重写，不发重定向）。
+routes = [
+  { pattern = "freebuddy.si", custom_domain = true }
+]
+
 [assets]
 directory = "."
 binding = "ASSETS"
+# 资源未命中时回退到根目录的 404.html（落地页的 404，白嫖页路径下也用它）。
+not_found_handling = "404-page"
 
 # D1 数据库绑定说明：
 # 方式 1（推荐）：在 Cloudflare 控制台 -> Workers & Pages -> 设置 -> 变量与绑定 -> 绑定 D1 数据库，变量名填 DB

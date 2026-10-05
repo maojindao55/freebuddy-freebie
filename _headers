@@ -1,11 +1,32 @@
-# Cloudflare Pages headers. The page must remain embeddable by the FreeBuddy
-# desktop app (file:// renderer) and the FreeBuddy web UI, so no
-# X-Frame-Options / frame-ancestors restriction is set here.
+# Cloudflare static-assets headers. The landing site sits at the asset root
+# (freebuddy.si /) and the freebie page under /freebie/. The freebie page must
+# remain embeddable by the FreeBuddy desktop app (file:// renderer) and the
+# FreeBuddy web UI, so no X-Frame-Options / frame-ancestors restriction is set
+# anywhere in this file.
+#
+# Matching rules are cumulative: /freebie/* responses carry both Referrer-Policy
+# values below, and browsers honor the last recognized one (no-referrer) — which
+# is exactly the stricter policy the embedded page wants. The site root keeps
+# strict-origin-when-cross-origin.
+
 /*
   X-Content-Type-Options: nosniff
-  Referrer-Policy: no-referrer
+  Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=()
 
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/freebie/*
+  Referrer-Policy: no-referrer
+
+/freebie/providers.json
+  Cache-Control: public, max-age=300, must-revalidate
+  Access-Control-Allow-Origin: *
+
+# Old *.workers.dev embeds still request the catalog at the legacy root path
+# (the worker rewrites it internally to /freebie/providers.json). Keep the same
+# policy on the original URL in case header matching happens before the rewrite.
 /providers.json
   Cache-Control: public, max-age=300, must-revalidate
   Access-Control-Allow-Origin: *

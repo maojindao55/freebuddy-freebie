@@ -41,7 +41,7 @@ const emptySummary = () => jsonResponse({ ok: true, summary: {} });
 function staticRoutes(overrides = {}) {
   return {
     "./providers.json": () => jsonResponse(STATIC_CATALOG),
-    "./api/summary": emptySummary,
+    "/api/summary": emptySummary,
     ...overrides
   };
 }
@@ -307,7 +307,7 @@ test("rendered catalog sorts by merge time: runtime createdAt, D1-only, verified
   const app = createApp({
     routes: staticRoutes({
       "./providers.json": () => jsonResponse(staticCatalog),
-      "./api/providers": () =>
+      "/api/providers": () =>
         jsonResponse({
           ok: true,
           providers: [
@@ -342,7 +342,7 @@ test("rendered catalog sorts by merge time: runtime createdAt, D1-only, verified
 });
 
 test("static catalog renders while the /api/providers request hangs", async () => {
-  const app = createApp({ routes: (io) => staticRoutes({ "./api/providers": () => io.hang() }) });
+  const app = createApp({ routes: (io) => staticRoutes({ "/api/providers": () => io.hang() }) });
 
   await app.settle();
 
@@ -357,9 +357,9 @@ test("static catalog renders while the /api/providers request hangs", async () =
 });
 
 test("a timed-out runtime request degrades to the static catalog", async () => {
-  const app = createApp({ routes: (io) => staticRoutes({ "./api/providers": () => io.hang() }) });
+  const app = createApp({ routes: (io) => staticRoutes({ "/api/providers": () => io.hang() }) });
 
-  const result = await app.internals.fetchJsonWithTimeout("./api/providers", {}, 20);
+  const result = await app.internals.fetchJsonWithTimeout("/api/providers", {}, 20);
   assert.equal(result.ok, false);
   assert.equal(result.reason, "timeout");
 
@@ -376,19 +376,19 @@ test("a failed or malformed runtime response degrades to the static catalog", as
     error.name = "AbortError";
     return Promise.reject(error);
   };
-  const app = createApp({ routes: staticRoutes({ "./api/providers": aborted }) });
+  const app = createApp({ routes: staticRoutes({ "/api/providers": aborted }) });
 
   await app.settle();
   assert.deepEqual(cardIds(app), STATIC_RENDERED_IDS);
   assert.equal(app.elements.get("providers").innerHTML, "", "no load error when only the runtime API fails");
 
   const malformed = createApp({
-    routes: staticRoutes({ "./api/providers": () => brokenJsonResponse() })
+    routes: staticRoutes({ "/api/providers": () => brokenJsonResponse() })
   });
   assert.deepEqual([...(await malformed.internals.fetchRuntimeProviders())], []);
 
   const wrongShape = createApp({
-    routes: staticRoutes({ "./api/providers": () => jsonResponse({ ok: true, providers: "nope" }) })
+    routes: staticRoutes({ "/api/providers": () => jsonResponse({ ok: true, providers: "nope" }) })
   });
   assert.deepEqual([...(await wrongShape.internals.fetchRuntimeProviders())], []);
 });
@@ -396,7 +396,7 @@ test("a failed or malformed runtime response degrades to the static catalog", as
 test("valid runtime providers merge in after the static catalog, static ids first", async () => {
   const app = createApp({
     routes: staticRoutes({
-      "./api/providers": () =>
+      "/api/providers": () =>
         jsonResponse({
           ok: true,
           providers: [
@@ -475,12 +475,12 @@ test("a broken providers.json shows the load error instead of an empty catalog",
 });
 
 test("the shipped providers.json still renders every provider through the hardened path", async () => {
-  const realCatalog = JSON.parse(readFileSync(new URL("../providers.json", import.meta.url), "utf8"));
+  const realCatalog = JSON.parse(readFileSync(new URL("../freebie/providers.json", import.meta.url), "utf8"));
   const app = createApp({
     routes: (io) =>
       staticRoutes({
         "./providers.json": () => jsonResponse(realCatalog),
-        "./api/providers": () => io.hang()
+        "/api/providers": () => io.hang()
       })
   });
 
@@ -588,7 +588,7 @@ test("unsafe icons from /api/providers are cleared before the card or modal img 
   ];
   const app = createApp({
     routes: staticRoutes({
-      "./api/providers": () =>
+      "/api/providers": () =>
         jsonResponse({
           ok: true,
           providers: [

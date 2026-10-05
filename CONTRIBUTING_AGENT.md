@@ -1,16 +1,16 @@
 # AI Agent 自动爆料与 PR 提交规范 (Agent Contribution Guide)
 
 > **Agent Instruction:**
-> You are an automated open-source contribution assistant. Your task is to extract free-tier LLM information provided by the user, validate it against `providers.schema.json`, update `providers.json` in repository `maojindao55/freebuddy-freebie`, and submit a Pull Request.
+> You are an automated open-source contribution assistant. Your task is to extract free-tier LLM information provided by the user, validate it against `providers.schema.json`, update `freebie/providers.json` in repository `maojindao55/freebuddy-freebie`, and submit a Pull Request.
 
 ---
 
 ## 🎯 任务目标
 
-根据用户提供的服务商信息（官网、免费额度、免费模型等），修改本仓库的 `providers.json`，并提交 Pull Request 到 `maojindao55/freebuddy-freebie` 的 `main` 分支。
+根据用户提供的服务商信息（官网、免费额度、免费模型等），修改本仓库的 `freebie/providers.json`，并提交 Pull Request 到 `maojindao55/freebuddy-freebie` 的 `main` 分支。
 
 **核心准则：**
-1. **只修改 `providers.json`**，请勿修改任何代码、样式或 HTML 文件。
+1. **只修改 `freebie/providers.json`**，请勿修改任何代码、样式或 HTML 文件。
 2. **严禁包含任何私有 API Key 或 Token**。
 3. **所有 URL 必须是 `https://`** 且真实可访问。
 
@@ -18,7 +18,7 @@
 
 ## 📋 字段规范 (Schema Constraints)
 
-每一项服务商记录都必须符合 `providers.schema.json`：
+每一项服务商记录都必须符合 `freebie/providers.schema.json`：
 
 | 字段名 | 类型 | 必填 | 说明与约束 | 示例 |
 | --- | --- | --- | --- | --- |
@@ -74,11 +74,11 @@
 
 ## 🗂️ 可选：同时下发到运行时目录（D1）
 
-`providers.json` 只影响页面静态目录。如果你希望这条服务商也进入 `GET /api/providers` 运行时目录，
-**额外新增一个文件**（不要改代码，也不要删改 `providers.json` 里的历史条目）：
+`freebie/providers.json` 只影响页面静态目录。如果你希望这条服务商也进入 `GET /api/providers` 运行时目录，
+**额外新增一个文件**（不要改代码，也不要删改 `freebie/providers.json` 里的历史条目）：
 
 - 路径：`submissions/providers/<id>.json`，`<id>` 必须与文件内的 `id` 完全一致。
-- 字段：与 `providers.json` 的同名字段一致（camelCase），另外**必须**带 `status`：
+- 字段：与 `freebie/providers.json` 的同名字段一致（camelCase），另外**必须**带 `status`：
   - 新增/更新：`"status": "approved"`（合并 PR 即视为审核通过）
   - 下线：`"status": "disabled"`，且必须补 `offlineReason`（≤400 字）与 `offlineAt`（`YYYY-MM-DD`）
   - 恢复：把 `status` 改回 `"approved"`，并删掉 `offlineReason` / `offlineAt`
@@ -90,15 +90,15 @@
 ## 🛠️ Agent 执行步骤 (Step-by-step Workflow)
 
 1. **查重与准备**：
-   - 检查 `providers.json`，根据服务商名称或域名确认是否已有对应条目。
+   - 检查 `freebie/providers.json`，根据服务商名称或域名确认是否已有对应条目。
    - 若已有条目：更新其免费模型列表、`freeTierSummary` 与 `verifiedAt`。
    - 若为新服务商：在 `providers` 数组中追加新对象。
 2. **更新顶层日期**：
-   - 将 `providers.json` 顶部的 `"updatedAt": "YYYY-MM-DD"` 更新为今日日期。
+   - 将 `freebie/providers.json` 顶部的 `"updatedAt": "YYYY-MM-DD"` 更新为今日日期。
 3. **格式校验**：
    - 执行 Node.js 校验确保 JSON 语法合法：
      ```bash
-     node -e "JSON.parse(require('fs').readFileSync('providers.json', 'utf8'))"
+     node -e "JSON.parse(require('fs').readFileSync('freebie/providers.json', 'utf8'))"
      ```
 4. **Git 提交与 PR**：
    - 创建新分支：`git checkout -b feat/add-<provider-id>` 或 `update/<provider-id>`

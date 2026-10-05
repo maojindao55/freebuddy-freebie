@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="referrer" content="no-referrer" />
+    <title>白嫖兄弟 · FreeBuddy 免费模型专区</title>
+    <meta
+      name="description"
+      content="汇总提供免费额度或免费模型的大模型服务商，一键导入 FreeBuddy 生成可直接使用的自定义 Agent。"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+    <script>
+      if (window.parent !== window || new URLSearchParams(location.search).get("embed") === "1") {
+        document.documentElement.classList.add("embedded");
+      }
+    </script>
+  </head>
+  <body>
+    <header class="hero">
+      <div class="hero-inner">
+        <div class="hero-brand">
+          <span class="hero-mark" aria-hidden="true">🎁</span>
+          <div class="hero-copy">
+            <div class="hero-title-row">
+              <h1 data-i18n="title">白嫖兄弟</h1>
+              <span class="hero-badge" data-i18n="subtitle">免费专区</span>
+            </div>
+            <p class="hero-slogan" data-i18n="slogan">不白嫖无兄弟，让穷兄弟也能用得上AI</p>
+          </div>
+        </div>
+        <div class="hero-toolbar">
+          <div class="search-box">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="search-icon" aria-hidden="true">
+              <circle cx="11" cy="11" r="8"/>
+              <path d="m21 21-4.3-4.3"/>
+            </svg>
+            <input type="text" id="search-input" placeholder="搜索服务商、额度或模型..." autocomplete="off" data-i18n-placeholder="searchPlaceholder" />
+            <button type="button" id="search-clear-btn" class="search-clear-btn" hidden aria-label="清空搜索" title="清空搜索">✕</button>
+          </div>
+          <div class="hero-actions">
+            <div class="hero-status" id="host-status" role="status"></div>
+            <button type="button" class="refresh-btn" id="refresh-btn" data-i18n-title="refresh" title="刷新页面" aria-label="刷新页面">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="refresh-icon" aria-hidden="true">
+                <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+                <path d="M21 3v5h-5"/>
+                <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
+                <path d="M3 21v-5h5"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="page">
+      <div class="toolbar">
+        <div class="filters" role="tablist" aria-label="Region filter">
+          <button type="button" class="filter active" role="tab" aria-selected="true" data-region="all" data-i18n="filterAll">全部</button>
+          <button type="button" class="filter" role="tab" aria-selected="false" data-region="cn" data-i18n="filterCn">国内直连</button>
+          <button type="button" class="filter" role="tab" aria-selected="false" data-region="global" data-i18n="filterGlobal">海外</button>
+        </div>
+        <div class="toolbar-controls">
+          <div class="sort-wrap">
+            <label for="sort-select" class="sr-only" data-i18n="sortLabel">排序方式</label>
+            <select id="sort-select" class="sort-select" aria-label="排序方式">
+              <option value="default" data-i18n="sortDefault">综合排序 (最新)</option>
+              <option value="rating" data-i18n="sortRating">评分最高</option>
+              <option value="avail" data-i18n="sortAvail">可用度优先</option>
+            </select>
+          </div>
+          <div class="toolbar-meta" id="catalog-meta"></div>
+        </div>
+      </div>
+
+      <section class="grid" id="providers" aria-live="polite"></section>
+
+      <p class="disclaimer" data-i18n-html="disclaimer">
+        免费政策随时变化，以各服务商官网为准。发现过期信息欢迎到 <a href="https://github.com/maojindao55/freebuddy-freebie/pulls" target="_blank" rel="noopener noreferrer">GitHub 提交 PR</a>，或 <a href="https://qm.qq.com/q/Obv3kViheo" target="_blank" rel="noopener noreferrer">加入【FreeBuddy白嫖兄弟群】</a> 交流爆料。
+      </p>
+    </main>
+
+    <template id="provider-card">
+      <article class="card">
+        <div class="card-body">
+          <header class="card-head">
+            <div class="card-brand">
+              <div class="card-icon-wrap">
+                <img class="card-icon" alt="" hidden loading="lazy" />
+                <span class="card-icon-fallback" hidden>🤖</span>
+              </div>
+              <div class="card-title-group">
+                <div class="card-name-row">
+                  <h2 class="card-name"></h2>
+                  <span class="pin-mark" hidden title="推荐">📌</span>
+                  <span class="card-imported" hidden></span>
+                </div>
+                <div class="card-tags"></div>
+              </div>
+            </div>
+            <div class="card-head-badges">
+              <span class="card-quality"></span>
+            </div>
+          </header>
+
+          <div class="card-quota-box">
+            <div class="quota-head">
+              <span class="quota-label" data-i18n="quotaLabel">免费额度</span>
+            </div>
+            <p class="card-summary"></p>
+          </div>
+
+          <div class="card-models-wrap">
+            <div class="models-head">
+              <span class="models-label" data-i18n="modelsLabel">主力模型</span>
+            </div>
+            <ul class="card-models"></ul>
+          </div>
+
+          <footer class="card-actions">
+            <div class="card-links">
+              <a class="card-link card-homepage" rel="noopener noreferrer" target="_blank"></a>
+              <a class="card-link card-console" rel="noopener noreferrer" target="_blank"></a>
+            </div>
+            <button type="button" class="import-btn"></button>
+          </footer>
+        </div>
+
+        <div class="card-community" title="查看真实评测与详情">
+          <div class="community-left">
+            <span class="community-empty-hint">暂无评测，来做第一个吧</span>
+            <span class="community-rating" title="综合评分">
+              <span class="star-icon">★</span>
+              <span class="rating-val">-.-</span>
+              <span class="rating-count">(0)</span>
+            </span>
+            <span class="community-divider">·</span>
+            <div class="community-avail" title="可用度反馈">
+              <span class="avail-dot">●</span>
+              <span class="avail-text">暂无反馈</span>
+            </div>
+            <span class="community-divider">·</span>
+            <div class="community-votes">
+              <span class="stat-working" title="还能用">👍 <span class="working-count">0</span></span>
+              <span class="stat-failed" title="已失效">👎 <span class="failed-count">0</span></span>
+            </div>
+          </div>
+          <button type="button" class="open-detail-btn" title="查看真实评测与详情">
+            <span class="detail-btn-label">评测详情 (0)</span>
+            <span class="detail-btn-arrow">➔</span>
+          </button>
+        </div>
+      </article>
+    </template>
+
+    <!-- Provider Details Modal -->
+    <div id="detail-modal" class="modal-backdrop" hidden aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="modal-dialog">
+        <header class="modal-header">
+          <div class="modal-brand">
+            <div class="modal-icon-wrap">
+              <img class="modal-icon" alt="" hidden loading="lazy" />
+            </div>
+            <div class="modal-title-col">
+              <div class="modal-title-row">
+                <h2 class="modal-name" id="modal-title"></h2>
+                <span class="modal-quality"></span>
+                <div class="modal-tags"></div>
+              </div>
+              <p class="modal-verified"></p>
+            </div>
+          </div>
+          <button type="button" class="modal-close-btn" id="modal-close-btn" aria-label="关闭" title="关闭 (Esc)">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </header>
+
+        <div class="modal-body">
+          <!-- Facts Grid -->
+          <div class="modal-facts-grid">
+            <div class="modal-fact">
+              <span class="fact-label" data-i18n="factRegion">区域网络</span>
+              <span class="fact-value fact-region-val">-</span>
+            </div>
+            <div class="modal-fact">
+              <span class="fact-label" data-i18n="factProtocol">接口协议</span>
+              <span class="fact-value fact-proto-val">-</span>
+            </div>
+            <div class="modal-fact">
+              <span class="fact-label" data-i18n="factDefaultModel">首选模型</span>
+              <span class="fact-value fact-model-val">-</span>
+            </div>
+            <div class="modal-fact">
+              <span class="fact-label" data-i18n="factQuality">品质分级</span>
+              <span class="fact-value fact-quality-val">-</span>
+            </div>
+          </div>
+
+          <!-- Overview & Quick Actions -->
+          <section class="modal-section modal-overview">
+            <h3 class="modal-section-title" data-i18n="quotaLabel">免费额度 / 特性</h3>
+            <div class="modal-quota-box">
+              <p class="modal-summary"></p>
+            </div>
+            <div class="modal-claim-guide" hidden>
+              <h4 class="modal-claim-guide-title" data-i18n="claimGuideLabel">领取步骤</h4>
+              <ol class="modal-claim-steps"></ol>
+            </div>
+            <div class="modal-quick-links">
+              <a class="modal-link modal-homepage" rel="noopener noreferrer" target="_blank"></a>
+              <a class="modal-link modal-console" rel="noopener noreferrer" target="_blank"></a>
+              <button type="button" class="import-btn modal-import-btn"></button>
+            </div>
+          </section>
+
+          <!-- Models List -->
+          <section class="modal-section">
+            <h3 class="modal-section-title" data-i18n="supportedModels">支持模型与特性</h3>
+            <ul class="modal-models card-models"></ul>
+          </section>
+
+          <!-- Community Health Board -->
+          <section class="modal-section modal-health-card">
+            <div class="health-header">
+              <div class="health-score-box">
+                <div class="health-score-num">-.-</div>
+                <div class="health-score-meta">
+                  <div class="health-score-stars">★★★★★</div>
+                  <div class="health-score-label">综合评分 (<span class="health-score-count">0</span>)</div>
+                </div>
+              </div>
+              <div class="health-avail-box">
+                <div class="health-avail-pill community-avail">
+                  <span class="avail-dot">●</span>
+                  <span class="avail-text">暂无反馈</span>
+                </div>
+                <div class="health-avail-tip" data-i18n="healthAvailTip">基于社区近 24 小时反馈统计</div>
+              </div>
+            </div>
+            <div class="health-vote-row">
+              <span class="health-vote-label" data-i18n="votePrompt">您今日实测可用吗？</span>
+              <div class="vote-group">
+                <button type="button" class="vote-btn modal-vote-working" data-vote="working">
+                  <span class="vote-icon">👍</span> <span class="vote-text" data-i18n="working">还能用</span> (<span class="vote-count">0</span>)
+                </button>
+                <button type="button" class="vote-btn modal-vote-failed" data-vote="failed">
+                  <span class="vote-icon">👎</span> <span class="vote-text" data-i18n="failed">已失效</span> (<span class="vote-count">0</span>)
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <!-- Community Reviews -->
+          <section class="modal-section modal-reviews-section">
+            <h3 class="modal-section-title"><span data-i18n="reviewsTitle">社区真实评测</span> (<span class="modal-reviews-count">0</span>)</h3>
+            <div class="modal-review-input-zone"></div>
+            <div class="modal-reviews-list reviews-list"></div>
+          </section>
+        </div>
+      </div>
+    </div>
+
+    <script src="./freebuddy-bridge.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>

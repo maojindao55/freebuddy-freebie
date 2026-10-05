@@ -6,7 +6,7 @@
 import { readFileSync } from "node:fs";
 import vm from "node:vm";
 
-const APP_SOURCE = readFileSync(new URL("../../app.js", import.meta.url), "utf8");
+const APP_SOURCE = readFileSync(new URL("../../freebie/app.js", import.meta.url), "utf8");
 
 class StubClassList {
   constructor() {
