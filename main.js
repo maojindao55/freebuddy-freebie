@@ -45,6 +45,7 @@ const EN = {
   'fx.u.toast': 'Account switched — no re-login needed',
   'nav.features': 'Features',
   'nav.agents': 'Agents',
+  'nav.community': 'Community',
   'nav.download': 'Download',
   'hero.badge': 'v0.10 is out · Free & open source',
   'hero.title1': 'Every coding agent,',
@@ -88,7 +89,11 @@ const EN = {
   'dl.title': 'Get started',
   'dl.sub': 'Pick your platform. Up and running in seconds.',
   'dl.copy': 'Copy',
-  'footer.qq': 'QQ Group',
+  'community.title': 'Join the community',
+  'community.sub': 'Tips, feedback, and release alerts — all in the group.',
+  'community.name': 'FreeBuddy user group',
+  'community.desc': 'Chat with other users; questions get answered first in the group.',
+  'community.join': 'Join QQ Group',
 };
 
 Object.assign(EN, {
