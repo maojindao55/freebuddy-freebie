@@ -224,6 +224,58 @@ function toProviderObject(row) {
   return provider;
 }
 
+const GITHUB_REPO = "maojindao55/freebuddy";
+
+async function handleLatestRelease() {
+  try {
+    const res = await fetch(
+      `https://api.github.com/repos/${GITHUB_REPO}/releases/latest`,
+      {
+        headers: { Accept: "application/vnd.github+json", "User-Agent": "freebuddy-site" },
+        cf: {
+          cacheEverything: true,
+          cacheTtlByStatus: { "200-299": 600, "300-399": 600, "400-599": 60 }
+        }
+      }
+    );
+    if (res.ok) {
+      const { tag_name, assets = [] } = await res.json();
+      if (tag_name) {
+        return jsonResponse({
+          tag: tag_name,
+          assets: assets
+            .filter((a) => a && a.name && a.browser_download_url)
+            .map((a) => ({ name: a.name, url: a.browser_download_url }))
+        });
+      }
+    }
+  } catch {
+    // fall through to the redirect probe
+  }
+
+  // No API quota needed: /releases/latest 302s to the tag URL. With assets
+  // empty the page rewrites the pinned download links using the new tag —
+  // release asset filenames embed it.
+  try {
+    const head = await fetch(`https://github.com/${GITHUB_REPO}/releases/latest`, {
+      method: "HEAD",
+      redirect: "manual",
+      headers: { "User-Agent": "freebuddy-site" },
+      cf: {
+        cacheEverything: true,
+        cacheTtlByStatus: { "200-399": 600, "400-599": 60 }
+      }
+    });
+    const location = head.headers.get("location") || "";
+    const match = location.match(/\/releases\/tag\/([^/?#]+)/);
+    if (match) return jsonResponse({ tag: decodeURIComponent(match[1]), assets: [] });
+  } catch {
+    // fall through to 502
+  }
+
+  return jsonResponse({ ok: false, error: "release_unavailable" }, 502);
+}
+
 async function handleApi(request, env) {
   const url = new URL(request.url);
 
@@ -269,6 +321,15 @@ async function handleApi(request, env) {
   // Read-only by design: new providers are reviewed via GitHub PR first.
   // Ordered newest-added first (providers.created_at survives re-syncs), which the page
   // re-applies after merging with the reviewed static catalog.
+  // GET /api/release/latest : latest GitHub release for the landing page.
+  // Edge-cached server-side fetch, because direct browser calls to
+  // api.github.com share a 60/hr unauthenticated quota per egress IP —
+  // shared networks burn through it fast and the page silently falls back
+  // to the pinned version.
+  if (url.pathname === "/api/release/latest" && request.method === "GET") {
+    return handleLatestRelease();
+  }
+
   if (url.pathname === "/api/providers" && request.method === "GET") {
     if (!db) {
       return jsonResponse({ ok: true, providers: [] });

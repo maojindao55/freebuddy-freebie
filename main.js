@@ -274,18 +274,41 @@ async function loadRelease() {
     const cached = JSON.parse(localStorage.getItem(KEY) || 'null');
     if (cached && Date.now() - cached.t < TTL) return cached.d;
   } catch {}
-  const res = await fetch(`https://api.github.com/repos/${REPO}/releases/latest`, { headers: { Accept: 'application/vnd.github+json' } });
-  if (!res.ok) throw new Error(`GitHub API ${res.status}`);
-  const { tag_name, assets } = await res.json();
-  const d = { tag: tag_name, assets: assets.map(({ name, browser_download_url }) => ({ name, url: browser_download_url })) };
-  try { localStorage.setItem(KEY, JSON.stringify({ t: Date.now(), d })); } catch {}
+  // Prefer the worker endpoint: it edge-caches GitHub's response server-side.
+  // Direct api.github.com calls share a 60/hr unauthenticated quota per egress
+  // IP, which shared networks exhaust quickly — the page then silently pins
+  // the stale fallback version.
+  let d = null;
+  try {
+    const res = await fetch('/api/release/latest');
+    if (res.ok) d = await res.json();
+  } catch {}
+  if (!d || !d.tag) {
+    const res = await fetch(`https://api.github.com/repos/${REPO}/releases/latest`, { headers: { Accept: 'application/vnd.github+json' } });
+    if (!res.ok) throw new Error(`GitHub API ${res.status}`);
+    const { tag_name, assets } = await res.json();
+    d = { tag: tag_name, assets: assets.map(({ name, browser_download_url }) => ({ name, url: browser_download_url })) };
+  }
+  d = { tag: d.tag, assets: d.assets || [] };
+  // Only cache complete payloads: an assets-empty tag (redirect fallback)
+  // should re-resolve next visit rather than linger for the full TTL.
+  if (d.assets.length) {
+    try { localStorage.setItem(KEY, JSON.stringify({ t: Date.now(), d })); } catch {}
+  }
   return d;
 }
 
 loadRelease().then(({ tag, assets }) => {
   document.querySelectorAll('[data-asset]').forEach((a) => {
     const hit = assets.find((x) => ASSET_RULES[a.dataset.asset].test(x.name));
-    if (hit) a.href = hit.url;
+    if (hit) {
+      a.href = hit.url;
+    } else if (tag) {
+      // No asset list (redirect fallback): asset filenames embed the release
+      // tag, so swapping the pinned tag keeps every link pointing at real files.
+      const m = a.href.match(/\/download\/([^/]+)\//);
+      if (m && m[1] !== tag) a.href = a.href.split(m[1]).join(tag);
+    }
   });
   if (tag) document.querySelectorAll('[data-ver]').forEach((el) => { el.textContent = tag; });
   setPrimary();
