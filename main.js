@@ -60,7 +60,7 @@ const EN = {
   'f1.title': 'Multiple agents, side by side',
   'f1.desc': 'Locally installed agents are detected automatically, with 14 popular agents supported out of the box. If it runs in a terminal, it runs in FreeBuddy.',
   'f2.title': 'Workflow Teams',
-  'f2.desc': 'Orchestrate multi-agent workflows with team templates: Codex implements, ClaudeCode reviews, Kimi tests — all in parallel.',
+  'f2.desc': 'Assign implementation, review and testing with team templates. Findings go back for fixes, then re-review before delivery.',
   'f3.title': 'Bring Your Own Key',
   'f3.desc': 'Codex, ClaudeCode and DeepSeek Harness work with third-party or proxy APIs. Manage every model provider in one place and hot-switch models like DeepSeek anytime.',
   'f4.title': 'Agent Usage Dashboard',
@@ -314,79 +314,7 @@ loadRelease().then(({ tag, assets }) => {
   setPrimary();
 }).catch(() => { /* keep pinned fallback links */ });
 
-// Hero demo: tabs switch between live HTML views (sliding pill + staggered entrance).
-const views = [...document.querySelectorAll('.demo-view')];
-const tabs = [...document.querySelectorAll('.shot-tab')];
-const tabBar = document.querySelector('.shot-tabs');
 const calm = matchMedia('(prefers-reduced-motion: reduce)');
-let ind = null;
-if (tabBar) {
-  ind = document.createElement('span');
-  ind.className = 'shot-tab-ind';
-  ind.setAttribute('aria-hidden', 'true');
-  tabBar.prepend(ind);
-  tabBar.classList.add('has-ind');
-}
-const placeInd = (instant) => {
-  const t = tabs.find((x) => x.classList.contains('active'));
-  if (!ind || !t) return;
-  if (instant) ind.style.transition = 'none';
-  ind.style.width = `${t.offsetWidth}px`;
-  ind.style.height = `${t.offsetHeight}px`;
-  ind.style.borderRadius = getComputedStyle(t).borderRadius;
-  ind.style.transform = `translate(${t.offsetLeft}px, ${t.offsetTop}px)`;
-  if (instant) { void ind.offsetWidth; ind.style.transition = ''; }
-};
-placeInd(true);
-if ('ResizeObserver' in window) {
-  const ro = new ResizeObserver(() => placeInd(true));
-  tabs.forEach((t) => ro.observe(t));
-}
-document.fonts?.ready.then(() => placeInd(true));
-
-const enterView = (v) => {
-  v.hidden = false;
-  if (calm.matches) return;
-  const groups = [v.querySelectorAll('.fb-stream > *'), v.querySelectorAll('.fb-cmp'), v.querySelectorAll('.fb-step')];
-  let i = 0;
-  groups[0].forEach((el) => el.style.setProperty('--i', i++));
-  groups[1].forEach((el) => el.style.setProperty('--i', i++));
-  groups[2].forEach((el, k) => el.style.setProperty('--i', k + 1));
-  v.classList.remove('is-entering');
-  void v.offsetWidth;
-  v.classList.add('is-entering');
-  clearTimeout(v._enterT);
-  v._enterT = setTimeout(() => v.classList.remove('is-entering'), 1400);
-};
-let swapToken = 0;
-const showView = (name) => {
-  const next = views.find((v) => v.dataset.view === name);
-  const cur = views.find((v) => !v.hidden && v !== next);
-  if (!next) return;
-  const token = ++swapToken;
-  if (!cur || calm.matches) {
-    views.forEach((v) => { v.classList.remove('is-leaving'); v.hidden = v !== next; });
-    if (cur) enterView(next);
-    return;
-  }
-  cur.classList.add('is-leaving');
-  setTimeout(() => {
-    if (token !== swapToken) return;
-    views.forEach((v) => { v.classList.remove('is-leaving'); if (v !== next) v.hidden = true; });
-    enterView(next);
-  }, 150);
-};
-tabs.forEach((tab) => {
-  tab.addEventListener('click', () => {
-    if (tab.classList.contains('active')) return;
-    tabs.forEach((t) => {
-      t.classList.toggle('active', t === tab);
-      t.setAttribute('aria-selected', t === tab);
-    });
-    placeInd(false);
-    showView(tab.dataset.shot);
-  });
-});
 
 // 功能区网页演示：仅在可见时播放
 const countUp = (el) => {
@@ -490,7 +418,7 @@ if ('IntersectionObserver' in window && !matchMedia('(prefers-reduced-motion: re
   });
 })();
 
-// 普通模式设置演示：本机菜单 → 设置 → CLI Agent → 服务商（自动播放，用户点击即接管）
+// Conversation/settings sandbox. Scene playback belongs to demo.js.
 (() => {
   const view = document.querySelector('.demo-view.fb[data-view="hero"]');
   if (!view) return;
@@ -501,12 +429,10 @@ if ('IntersectionObserver' in window && !matchMedia('(prefers-reduced-motion: re
   if (!foot || !menu || !set || !cursor) return;
   const navBtns = [...set.querySelectorAll('.fb-set-nav button.it')];
   const panes = [...set.querySelectorAll('.fb-set-pane')];
-  const closeBtn = set.querySelector('.fb-set-close');
   const toggles = [...set.querySelectorAll('.fb-tg')];
   toggles.forEach((tg) => { tg.dataset.init = tg.classList.contains('on') ? '1' : '0'; });
-  const calm = matchMedia('(prefers-reduced-motion: reduce)');
 
-  // 新会话演示：新建 → 选 Agent → 输入 → 发送 → 流式回复
+  // 新会话演示：新建 → 选 Agent → 输入 → 示例回复
   const stream = view.querySelector('.fb-stream');
   const fbMain = view.querySelector('.fb-main');
   const baseCmp = fbMain?.querySelector('.fb-cmp');
@@ -548,6 +474,11 @@ if ('IntersectionObserver' in window && !matchMedia('(prefers-reduced-motion: re
   const baseChipName = baseCmp?.querySelector('.fb-cmp-chip b');
   const baseChipInit = baseChipImg && baseChipName ? { src: baseChipImg.getAttribute('src'), name: baseChipName.textContent } : null;
   const newBtn = view.querySelector('.fb-nav-item');
+  const newSession = document.createElement('button'); newSession.type = 'button'; newSession.className = 'fb-tb-btn tour-new-session';
+  newSession.setAttribute('data-i18n', 'demo.navNew'); newSession.textContent = document.documentElement.lang.startsWith('en') ? 'New session' : '新会话';
+  view.querySelector('.fb-tb-actions').prepend(newSession);
+  const handoffIcon = view.querySelector('.fb-tb-btn[title][data-i18n-attr*="aHandoff"]');
+  if (handoffIcon) { const handoffButton = document.createElement('button'); handoffButton.type = 'button'; handoffButton.className = handoffIcon.className; handoffButton.innerHTML = handoffIcon.innerHTML; handoffButton.title = handoffIcon.title; handoffButton.setAttribute('data-i18n-attr', 'title:demo.aHandoff;aria-label:demo.aHandoff'); handoffButton.setAttribute('aria-label', handoffIcon.title); handoffButton.addEventListener('click', () => document.dispatchEvent(new CustomEvent('fb:scene', { detail: 'transfer' }))); handoffIcon.replaceWith(handoffButton); }
   const picks = picker ? [...picker.querySelectorAll('.fb-pick')] : [];
   const ntOk = !!(stream && newPage && ntTitle && baseChipInit && picker && chipImg && chipName && cmpInput && sendBtn && newBtn && picks.length);
   const origMsgs = stream ? [...stream.children] : [];
@@ -609,7 +540,7 @@ if ('IntersectionObserver' in window && !matchMedia('(prefers-reduced-motion: re
     convNew?.remove(); convNew = null;
     convOld.classList.add('active'); convOld.querySelector('.fb-run')?.removeAttribute('hidden');
   };
-  const openPicker = (on) => picker?.classList.toggle('open', on);
+  const openPicker = (on) => { picker?.classList.toggle('open', on); picker?.setAttribute('aria-hidden', String(!on)); newPage?.querySelector('.fb-cmp-chip')?.setAttribute('aria-expanded', String(on)); };
   const pickAgent = (btn) => {
     picks.forEach((b) => b.classList.toggle('sel', b === btn));
     chipImg.src = btn.querySelector('img').getAttribute('src');
@@ -687,137 +618,55 @@ if ('IntersectionObserver' in window && !matchMedia('(prefers-reduced-motion: re
     resetNt();
   };
 
-  // 光标：箭头尖端对准目标点
-  const moveTo = (el, fx = 0.5, fy = 0.5) => {
-    const v = view.getBoundingClientRect();
-    const r = el.getBoundingClientRect();
-    // 视觉坐标 → 容器内布局坐标（兼容 CSS zoom）
-    const k = (view.offsetWidth && v.width / view.offsetWidth) || 1;
-    cursor.style.setProperty('--cx', `${(r.left - v.left + r.width * fx) / k - 3}px`);
-    cursor.style.setProperty('--cy', `${(r.top - v.top + r.height * fy) / k - 2}px`);
-  };
-
-  let run = 0;
-  let playing = false;
-  const sleep = (ms, t) => new Promise((res, rej) => setTimeout(() => (t === run ? res() : rej(new Error('stale'))), ms));
-  const press = async (t) => { cursor.classList.add('press'); await sleep(130, t); cursor.classList.remove('press'); };
-
-  const playNewTask = async (t) => {
-    if (!ntOk) return;
+  const submitSample = () => {
     const s = ntText();
-    moveTo(newBtn, 0.3); await sleep(800, t);
-    newBtn.classList.add('is-hover'); await press(t); newBtn.classList.remove('is-hover');
+    const task = typed.textContent.trim();
+    if (!task) { typed.textContent = s.ask; cmpInput.classList.add('typing'); typed.focus(); return; }
     origMsgs.forEach((el) => el.classList.add('nt-off'));
-    showNew(s);
-    await sleep(600, t);
-
-    moveTo(chip, 0.4); await sleep(800, t);
-    await press(t); openPicker(true); await sleep(600, t);
-    const target = picks.find((b) => b.dataset.agent === 'claude') || picks[picks.length - 1];
-    for (const b of picks.slice(0, picks.indexOf(target) + 1)) {
-      moveTo(b, 0.3); b.classList.add('is-hover'); await sleep(380, t);
-      if (b !== target) b.classList.remove('is-hover');
-    }
-    await press(t); target.classList.remove('is-hover'); pickAgent(target); await sleep(600, t);
-
-    moveTo(cmpInput, 0.3); await sleep(700, t); await press(t);
-    cmpInput.classList.add('typing');
-    const ms = s.ask.length > 40 ? 28 : 55;
-    for (const ch of s.ask) { typed.textContent += ch; await sleep(ms, t); }
-    await sleep(450, t);
-
-    moveTo(sendBtn); await sleep(700, t);
-    sendBtn.classList.add('is-hover'); await press(t); sendBtn.classList.remove('is-hover');
-    typed.textContent = ''; cmpInput.classList.remove('typing');
+    stream.querySelectorAll('[data-nt]').forEach((el) => el.remove());
     toChat(s);
-    moveTo(stream, 0.55, 0.72); // 视图切换后光标移入消息流，避免悬停在详情栏边缘
-    const u = mk('div', 'fb-m fb-m-user', '<div class="fb-m-bubble"><p></p></div>');
-    u.dataset.nt = ''; u.querySelector('p').textContent = s.ask;
-    stream.append(u); scrollEnd(); await sleep(700, t);
-
-    const a = mk('div', 'fb-m fb-m-agent', `<span class="fb-m-avatar"><img src="${chipImg.getAttribute('src')}" alt=""></span><div class="fb-m-bubble"><div class="fb-proc"></div></div>`);
-    a.dataset.nt = ''; a.querySelector('.fb-m-avatar img').alt = chipName.textContent.trim(); stream.append(a); scrollEnd();
-    const proc = a.querySelector('.fb-proc');
-    for (const [verb, file, extra] of s.steps) {
-      const row = mk('div', 'fb-proc-row run', `<i></i><span>${verb}</span><code>${file}</code>${extra || ''}`);
-      proc.append(row); scrollEnd(); await sleep(900, t);
-      row.classList.replace('run', 'done');
-    }
-    await sleep(300, t);
-    const para = mk('p', 'fb-m-text'); const tx = document.createTextNode(''); const caret = mk('span', 'fb-caret');
-    para.append(tx, caret); a.querySelector('.fb-m-bubble').append(para);
-    for (let i = 0; i < s.reply.length; i += 2) { tx.data += s.reply.slice(i, i + 2); scrollEnd(); await sleep(38, t); }
-    caret.remove(); await sleep(2200, t);
+    const user = mk('div', 'fb-m fb-m-user', '<div class="fb-m-bubble"><p></p></div>');
+    user.dataset.nt = ''; user.querySelector('p').textContent = task;
+    const answer = mk('div', 'fb-m fb-m-agent', `<span class="fb-m-avatar"><img src="${chipImg.getAttribute('src')}" alt=""></span><div class="fb-m-bubble"><div class="fb-proc"></div><p class="fb-m-text"></p></div>`);
+    answer.dataset.nt = ''; answer.querySelector('img').alt = chipName.textContent;
+    for (const [verb, file, extra] of s.steps) answer.querySelector('.fb-proc').append(mk('div', 'fb-proc-row done', `<i></i><span>${verb}</span><code>${file}</code>${extra || ''}`));
+    answer.querySelector('p').textContent = `${document.documentElement.lang.startsWith('en') ? 'Sample reply: ' : '演示回复：'}${s.reply}`;
+    stream.append(user, answer); typed.textContent = ''; cmpInput.classList.remove('typing'); scrollEnd();
   };
-
-  // 设置段：本机菜单 → 设置 → 服务商 → 开启一个 Provider → 关闭（接在团队段之后）
-  const playSettings = async (t) => {
-    cursor.classList.add('show');
-    moveTo(foot, 0.3); await sleep(800, t);
-    await press(t); openMenu(true); await sleep(600, t);
-    const act = menu.querySelector('[data-act="settings"]');
-    if (act) { moveTo(act, 0.3); act.classList.add('is-hover'); await sleep(600, t); await press(t); act.classList.remove('is-hover'); }
-    openMenu(false); openSettings(true); await sleep(900, t);
-    const nav = navBtns.find((b) => b.dataset.tab === 'providers');
-    if (nav) { moveTo(nav, 0.4); await sleep(700, t); await press(t); showPane('providers'); await sleep(900, t); }
-    const pane = panes.find((x) => x.dataset.pane === 'providers');
-    const tg = pane && [...pane.querySelectorAll('.fb-tg')].find((x) => !x.classList.contains('on'));
-    if (tg) { moveTo(tg); await sleep(800, t); await press(t); setToggle(tg, true); await sleep(1600, t); }
-    if (closeBtn) { moveTo(closeBtn); await sleep(700, t); await press(t); }
-    openSettings(false); await sleep(500, t);
-    cursor.classList.remove('show');
-  };
-  const play = async (t) => {
-    try {
-      if (view.hidden) { teamPhase = true; showView('hero'); await sleep(450, t); teamPhase = false; }
-      reset();
-      const main = view.querySelector('.fb-main');
-      if (main) moveTo(main, 0.45, 0.55);
-      await sleep(900, t);
-      cursor.classList.add('show');
-      await playNewTask(t);
-      // 单聊 → 团队：一个 Agent 到一群 Agent，单线递进（设置段放在团队之后）
-      cursor.classList.remove('show');
-      await sleep(1200, t);
-      // 团队模式段落：切到团队视图，展示工作流步骤
-      teamPhase = true; showView('team');
-      await sleep(6500, t);
-      showView('hero'); await sleep(500, t); teamPhase = false;
-      await playSettings(t);
-      await sleep(800, t);
-      play(t);
-    } catch { /* 时间线已过期 */ }
-  };
-
-  let inView = false;
-  let pauseUntil = 0;
-  let teamPhase = false;
-  const win = view.closest('.window') || view;
-  const canPlay = () => inView && !calm.matches && (teamPhase || foot.getClientRects().length > 0) && Date.now() >= pauseUntil;
-  const stop = (doReset) => {
-    run++; playing = false;
-    cursor.classList.remove('show', 'press');
-    clearHover();
-    if (doReset) { if (teamPhase || view.hidden) { teamPhase = false; showView('hero'); } reset(); }
-  };
-  const check = () => {
-    if (canPlay()) { if (!playing) { playing = true; play(++run); } }
-    else if (playing) stop(Date.now() >= pauseUntil);
-  };
-
-  // 用户接管：暂停自动演示，保留当前界面
-  win.addEventListener('pointerdown', (e) => {
-    if (!e.isTrusted) return;
-    pauseUntil = Date.now() + 10000;
-    if (playing) stop(false);
-  }, true);
+  if (ntOk) {
+    typed.contentEditable = 'plaintext-only'; typed.setAttribute('role', 'textbox'); typed.setAttribute('aria-label', ntText().ph);
+    typed.addEventListener('input', () => cmpInput.classList.toggle('typing', !!typed.textContent));
+    typed.addEventListener('keydown', (event) => { if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) { event.preventDefault(); submitSample(); } });
+    cmpInput.addEventListener('click', () => typed.focus());
+    const sample = mk('button', 'tour-sample'); sample.type = 'button';
+    const syncSample = () => { sample.textContent = document.documentElement.lang.startsWith('en') ? 'Use sample task' : '填入示例任务'; typed.setAttribute('aria-label', ntText().ph); newPage.querySelector('button.fb-cmp-chip')?.setAttribute('aria-label', document.documentElement.lang.startsWith('en') ? 'Choose Agent' : '选择 Agent'); };
+    sample.addEventListener('click', () => { typed.textContent = ntText().ask; cmpInput.classList.add('typing'); typed.focus(); });
+    newPage.querySelector('.fb-nt-stack').append(sample); syncSample(); document.addEventListener('fb:lang', syncSample);
+    const chipButton = mk('button', chip.className); chipButton.type = 'button';
+    chipButton.innerHTML = chip.innerHTML; chip.replaceWith(chipButton);
+    // Keep the original image/name references used by pickAgent in the live button.
+    chipButton.replaceChildren(chipImg, chipName);
+    chipButton.setAttribute('aria-label', document.documentElement.lang.startsWith('en') ? 'Choose Agent' : '选择 Agent'); chipButton.setAttribute('aria-expanded', 'false');
+    newPage.querySelectorAll('.fb-nt-tab')[1].tabIndex = 0;
+  }
+  document.addEventListener('fb:conversation-reset', reset);
+  view.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape') return;
+    if (picker?.classList.contains('open')) { openPicker(false); newPage.querySelector('button.fb-cmp-chip')?.focus(); }
+    if (set.classList.contains('open')) { openSettings(false); foot.focus(); }
+    if (menu.classList.contains('open')) { openMenu(false); foot.focus(); }
+  });
 
   view.addEventListener('click', (e) => {
     const t = e.target;
     if (ntOk) {
+      if ((t.closest('.fb-nav-item') === newBtn || t.closest('.tour-new-session'))) { showNew(ntText()); typed.focus(); return; }
+      const mode = t.closest('.fb-nt-tab');
+      if (mode === newPage.querySelectorAll('.fb-nt-tab')[1]) { document.dispatchEvent(new CustomEvent('fb:scene', { detail: 'review' })); return; }
+      if (t.closest('.fb-newpage .fb-cmp-send')) { submitSample(); return; }
       const pk = t.closest('.fb-pick');
       if (pk) { pickAgent(pk); return; }
-      if (t.closest('.fb-cmp-chip')) { openPicker(!picker.classList.contains('open')); return; }
+      if (t.closest('.fb-cmp-chip')) { if (!fbMain.classList.contains('nt-new')) showNew(ntText()); openPicker(!picker.classList.contains('open')); return; }
       if (picker.classList.contains('open') && !t.closest('.fb-picker')) openPicker(false);
     }
     if (t.closest('button.fb-foot')) { openMenu(!menu.classList.contains('open')); return; }
@@ -830,14 +679,6 @@ if ('IntersectionObserver' in window && !matchMedia('(prefers-reduced-motion: re
     if (t.closest('.fb-set-close') || t === set) { openSettings(false); return; }
     if (menu.classList.contains('open') && !t.closest('.fb-hostmenu')) openMenu(false);
   });
-
-  if ('IntersectionObserver' in window) {
-    // 触发：可见比例 ≥ 0.35 或可见高度 ≥ 190px（演示窗高度随视口变化，像素兜底保证矮屏也能触发）
-    const TH = Array.from({ length: 51 }, (_, i) => i / 50);
-    new IntersectionObserver(([en]) => { inView = en.isIntersecting && (en.intersectionRatio >= 0.35 || en.intersectionRect.height >= 190); check(); }, { threshold: TH }).observe(win);
-  }
-  new MutationObserver(check).observe(view, { attributes: true, attributeFilter: ['hidden'] });
-  setInterval(check, 800);
 })();
 
 // 导航栏滚动态：离开顶部后加分隔线与阴影

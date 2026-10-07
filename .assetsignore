@@ -29,6 +29,7 @@ scripts/
 .gitignore
 .assetsignore
 README.md
+design-qa.md
 CONTRIBUTING.md
 CONTRIBUTING_AGENT.md
 

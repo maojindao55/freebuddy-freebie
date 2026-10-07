@@ -949,3 +949,195 @@ html { scroll-padding-top: 80px; }
 .fx .fx-prow.is-new { border-color: rgba(16,185,129,.45); box-shadow: 0 0 0 3px rgba(16,185,129,.12); }
 .fx-btoast { position: absolute; left: 50%; bottom: 12px; translate: -50% 8px; opacity: 0; z-index: 4; display: flex; align-items: center; gap: 6px; padding: 6px 12px; font-size: 11.5px; color: #fff; background: #111827; border-radius: 99px; white-space: nowrap; pointer-events: none; transition: opacity .3s, translate .3s; }
 .fx-btoast.show { opacity: 1; translate: -50% 0; }
+
+/* Interactive product tour: the same app palette, agents and workspace patterns. */
+.tour-tabs { display: flex; gap: 4px; padding: 9px 12px; background: #fff; border-bottom: 1px solid #e7e9ee; overflow-x: auto; }
+.tour-tabs button { flex: 1; white-space: nowrap; border: 0; padding: 9px 12px; border-radius: 9px; background: transparent; color: #64748b; font: inherit; font-size: 13px; cursor: pointer; }
+.tour-tabs button[aria-selected="true"] { background: #ecfdf5; color: #047857; font-weight: 600; }
+#demo button:focus-visible, #demo input:focus-visible, #demo select:focus-visible, #demo [contenteditable]:focus-visible { outline: 2px solid #059669; outline-offset: 3px; }
+.window.demo .demo-view.fb.tour-app { display: flex; flex-direction: column; height: 540px; min-height: 0; overflow-y: auto; zoom: 1; font-family: var(--font); font-size: 13px; }
+.tour-app-header { display: flex; align-items: center; justify-content: space-between; flex: none; gap: 12px; min-height: 60px; padding: 12px 22px; border-bottom: 1px solid var(--fb-line); }
+.tour-app-header > strong { font-size: 14px; }
+.tour-brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.tour-brand b { font-size: 16px; }
+.tour-brand > span { padding-left: 16px; border-left: 1px solid #e7e9ee; }
+.tour-brand > small { color: #64748b; }
+.fb .tour-action { display: inline-flex; justify-content: center; align-items: center; gap: 6px; min-height: 36px; padding: 7px 12px; border: 1px solid #dfe3e8; border-radius: 9px; background: #fff; font-weight: 500; font-size: 12px; }
+.fb .tour-action:hover { background: #f6f7f9; }
+.fb .tour-action.primary { background: #047857; border-color: #047857; color: #fff; }
+.fb .tour-action.primary:hover { background: #065f46; }
+.tour-board-controls { display: flex; gap: 10px; padding: 14px 22px 10px; }
+.tour-board-controls label { flex: 0 1 180px; }
+.tour-app input, .tour-app select { width: 100%; min-width: 0; border: 1px solid #dfe3e8; border-radius: 9px; background: #fff; color: #334155; padding: 9px 11px; font: inherit; font-size: 12px; }
+.tour-app input[readonly] { background: #f7f8fa; }
+.tour-board-controls input { flex: 1; }
+.tour-filters { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 22px 15px; }
+.fb .tour-filters button { padding: 6px 12px; border-radius: 20px; border: 1px solid #e7e9ee; background: #f7f8fa; color: #475569; font-size: 12px; }
+.fb .tour-filters button[aria-pressed="true"] { background: #fff; border-color: #a7b7b0; color: #0f172a; font-weight: 600; }
+.tour-filters button span { margin-left: 5px; color: #047857; }
+.tour-board-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; padding: 0 22px 16px; }
+.tour-task-card { display: flex; flex-direction: column; min-width: 0; min-height: 154px; padding: 13px 16px; border: 1px solid #e1e5ea; border-radius: 14px; }
+.tour-task-card > header { display: flex; align-items: flex-start; gap: 8px; }
+.fb .tour-task-title { flex: 1; padding: 0; text-align: left; font-size: 13px; font-weight: 600; line-height: 1.5; }
+.fb .tour-task-title:hover { color: #047857; }
+.tour-status { flex: none; display: inline-flex; align-items: center; padding: 3px 8px; border-radius: 20px; background: #f1f5f9; color: #475569; font-size: 10px; white-space: nowrap; }
+.tour-status.running { color: #0369a1; background: #eff8ff; }
+.tour-status.attention { color: #92400e; background: #fff7e6; }
+.tour-status.completed { color: #047857; background: #ecfdf5; }
+.tour-identity { display: flex; align-items: center; gap: 8px; min-width: 0; color: #475569; font-size: 12px; }
+.tour-identity b { font-weight: 500; }
+.tour-identity > span, .tour-identity > small { margin-left: auto; font-size: 11px; color: #64748b; }
+.tour-avatar { flex: none; width: 23px; height: 23px; border-radius: 6px; object-fit: contain; }
+.tour-task-card .tour-identity { margin: 7px 0; }
+.tour-task-card .tour-identity .tour-new-result { margin-left: 0; color: #b45309; }
+.tour-task-card > p { margin: 0; color: #64748b; font-size: 12px; line-height: 1.6; }
+.tour-task-card footer { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: auto; padding-top: 11px; }
+.tour-task-card footer small { font-size: 10px; color: #64748b; }
+.tour-task-card footer button { color: #475569; font-size: 11px; padding: 4px 0 4px 6px; }
+.tour-task-card footer button:hover { color: #047857; }
+.tour-activity { display: flex; align-items: center; gap: 8px; margin-top: 8px; color: #0369a1; }
+.tour-activity code { font-size: 10px; }
+.tour-empty { grid-column: 1/-1; text-align: center; padding: 55px 12px; color: #64748b; }
+.tour-task-conversation { max-width: 730px; width: 100%; margin: 0 auto; padding: 25px; }
+.tour-task-conversation h3 { font-size: 17px; margin: 0 0 15px; }
+.tour-message { padding: 17px 19px; border: 1px solid #e7e9ee; border-radius: 12px; margin: 18px 0; background: #f9fafb; color: #334155; line-height: 1.8; }
+.tour-message p { margin: 0 0 10px; }
+.tour-message em { font-style: normal; color: #047857; margin-left: 8px; }
+.tour-request { border: 1px solid #f0d69c; border-radius: 12px; padding: 18px; background: #fffbf2; }
+.tour-request > strong, .tour-request > code { display: block; }
+.tour-request > code { padding: 10px 0; }
+.tour-request > p { margin: 0 0 12px; color: #64748b; font-size: 12px; }
+.tour-request.resolved { border-color: #b2e3ce; background: #f3fcf8; }
+.tour-handoff-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(260px, 39%); flex: 1; min-height: 0; }
+.tour-handoff-chat { padding: 25px; overflow-y: auto; }
+.tour-handoff-panel { border-left: 1px solid #e7e9ee; background: #fafbfc; padding: 21px; overflow-y: auto; }
+.tour-handoff-panel h3 { font-size: 15px; margin: 0 0 16px; }
+.tour-handoff-panel > p { font-size: 12px; color: #64748b; }
+.tour-handoff-panel label { display: block; margin: 0 0 11px; font-size: 11px; color: #64748b; }
+.tour-handoff-panel label input, .tour-handoff-panel label select { display: block; margin-top: 4px; }
+.fb .tour-preview { color: #047857; padding: 4px 0 10px; font-size: 12px; }
+.tour-brief { margin: 0; padding: 12px 14px; border: 1px solid #e1e5ea; border-radius: 10px; background: #fff; }
+.tour-brief div + div { margin-top: 9px; }
+.tour-brief dt { font-size: 11px; color: #64748b; }
+.tour-brief dd { margin: 1px 0 0; font-size: 12px; line-height: 1.6; color: #334155; }
+.tour-dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 15px; }
+.tour-context-note { margin: 28px 0 18px; padding-top: 16px; border-top: 1px solid #e7e9ee; color: #047857; font-size: 11px; }
+.tour-message.continuation { background: #f3fcf8; border-color: #c2e7d7; }
+.tour-agent-pair, .tour-success { display: flex; align-items: center; gap: 12px; margin: 20px 0; }
+.tour-agent-pair img { width: 33px; height: 33px; }
+.tour-review-layout { display: grid; grid-template-columns: 245px minmax(0,1fr); flex: 1; min-height: 0; }
+.tour-workflow { padding: 16px 15px; border-right: 1px solid #e7e9ee; background: #f9fafb; overflow-y: auto; }
+.tour-workflow > p { margin: 0 5px 15px; font-size: 11px; color: #64748b; }
+.fb .tour-workflow button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 12px 10px; border: 1px solid transparent; border-radius: 10px; text-align: left; }
+.fb .tour-workflow button.current { background: #fff; border-color: #dfe3e8; box-shadow: 0 1px 2px rgba(15,23,42,.04); }
+.tour-step-number { display: grid; place-items: center; flex: none; width: 24px; height: 24px; border: 1px solid #dfe3e8; border-radius: 50%; color: #64748b; font-size: 11px; }
+.current .tour-step-number { border-color: #059669; background: #ecfdf5; color: #047857; }
+.tour-workflow button > span:nth-child(2) { display: flex; flex: 1; flex-direction: column; }
+.tour-workflow b { font-size: 12px; font-weight: 600; }
+.tour-workflow small { color: #64748b; font-size: 10px; }
+.tour-workflow em { font-size: 10px; color: #64748b; font-style: normal; }
+.tour-review-content { padding: 24px 30px; overflow-y: auto; }
+.tour-review-content h3 { font-size: 19px; margin: 20px 0 10px; letter-spacing: -.02em; }
+.tour-review-content > p { max-width: 590px; color: #64748b; font-size: 13px; line-height: 1.85; margin: 0 0 19px; }
+.tour-finding { display: flex; align-items: flex-start; flex-direction: column; gap: 12px; padding: 18px; border: 1px solid #f0d69c; border-radius: 12px; background: #fffbf2; margin-bottom: 20px; }
+.tour-finding strong { font-size: 13px; }
+.tour-finding code { color: #64748b; }
+.tour-diff { margin-bottom: 16px; border: 1px solid #e1e5ea; border-radius: 12px; overflow: hidden; background: #fafbfc; }
+.tour-diff > div { display: flex; justify-content: space-between; padding: 9px 14px; border-bottom: 1px solid #e1e5ea; color: #047857; font-size: 11px; }
+.tour-diff pre { margin: 0; padding: 14px; font-family: var(--mono); font-size: 12px; line-height: 1.9; overflow-x: auto; }
+.tour-diff .add { color: #047857; }
+.tour-diff .del { color: #be123c; }
+.tour-test-result { display: block; margin: 0 0 20px; color: #047857; }
+.tour-checks { display: flex; flex-direction: column; gap: 14px; padding: 20px; margin-bottom: 20px; border: 1px solid #e1e5ea; border-radius: 12px; }
+.tour-checks > div { display: flex; gap: 10px; align-items: center; color: #475569; font-size: 12px; }
+.tour-checkmark { color: #047857; font-weight: 700; }
+.tour-verdict { display: flex; justify-content: space-between; padding: 14px 17px; border-radius: 10px; color: #047857; background: #ecfdf5; font-weight: 600; }
+.tour-caption { border-top: 1px solid #e7e9ee; padding: 15px 22px; min-height: 90px; background: #fff; }
+.tour-caption > div { display: flex; align-items: center; gap: 10px; }
+.tour-caption span { color: #047857; border-radius: 6px; background: #ecfdf5; padding: 2px 7px; font-size: 10px; white-space: nowrap; }
+.tour-caption strong { font-size: 14px; font-weight: 600; }
+.tour-caption p { margin: 5px 0 0; font-size: 12px; color: #64748b; }
+.tour-controls { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 16px 12px 22px; background: #f9fafb; border-top: 1px solid #e7e9ee; }
+.tour-disclaimer { font-size: 10px; color: #64748b; }
+.tour-buttons { display: flex; flex: none; align-items: center; gap: 4px; }
+.tour-buttons button { font: inherit; font-size: 11px; border: 1px solid transparent; border-radius: 7px; background: transparent; color: #475569; padding: 6px 8px; cursor: pointer; }
+.tour-buttons button:hover { background: #e9edf0; }
+.tour-buttons button[data-tour="play"] { background: #fff; border-color: #dfe3e8; min-width: 45px; }
+.tour-buttons button:disabled { opacity: .4; cursor: default; }
+.tour-position { font-family: var(--mono); font-size: 10px; color: #64748b; padding: 0 2px; }
+.fb .tour-sample { align-self: center; color: #047857; padding: 12px; font-size: 12px; margin-top: 10px; }
+.fb-cmp-typed[contenteditable] { display: inline-block; min-width: 100%; min-height: 65px; white-space: pre-wrap; overflow-wrap: anywhere; }
+.fb-cmp-input:has(.fb-cmp-typed[contenteditable]:empty) .fb-cmp-typed { min-height: 20px; }
+.fb-nt-tab { cursor: pointer; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+@media (max-width: 900px) {
+  .tour-review-layout { grid-template-columns: 190px minmax(0,1fr); }
+  .tour-review-content { padding: 22px; }
+  .tour-workflow em { display: none; }
+  .tour-handoff-chat { padding: 20px; }
+  .tour-handoff-panel { padding: 18px; }
+  .tour-task-card > header { flex-wrap: wrap; }
+  .tour-task-card .tour-identity { flex-wrap: wrap; }
+  .tour-task-card .tour-identity > span { margin-left: 0; }
+  .tour-controls { flex-wrap: wrap; }
+  .tour-buttons { margin-left: auto; }
+}
+@media (max-width: 640px) {
+  .tour-tabs { padding: 7px; gap: 2px; }
+  .tour-tabs button { padding: 9px 10px; font-size: 11px; }
+  .window.demo .demo-view.fb.tour-app { height: 460px; }
+  .tour-app-header { padding: 12px 14px; min-height: 60px; flex-wrap: wrap; }
+  .tour-brand { gap: 7px; }
+  .tour-brand b { font-size: 14px; }
+  .tour-brand > span { padding-left: 8px; font-size: 12px; }
+  .tour-brand > small { display: none; }
+  .tour-board-controls { padding: 14px 14px 10px; flex-wrap: wrap; }
+  .tour-board-controls label { flex: 1 0 100%; }
+  .tour-filters { padding: 0 14px 14px; gap: 5px; }
+  .fb .tour-filters button { padding: 6px 9px; font-size: 10px; }
+  .tour-board-grid { grid-template-columns: 1fr; padding: 0 14px 16px; gap: 12px; }
+  .tour-task-card { min-height: 160px; }
+  .tour-task-conversation { padding: 20px 16px; }
+  .tour-task-conversation > .tour-identity { flex-wrap: wrap; }
+  .tour-handoff-layout { display: block; overflow-y: auto; }
+  .tour-handoff-chat, .tour-handoff-panel { padding: 18px 16px; overflow: visible; }
+  .tour-handoff-panel { border-left: 0; border-top: 1px solid #e7e9ee; }
+  .tour-review-layout { display: flex; flex-direction: column; min-height: 0; }
+  .tour-workflow { flex: none; display: flex; padding: 10px; gap: 5px; overflow-x: auto; border-right: 0; border-bottom: 1px solid #e7e9ee; }
+  .tour-workflow > p, .tour-workflow small { display: none; }
+  .fb .tour-workflow button { flex: none; width: auto; padding: 8px; gap: 6px; }
+  .tour-workflow b { font-size: 10px; white-space: nowrap; }
+  .tour-step-number { width: 19px; height: 19px; font-size: 9px; }
+  .tour-review-content { padding: 20px 16px; }
+  .tour-review-content h3 { font-size: 17px; margin-top: 16px; }
+  .tour-caption { padding: 14px 16px; min-height: 112px; }
+  .tour-caption strong { font-size: 13px; }
+  .tour-caption p { font-size: 11px; line-height: 1.7; }
+  .tour-controls { padding: 10px; gap: 7px; }
+  .tour-disclaimer { width: 100%; text-align: center; font-size: 9px; }
+  .tour-buttons { width: 100%; justify-content: center; margin: 0; }
+  .tour-buttons button { padding: 7px; font-size: 10px; }
+  .fb-main.nt-new > .fb-newpage { padding: 24px 16px; }
+  .fb-nt-title { font-size: 21px; }
+  .fb-nt-tabs { margin-bottom: 16px; }
+  .fb-nt-tab { font-size: 12px; padding: 0 12px; }
+  .fb-nt-ctx { width: calc(100% - 16px); gap: 5px; padding: 7px; flex-wrap: wrap; }
+}
+
+.window.demo .demo-view.fb.tour-app[hidden] { display: none; }
+
+.fb .tour-new-session { font-size: 11px; width: auto; padding: 4px 8px; white-space: nowrap; }
+#demo { scroll-margin-top: 76px; }
+
+.window.demo .demo-view.fb[data-view="hero"] { height: 540px; zoom: 1; }
+.tour-buttons button { min-height: 34px; }
+@media (max-width: 640px) {
+  .window.demo .demo-view.fb[data-view="hero"] { height: 460px; }
+  .tour-tabs button { min-height: 38px; }
+  .fb .tour-filters button { min-height: 34px; }
+}
+@media (max-width: 360px) {
+  .nav .logo span { display: none; }
+  .nav .lang-toggle { white-space: nowrap; flex: none; }
+  .hero .hero-agents { --ha-fold: -7px; --ha-open: -7px; }
+}
