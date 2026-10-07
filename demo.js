@@ -1,4 +1,4 @@
-import { SCENES, initialState, taskList, filterTasks, transition, createPlayback } from './demo-state.js?v=1008';
+import { SCENES, initialState, taskList, filterTasks, transition, createPlayback } from './demo-state.js?v=1009';
 
 const root = document.querySelector('#demo');
 const app = root.querySelector('[data-view="tour"]');
@@ -13,7 +13,7 @@ const agents = {
 const COPY = {
   zh: {
     scenes: { tasks: '任务面板', transfer: 'Agent 转接', review: '评审修复', hero: '自由对话' },
-    sceneLabel: '演示场景', demoLabel: 'FreeBuddy 交互演示', previous: '上一步', next: '下一步', play: '播放', pause: '暂停', replay: '重播', progress: '演示进度',
+    sceneLabel: '演示场景', demoLabel: 'FreeBuddy 交互演示', previous: '上一步', next: '下一步', play: '播放', pause: '暂停', replay: '重播', progress: '演示进度', playHint: '继续自动轮播所有场景', pauseHint: '暂停自动轮播',
     disclaimer: '交互演示 · 示例数据，不连接真实 Agent',
     new: '新会话', allProjects: '所有项目', search: '搜索任务、项目或 Agent', empty: '没有匹配的任务', clear: '清除筛选', back: '返回任务面板', open: '查看会话', request: '查看请求',
     filters: { all: '全部', running: '运行中', attention: '待处理', unread: '未读' },
@@ -37,7 +37,7 @@ const COPY = {
   },
   en: {
     scenes: { tasks: 'Task board', transfer: 'Agent handoff', review: 'Review & fix', hero: 'Conversation' },
-    sceneLabel: 'Demo scenarios', demoLabel: 'FreeBuddy interactive demo', previous: 'Previous', next: 'Next', play: 'Play', pause: 'Pause', replay: 'Replay', progress: 'Demo progress',
+    sceneLabel: 'Demo scenarios', demoLabel: 'FreeBuddy interactive demo', previous: 'Previous', next: 'Next', play: 'Play', pause: 'Pause', replay: 'Replay', progress: 'Demo progress', playHint: 'Resume automatic playback across all scenarios', pauseHint: 'Pause automatic playback',
     disclaimer: 'Interactive demo · Sample data, no live agents',
     new: 'New session', allProjects: 'All projects', search: 'Search tasks, projects or agents', empty: 'No matching tasks', clear: 'Clear filters', back: 'Back to task board', open: 'View conversation', request: 'View request',
     filters: { all: 'All', running: 'Running', attention: 'Needs attention', unread: 'Unread' },
@@ -135,14 +135,14 @@ function render() {
   for (const [key, label] of Object.entries({ previous: t.previous, next: t.next, play: state.playing ? t.pause : t.play, replay: t.replay })) root.querySelector(`[data-tour="${key}"]`).textContent = label;
   root.querySelector('[data-tour="previous"]').disabled = state.step === 0;
   root.querySelector('[data-tour="next"]').disabled = state.step === last;
-  root.querySelector('[data-tour="play"]').disabled = last === 0;
+  root.querySelector('[data-tour="play"]').title = state.playing ? t.pauseHint : t.playHint;
   root.querySelector('[data-tour="play"]').setAttribute('aria-pressed', String(state.playing));
   root.querySelector('.tour-position').textContent = `${state.step + 1} / ${last + 1}`;
   root.querySelector('.tour-position').setAttribute('aria-label', t.progress);
 }
 root.addEventListener('click', event => {
   const scene = event.target.closest('[data-scene]');
-  if (scene) { dispatch({ type: 'scene', scene: scene.dataset.scene }); return; }
+  if (scene) { dispatch(scene.dataset.scene === state.scene ? { type: 'pause' } : { type: 'scene', scene: scene.dataset.scene }); return; }
   const control = event.target.closest('[data-tour]')?.dataset.tour;
   if (control) { dispatch(control === 'previous' || control === 'next' ? { type: 'step', step: state.step + (control === 'next' ? 1 : -1) } : { type: control === 'play' ? state.playing ? 'pause' : 'play' : 'replay' }); return; }
   const filter = event.target.closest('[data-filter]');
@@ -178,13 +178,14 @@ function pauseInPlace() {
   state = transition(state, { type: 'pause' }); syncPlayback();
   root.querySelector('[data-tour="play"]').textContent = text().play;
   root.querySelector('[data-tour="play"]').setAttribute('aria-pressed', 'false');
+  root.querySelector('[data-tour="play"]').title = text().playHint;
 }
 root.addEventListener('pointerdown', event => {
   // Manual interaction keeps control until Play is explicitly pressed again.
   if (!event.target.closest('[data-tour]') && state.playing) pauseInPlace();
 });
 root.addEventListener('focusin', event => {
-  if (state.playing && app.contains(event.target)) pauseInPlace();
+  if (state.playing && !event.target.closest('[data-tour]')) pauseInPlace();
 });
 root.querySelector('.tour-tabs').addEventListener('keydown', event => {
   const index = tabs.indexOf(document.activeElement);
@@ -202,5 +203,5 @@ document.addEventListener('visibilitychange', syncPlayback);
 reduceMotion.addEventListener('change', () => { if (reduceMotion.matches) dispatch({ type: 'pause' }); });
 new IntersectionObserver(([entry]) => { visible = entry.isIntersecting && entry.intersectionRect.height >= 180; syncPlayback(); }, { threshold: [0, .2, .4, .6, .8, 1] }).observe(root);
 render();
-// Start once; scene changes and manual input never restart playback on their own.
+// Automatically tour every tab until the user takes over. Only Play/Replay resumes it.
 if (!reduceMotion.matches) dispatch({ type: 'play' });

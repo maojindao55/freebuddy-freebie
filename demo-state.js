@@ -21,7 +21,6 @@ export function filterTasks(state, titles = {}) {
 function atStep(state, step) {
   const last = SCENES[state.scene] - 1;
   const next = { ...state, step: Math.max(0, Math.min(last, step)) };
-  if (next.step === last) next.playing = false;
   if (state.scene === 'tasks') Object.assign(next, { filter: step === 0 ? 'all' : 'attention', selected: step === 2 ? 'sign' : null, query: '', project: 'all', allowed: false });
   if (state.scene === 'transfer') next.preview = step >= 2;
   return next;
@@ -30,10 +29,17 @@ export function transition(state, action) {
   switch (action.type) {
     case 'scene': return Object.hasOwn(SCENES, action.scene) ? initialState(action.scene) : state;
     case 'step': return atStep({ ...state, playing: false }, action.step);
-    case 'tick': return state.playing ? atStep(state, state.step + 1) : state;
-    case 'play': return SCENES[state.scene] > 1 ? { ...atStep(state, state.step === SCENES[state.scene] - 1 ? 0 : state.step), playing: true } : state;
+    case 'tick': {
+      if (!state.playing) return state;
+      if (state.step < SCENES[state.scene] - 1) return atStep(state, state.step + 1);
+      // Hold the final step for a full interval, then continue through the tabs.
+      const order = Object.keys(SCENES);
+      const scene = order[(order.indexOf(state.scene) + 1) % order.length];
+      return { ...initialState(scene), playing: true };
+    }
+    case 'play': return { ...state, playing: true };
     case 'pause': return { ...state, playing: false };
-    case 'replay': return { ...initialState(state.scene), playing: SCENES[state.scene] > 1 };
+    case 'replay': return { ...initialState(state.scene), playing: true };
     case 'filter': return { ...state, filter: action.filter, step: action.filter === 'attention' ? 1 : 0, selected: null, playing: false };
     case 'project': return { ...state, project: action.project, selected: null, playing: false };
     case 'query': return { ...state, query: action.query, selected: null, playing: false };

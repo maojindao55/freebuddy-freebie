@@ -23,14 +23,14 @@ test('project, localized search and status filters combine; opening a result cle
   assert.equal(filterTasks(state).length, 0);
 });
 
-test('manual steps and scene changes stop playback; review passes only after re-review', () => {
+test('manual steps and scene changes stop playback; final review result stays visible before switching', () => {
   let state = transition(initialState('review'), { type: 'play' });
   for (let step = 1; step <= 4; step++) {
     state = transition(state, { type: 'tick' });
     assert.equal(state.step, step);
-    assert.equal(state.playing, step < 4);
+    assert.equal(state.playing, true);
   }
-  assert.equal(transition(state, { type: 'tick' }).step, 4);
+  assert.equal(transition(state, { type: 'tick' }).scene, 'hero');
   state = transition(state, { type: 'replay' });
   assert.equal(state.step, 0);
   assert.equal(state.playing, true);
@@ -74,11 +74,45 @@ test('paused or replaced playback invalidates even an already queued callback', 
   assert.ok(cancelled.includes(1));
 });
 
-test('replay restores filters and permissions; a single-state conversation cannot autoplay', () => {
+test('replay restores filters and permissions; conversation can resume the automatic tour', () => {
   const state = transition({ ...initialState(), allowed: true, filter: 'attention', query: 'sign', selected: 'sign' }, { type: 'replay' });
   assert.equal(state.allowed, false);
   assert.equal(state.filter, 'all');
   assert.equal(state.query, '');
   assert.equal(state.selected, null);
-  assert.equal(transition(initialState('hero'), { type: 'play' }).playing, false);
+  const conversation = transition(initialState('hero'), { type: 'play' });
+  assert.equal(conversation.playing, true);
+  assert.equal(transition(conversation, { type: 'tick' }).scene, 'tasks');
+});
+
+
+test('automatic playback visits every tab and loops after the conversation', () => {
+  let state = transition(initialState(), { type: 'play' });
+  const expected = [
+    ['tasks', 1], ['tasks', 2],
+    ['transfer', 0], ['transfer', 1], ['transfer', 2], ['transfer', 3],
+    ['review', 0], ['review', 1], ['review', 2], ['review', 3], ['review', 4],
+    ['hero', 0], ['tasks', 0],
+  ];
+  for (const [scene, step] of expected) {
+    state = transition(state, { type: 'tick' });
+    assert.equal(state.scene, scene);
+    assert.equal(state.step, step);
+    assert.equal(state.playing, true);
+  }
+});
+
+test('manual tab selection owns the scene until Play explicitly resumes the tour', () => {
+  let state = transition(initialState(), { type: 'play' });
+  state = transition(state, { type: 'scene', scene: 'review' });
+  assert.equal(state.playing, false);
+  for (let i = 0; i < 20; i++) state = transition(state, { type: 'tick' });
+  assert.equal(state.scene, 'review');
+  assert.equal(state.step, 0);
+  state = transition(state, { type: 'step', step: 4 });
+  state = transition(state, { type: 'play' });
+  assert.equal(state.step, 4, 'Play resumes the current result without replaying it');
+  state = transition(state, { type: 'tick' });
+  assert.equal(state.scene, 'hero');
+  assert.equal(state.playing, true);
 });
