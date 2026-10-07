@@ -22,7 +22,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/styles.css?v=1006" />
+  <link rel="stylesheet" href="/styles.css?v=1010" />
+  <link rel="stylesheet" href="/feature-demos.css?v=1010" />
 </head>
 <body>
   <header class="nav">
@@ -164,6 +165,54 @@
           </div>
         </div>
 
+        <div class="feature" id="feature-tasks">
+          <div class="feature-text">
+            <span class="tag">05</span>
+            <h3>任务面板，一眼看清</h3>
+            <p>把多个 Agent 的任务集中到一个面板。筛选运行中、待处理和未读结果，直接回到需要你关注的会话。</p>
+          </div>
+          <div class="feature-media">
+            <div class="window fx feature-demo" data-feature-demo="tasks" role="region" aria-label="任务面板，一眼看清">
+              <div class="window-bar"><i></i><i></i><i></i><span class="demo-title">FreeBuddy · 任务面板，一眼看清</span></div>
+              <div class="fd-body"><p>把多个 Agent 的任务集中到一个面板。筛选运行中、待处理和未读结果，直接回到需要你关注的会话。</p></div>
+              <div class="fd-foot"><span></span><div class="fd-controls"><button type="button" data-control="play" aria-pressed="true">暂停</button><button type="button" data-control="replay">重播</button></div></div>
+              <small class="fd-sample">示例演示 · 不连接真实 Agent</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="feature reverse" id="feature-handoff">
+          <div class="feature-text">
+            <span class="tag">06</span>
+            <h3>换个 Agent，接着做</h3>
+            <p>保留工作目录，整理目标、进度与下一步，把当前任务转交给另一个 Agent，继续推进。</p>
+          </div>
+          <div class="feature-media">
+            <div class="window fx feature-demo" data-feature-demo="handoff" role="region" aria-label="换个 Agent，接着做">
+              <div class="window-bar"><i></i><i></i><i></i><span class="demo-title">FreeBuddy · 换个 Agent，接着做</span></div>
+              <div class="fd-body"><p>保留工作目录，整理目标、进度与下一步，把当前任务转交给另一个 Agent，继续推进。</p></div>
+              <div class="fd-foot"><span></span><div class="fd-controls"><button type="button" data-control="play" aria-pressed="true">暂停</button><button type="button" data-control="replay">重播</button></div></div>
+              <small class="fd-sample">示例演示 · 不连接真实 Agent</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="feature" id="feature-review">
+          <div class="feature-text">
+            <span class="tag">07</span>
+            <h3>评审发现问题，修好再交付</h3>
+            <p>实现与评审各司其职。发现问题后交回修复，再次评审通过，才进入最终交付。</p>
+          </div>
+          <div class="feature-media">
+            <div class="window fx feature-demo" data-feature-demo="review" role="region" aria-label="评审发现问题，修好再交付">
+              <div class="window-bar"><i></i><i></i><i></i><span class="demo-title">FreeBuddy · 评审发现问题，修好再交付</span></div>
+              <div class="fd-body"><p>实现与评审各司其职。发现问题后交回修复，再次评审通过，才进入最终交付。</p></div>
+              <div class="fd-foot"><span></span><div class="fd-controls"><button type="button" data-control="play" aria-pressed="true">暂停</button><button type="button" data-control="replay">重播</button></div></div>
+              <small class="fd-sample">示例演示 · 不连接真实 Agent</small>
+            </div>
+          </div>
+        </div>
+
         <div class="mini-grid">
           <div class="mini">
             <div class="mini-icon">📰</div>
@@ -299,6 +348,7 @@
     </div>
   </footer>
 
-  <script src="/main.js?v=1007" defer></script>
+  <script src="/main.js?v=1010" defer></script>
+  <script src="/feature-demos.js?v=1010" defer></script>
 </body>
 </html>
