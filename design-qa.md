@@ -1,60 +1,49 @@
-# 官网交互演示验收
+# 官网功能卡片验收
 
 日期：2026-10-07
 分支：`codex/site-interactive-demos`
-预览：`http://127.0.0.1:8796/#demo`
+预览：`http://127.0.0.1:8796/#feature-tasks`
 
-## 视觉依据与对比范围
+## 本次调整
 
-以现有官网的字体、配色、品牌素材、页面节奏和演示窗口为视觉基线，新增任务面板、Agent 转接和评审修复场景。新增场景没有单独设计稿，结构参考桌面项目的 `ConversationTaskPanel` 和 `TransferDialog`，不将新增布局与原聊天场景的差异误判为像素偏差。
+撤回顶部任务面板 / 转接 / 评审 Tab 的改造，恢复 `13bf8b9` 的原有主交互动画。在原有四个功能卡片后新增 05 任务面板、06 Agent 转接、07 评审修复，沿用左右交错布局、窗口外观和品牌素材。新增交互由独立的 `feature-demos.js` 和 `feature-demos.css` 实现。
+
+## 原动画恢复检查
+
+- `main.js` 与 `13bf8b9` 完全相同。
+- `styles.css` 与 `13bf8b9` 完全相同。
+- `index.html` 的整个 Hero section 与 `13bf8b9` 完全相同。
+- 删除前一版顶部演示的 `demo.js`、`demo-state.js` 和对应测试；原主动画、设置演示、新会话与 Agent 选择过程均使用原代码。
+
+## 视觉验收
 
 截图目录：
-`/Users/hongbin9/.codex/visualizations/2026/10/06/01a11073-91c6-70e3-b1a9-9316a3430606/freebuddy-site-demo-build/`
+`/Users/hongbin9/.codex/visualizations/2026/10/06/01a11073-91c6-70e3-b1a9-9316a3430606/freebuddy-site-feature-cards/`
 
-- 来源：`source-desktop.png`、`source-mobile.png`，从 `https://freebuddy.si/` 捕获。
-- 实现：`implementation-desktop.png`、`implementation-mobile.png`，从本地浏览器捕获。
-- 同图并排对比：`comparison-desktop.png`、`comparison-mobile.png`。
-- 清晰区域对比：`comparison-hero.png`，保留的标题、简介、下载入口和 Agent 素材。
-- 新场景完整区域：`tasks-desktop.png`、`transfer-desktop.png`、`review-desktop.png`、`tasks-mobile.png`、`review-mobile.png`、`transfer-mobile-en.png`。
+- `restored-hero.png`：恢复后的顶部原动画。
+- `tasks-desktop.png`、`handoff-desktop.png`、`review-desktop.png`：1440 × 1000 视口下的三个新增功能区。
+- `review-mobile-en.png`、`handoff-mobile-en.png`：390 × 844 英文手机布局。
+- `tasks-mobile-320.png`：320 × 740 中文窄屏布局。
+- `feature-cards-overview.png`：三个桌面卡片的完整区域，便于整体核对。
 
-桌面来源和实现均为 1440 × 1000 CSS px / 1440 × 1000 图像像素；手机来源和实现均为 390 × 844 CSS px / 390 × 844 图像像素。截图密度为 1，没有拉伸或放大。区域截图按实际演示窗口尺寸裁切。另检查 768 × 1024 和 320 × 740 断点；临时视口在验收后重置。
+逐张检查新增卡片，沿用原字体、配色、圆角、阴影和 Agent 图标。正文和按钮无截断，长摘要可完整显示。390px 下三个卡片的 `clientWidth = scrollWidth = 346`；320px 下均为 276，无卡片横向溢出。临时视口在交付前重置。
 
-来源中的原聊天动画与实现中的任务面板是有意改变的场景；上方营销内容在同语言、同视口、滚动位置 0 下单独比较。GitHub Star 和下载版本由外部数据决定，不作静态像素匹配要求。
+## 交互验收
 
-## 必查表面
+- 三个卡片分别在可见比例达到 35% 后自动播放，离开可见区域或浏览器隐藏时停止计时。
+- 手动筛选、点击任务、选择转接 Agent 或选择评审步骤，会接管该卡片；点击播放或重播恢复演示。
+- 任务面板：运行中筛出 2 个任务、未读筛出 1 个任务；确认签名请求后，运行中变为 3、待处理变为 0。
+- 转接：选择 Kimi、展开目标 / 进度 / 下一步摘要、确认转接，接续会话显示 Kimi 和原工作目录。
+- 评审：依次检查实现完成、首次发现问题、修复、重新评审、评审通过五个状态。
+- 中英文切换同步卡片标题、说明、按钮、状态与摘要。
+- 遵循减少动态效果设置，自动播放停用，静态内容仍可通过按钮操作；未更改用户系统设置。
+- 最终加载没有新增脚本错误。过程中的变量名冲突已通过独立作用域修复。
+- `interaction-evidence.json` 保存实际浏览器操作与自动播放记录。
 
-- 字体：沿用现有系统字体和 JetBrains Mono；标题层级、中文换行与原页一致。新增界面正文 12–13px，状态与说明低一级。
-- 布局：沿用白色窗口、细边框、圆角和阴影；桌面任务卡片两列，手机一列。转接表单和长内容在演示内部滚动，页面没有横向溢出。
-- 颜色：沿用绿色主色和灰色正文；待确认/评审问题使用琥珀色，运行中使用蓝色。新增主要按钮改用 `#047857`，保证小号白字对比度。
-- 素材：复用仓库原有 FreeBuddy、Codex、Claude、Kimi、DeepSeek 图片；没有新增仿制 Logo 或占位插画。
-- 文案：三个场景和控制栏均支持中英文；模拟数据明确标注，不连接真实 Agent。确认任务后文案、状态和筛选数量同步，复审通过前不显示最终交付通过。
+## 工程检查
 
-## 对比迭代
+`npm test -- --test-reporter=spec`：93 / 93 通过。恢复原主动画代码的比对通过；新脚本语法检查和 `git diff --check` 通过。公开资源检查覆盖 `feature-demos.js` 与 `feature-demos.css`，验收文档不发布到官网。
 
-1. 首轮发现桌面任务面板第二行卡片底部需要轻微滚动才能完整显示（P2）。收紧卡片内距、卡片间距和工具栏高度后，浏览器测得任务面板 `clientHeight = scrollHeight = 540`；最终 `tasks-desktop.png` 显示四张完整卡片。
-2. 手机窗口首轮内容区为 520px，控制栏较容易落在首屏之外（P2）。调整为 460px，并保持说明、控制栏在窗口外部内容区；以 `tasks-mobile.png`、`review-mobile.png` 验证，所有操作可通过页面或内容区正常滚动到达。
-3. 320px 英文页面发现原有导航溢出 4px、语言按钮换行、Agent 图标末端裁切（P2）。窄屏仅保留 Logo 图标、禁止语言按钮换行，并收紧 Agent 图标重叠间距。修复前后图为 `comparison-narrow-mobile.png`；修复后 `innerWidth = documentElement.scrollWidth = 320`。
-4. 复查同图对比：桌面营销区域保持一致；手机营销区域保持一致，新增场景入口和内容为本次预期改动。没有残留可执行的 P0/P1/P2 问题。
-
-## 交互与验证
-
-- 任务面板：运行中、待处理和未读筛选；项目筛选；中英文搜索；无结果清空；打开卡片；读取未读结果；确认请求后继续。
-- 转接：选择 Claude / Kimi；展开与收起摘要；确认创建接续会话；取消；Escape 取消；沿用工作目录。
-- 评审：实现 → 首次评审发现问题 → 交回修复 → 重新评审 → 通过；可手动选择步骤。
-- 控制：默认自动播放全部场景，各场景末步停留后自动切换下一 Tab，完整一轮后循环；手动切换 Tab 或操作内容后暂停；点击播放或重播才恢复自动轮播；场景标签支持方向键 / Home / End。
-- 对话：新会话、真实文本输入、选择 Agent、示例任务、发送模拟回复；团队执行入口可切换到评审场景；手机端可从标题栏新建会话。
-- 浏览器控制台：没有捕获到脚本错误或警告。
-- 自动验证：`npm test -- --test-reporter=spec`，101 / 101 通过；包括新增 8 个状态/计时器测试和资源发布规则检查。`git diff --check` 通过。
-- 减少动态效果：代码默认遵循 `prefers-reduced-motion`，没有为测试修改用户的系统设置；系统级切换未单独模拟。
-
-预览只服务白名单中的公开页面、样式、脚本和图片，不服务 Worker、仓库元数据或后端文件。验收文档通过 `.assetsignore` 排除在网站发布资源之外。
-
-## 自动轮播规则补充验收
-
-- 浏览器初始任务面板显示“暂停”，未操作时自动切换到 Agent 转接。
-- 手动切换到评审修复后显示“播放”，等待近两分钟仍保持第 1 / 5 步；不会被轮播抢走。
-- 手动选到评审最后一步，点击播放后保持当前步骤，再继续跨场景轮播；状态测试覆盖全部步骤、四个 Tab 和完整循环。
-- 浏览器时间戳与控制栏文本保存在 `autoplay-evidence.json`；暂停状态截图为 `manual-tab-paused.png`。
-- 本次只调整状态与交互规则。`comparison-autoplay.png` 将原 `tasks-desktop.png` 与 `autoplay-tasks-desktop.png` 按相同 1440 × 1000 视口、1320 × 778 区域并排比较，布局、字体、颜色和素材保持一致，没有新增视觉问题。
+本地预览仅提供公开 HTML、CSS、JS 和图片白名单，不服务 Worker 或后端文件。
 
 final result: passed

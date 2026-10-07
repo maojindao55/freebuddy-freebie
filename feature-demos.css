@@ -1,0 +1,72 @@
+/* New feature cards are isolated from the original hero animation. */
+.feature-demo { --fd-green: #047857; --fd-muted: #64748b; }
+.feature-demo button, .feature-demo select { font: inherit; }
+.feature-demo button { cursor: pointer; }
+.feature-demo button:focus-visible, .feature-demo select:focus-visible { outline: 2px solid #059669; outline-offset: 3px; }
+.feature-demo .fd-body { display: flex; flex-direction: column; gap: 14px; min-height: 360px; padding: 18px; background: #fafbfc; color: #1f2937; font-size: 12px; }
+.feature-demo .fd-body p { margin: 0; font-size: 12px; line-height: 1.7; color: var(--fd-muted); }
+.feature-demo .fd-head { display: flex; align-items: center; gap: 8px; min-height: 24px; }
+.feature-demo .fd-head strong { font-size: 13px; }
+.feature-demo .fd-head > small { margin-left: auto; color: var(--fd-muted); font-size: 10px; }
+.feature-demo img { width: 20px; height: 20px; border-radius: 6px; object-fit: contain; flex: none; }
+.feature-demo .fd-head > img { width: 23px; height: 23px; }
+.feature-demo .fd-filters { display: flex; flex-wrap: wrap; gap: 6px; }
+.feature-demo .fd-filters button { display: flex; gap: 5px; padding: 5px 9px; border: 1px solid #e2e7eb; background: #fff; color: var(--fd-muted); border-radius: 20px; font-size: 10px; }
+.feature-demo .fd-filters button[aria-pressed="true"] { color: var(--fd-green); background: #ecfdf5; border-color: #a7d9c3; }
+.feature-demo .fd-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 9px; }
+.feature-demo .fd-task { display: flex; flex-direction: column; align-items: stretch; gap: 10px; text-align: left; padding: 12px; min-height: 105px; border: 1px solid #e2e7eb; border-radius: 10px; background: #fff; color: inherit; }
+.feature-demo .fd-task:hover { border-color: #a7d9c3; }
+.feature-demo .fd-task > strong { font-size: 11px; line-height: 1.5; }
+.feature-demo .fd-task > span { display: flex; align-items: center; gap: 6px; }
+.feature-demo .fd-task small { margin-left: auto; font-size: 9px; color: var(--fd-muted); }
+.feature-demo .fd-task > em { font-size: 10px; font-style: normal; color: var(--fd-muted); }
+.feature-demo .fd-task.attention { border-color: #e8cc95; background: #fffdf8; }
+.feature-demo .fd-task.attention > em { color: #92400e; }
+.feature-demo .fd-task.unread > em { color: var(--fd-green); }
+.feature-demo .fd-panel { display: flex; flex-direction: column; gap: 12px; padding: 16px; border: 1px solid #e2e7eb; border-radius: 11px; background: #fff; }
+.feature-demo .fd-panel > strong { font-size: 13px; }
+.feature-demo .fd-panel.warning { border-color: #e8cc95; background: #fffaf0; }
+.feature-demo .fd-panel.success { border-color: #b8dfcd; background: #f0fdf6; }
+.feature-demo .fd-panel pre { margin: 0; padding: 11px; background: #f6f7f9; border-radius: 7px; color: #475569; font: 10px/1.8 var(--mono); overflow: auto; }
+.feature-demo .fd-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.feature-demo .fd-button { padding: 7px 11px; border: 1px solid #dfe5e8; border-radius: 7px; background: #fff; color: #475569; font-size: 11px; }
+.feature-demo .fd-button.primary { color: #fff; background: var(--fd-green); border-color: var(--fd-green); }
+.feature-demo .fd-link { border: 0; padding: 0; background: transparent; color: var(--fd-green); font-size: 11px; text-align: left; }
+.feature-demo .fd-agent { display: flex; align-items: center; gap: 7px; }
+.feature-demo .fd-agent small { margin-left: auto; font-size: 10px; color: var(--fd-muted); }
+.feature-demo .fd-path { color: var(--fd-muted); font: 10px var(--mono); overflow-wrap: anywhere; }
+.feature-demo .fd-select { display: flex; flex-direction: column; gap: 7px; color: var(--fd-muted); font-size: 10px; }
+.feature-demo .fd-select select { width: 100%; border: 1px solid #dfe5e8; border-radius: 7px; padding: 8px; background: #fff; color: #334155; font-size: 12px; }
+.feature-demo .fd-brief { display: flex; flex-direction: column; gap: 5px; padding: 10px 12px; background: #f6f7f9; border-radius: 7px; }
+.feature-demo .fd-pair { display: flex; align-items: center; gap: 10px; padding: 3px 0; font-size: 12px; }
+.feature-demo .fd-timeline { display: flex; align-items: flex-start; gap: 5px; }
+.feature-demo .fd-timeline button { display: flex; flex: 1; flex-direction: column; align-items: center; gap: 5px; padding: 6px 1px; border: 0; background: transparent; color: var(--fd-muted); font-size: 9px; }
+.feature-demo .fd-timeline i { display: grid; place-items: center; width: 24px; height: 24px; border: 1px solid #dfe5e8; border-radius: 50%; background: #fff; font-style: normal; font-size: 10px; }
+.feature-demo .fd-timeline [aria-current="step"] { color: var(--fd-green); font-weight: 600; }
+.feature-demo .fd-timeline [aria-current="step"] i { background: #ecfdf5; border-color: #6fb897; }
+.feature-demo .fd-timeline .done i { color: var(--fd-green); border-color: #b8dfcd; }
+.feature-demo .fd-diff { display: flex; flex-direction: column; font: 10px/1.8 var(--mono); }
+.feature-demo .fd-diff .del { color: #be123c; }
+.feature-demo .fd-diff .add { color: var(--fd-green); }
+.feature-demo .fd-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px; border-top: 1px solid #e7e9ee; background: #fff; }
+.feature-demo .fd-foot > span { color: var(--fd-muted); font-size: 10px; line-height: 1.5; }
+.feature-demo .fd-controls { display: flex; flex: none; gap: 5px; }
+.feature-demo .fd-controls button { border: 1px solid #e2e7eb; border-radius: 6px; padding: 5px 7px; background: #fff; color: #475569; font-size: 10px; }
+.feature-demo .fd-sample { display: block; padding: 0 14px 9px; background: #fff; color: #94a3b8; font-size: 9px; }
+.feature-demo .fd-panel { animation: fdAppear .3s ease; }
+@keyframes fdAppear { from { opacity: .45; transform: translateY(3px); } to { opacity: 1; transform: none; } }
+@media (max-width: 640px) {
+  .feature-demo .fd-body { padding: 12px; min-height: 345px; gap: 12px; }
+  .feature-demo .fd-task { padding: 10px; gap: 8px; min-height: 110px; }
+  .feature-demo .fd-task > span { display: grid; grid-template-columns: 20px minmax(0, 1fr); }
+  .feature-demo .fd-task b { font-size: 11px; }
+  .feature-demo .fd-task small { grid-column: 1 / -1; margin-left: 0; }
+  .feature-demo .fd-task > strong { font-size: 10px; }
+  .feature-demo .fd-head > small { font-size: 9px; }
+  .feature-demo .fd-panel { padding: 13px; }
+  .feature-demo .fd-foot { padding: 10px; gap: 6px; }
+  .feature-demo .fd-foot > span { font-size: 9px; }
+  .feature-demo .fd-timeline button { font-size: 8px; }
+  .feature-demo .fd-controls button { padding: 6px; }
+}
+@media (prefers-reduced-motion: reduce) { .feature-demo .fd-panel { animation: none; } }
