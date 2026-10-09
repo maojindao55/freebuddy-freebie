@@ -1,0 +1,41 @@
+{
+  "$schema": "../providers.schema.json",
+  "id": "apigoto",
+  "name": "APIGOTO",
+  "region": "cn",
+  "homepage": "https://www.apigoto.com/binbinzhaili@qq.com",
+  "consoleUrl": "https://www.apigoto.com/binbinzhaili@qq.com",
+  "freeTierSummary": {
+    "zh-CN": "注册并完成实名认证后赠送一个月 RouterCode PLUS 订阅（活动口径：并发上限 10，每周约 2.5 亿 TCredits、订阅总额度约 10 亿 TCredits，实际额度与有效期以控制台为准）。平台是统一 LLM 网关，一把 API Key 可调用 Claude、GPT、Gemini、DeepSeek、Qwen、GLM 等 400+ 模型，兼容 OpenAI Chat Completions / Responses 与 Anthropic Messages；部分高阶模型要求 PLUS 及以上套餐。",
+    "en": "Sign up and pass real-name verification for a free one-month RouterCode PLUS subscription (concurrency 10, about 250M TCredits/week and about 1B in total; the granted quota is shown in the console). One API key reaches 400+ models (Claude, GPT, Gemini, DeepSeek, ...) through an OpenAI Chat Completions / Responses and Anthropic Messages compatible gateway; some models need PLUS or higher."
+  },
+  "claimGuide": {
+    "zh-CN": [
+      "通过邀请链接注册 APIGOTO 账号（支持邮箱或手机号注册）",
+      "登录后在个人中心提交个人实名认证，认证通过即可获得一个月 RouterCode PLUS 订阅额度",
+      "在后台「API 密钥」页面创建 Key（形如 sk-routercode-…，明文只显示一次，请立即保存）",
+      "Base URL 填 https://api.apigoto.com/v1，model 填平台模型 ID（如 claude-opus-5-5）即可调用；公开模型清单见 https://api.apigoto.com/api/v1/user/user/models"
+    ],
+    "en": [
+      "Sign up for an APIGOTO account through the invite link (email or phone)",
+      "Complete personal real-name verification in the user center to receive one month of RouterCode PLUS quota",
+      "Create an API key on the console \"API Keys\" page (format sk-routercode-..., the plaintext is shown only once)",
+      "Use https://api.apigoto.com/v1 as the base URL and a platform model id (for example claude-opus-5-5); the public model list is at https://api.apigoto.com/api/v1/user/user/models"
+    ]
+  },
+  "protocol": "openai-chat",
+  "protocols": ["openai-chat", "openai-responses", "anthropic"],
+  "baseUrl": "https://api.apigoto.com/v1",
+  "envKey": "OPENAI_API_KEY",
+  "models": [
+    { "id": "claude-opus-5-5", "name": "Claude Opus 5.5", "supportsVision": true },
+    { "id": "gpt-6.1-sol", "name": "GPT-6.1 Sol", "supportsVision": true },
+    { "id": "deepseek-flash", "name": "DeepSeek Flash", "supportsVision": true },
+    { "id": "claude-sonnet-5-5", "name": "Claude Sonnet 5.5", "supportsVision": true },
+    { "id": "glm-5.3", "name": "GLM-5.3", "supportsVision": true },
+    { "id": "kimi-k3", "name": "Kimi K3", "supportsVision": true },
+    { "id": "grok-4.6", "name": "Grok 4.6", "supportsVision": true }
+  ],
+  "verifiedAt": "2026-10-09",
+  "status": "approved"
+}

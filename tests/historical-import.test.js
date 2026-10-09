@@ -49,7 +49,7 @@ const IMPORT_MARKER = "static-catalog-import";
  * entry. Listing them here keeps the counts below honest — adding a provider stays a reviewed,
  * visible change instead of an unnoticed ghost entry in the declared batch.
  */
-const POST_IMPORT_DECLARATION_IDS = ["senseaudio", "stepfun", "tierflow", "xiaomi-mimo", "lightvela"];
+const POST_IMPORT_DECLARATION_IDS = ["senseaudio", "stepfun", "tierflow", "xiaomi-mimo", "lightvela", "apigoto"];
 
 /**
  * Imported declarations deliberately taken offline after the historical import.
