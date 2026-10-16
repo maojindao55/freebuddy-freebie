@@ -1,0 +1,39 @@
+{
+  "$schema": "../providers.schema.json",
+  "id": "opencsg",
+  "name": "OpenCSG 开放传神",
+  "region": "cn",
+  "homepage": "https://opencsg.com",
+  "consoleUrl": "https://opencsg.com/signup?invitationCode=S2KM2WN2EY",
+  "freeTierSummary": {
+    "zh-CN": "通过邀请链接注册的新用户可领取赠送额度（当前宣传为 99 元，具体额度与有效期以控制台为准）。平台为 OpenAI 兼容 LLM 网关，聚合 DeepSeek-V4.1-Flash / V4-Pro、GLM-5.3-Flash、Qwen3.8-Flash / Max、MiniMax 等国模，按 token 计费、价格较低（如 GLM-5.3-Flash 输入 ¥0.88 / 百万 tokens，DeepSeek-V4.1-Flash 输入 ¥2.2 / 百万 tokens）。",
+    "en": "New users who register through an invitation link receive promotional credits (currently advertised as ¥99; the exact quota and validity are shown in the console). An OpenAI-compatible LLM gateway aggregating DeepSeek-V4.1-Flash / V4-Pro, GLM-5.3-Flash, Qwen3.8-Flash / Max and MiniMax at low per-token prices (e.g. GLM-5.3-Flash input ¥0.88 and DeepSeek-V4.1-Flash input ¥2.2 per million tokens)."
+  },
+  "claimGuide": {
+    "zh-CN": [
+      "打开邀请链接 https://opencsg.com/signup?invitationCode=S2KM2WN2EY 注册 OpenCSG 账号",
+      "注册成功后新用户赠送额度自动到账（当前宣传 99 元），具体额度与有效期以控制台为准",
+      "在控制台创建 API Key（明文仅创建时显示一次，请立即保存）",
+      "Base URL 填 https://ai.space.opencsg.com/v1，模型填平台模型 ID（如 deepseek-v4.1-flash）；公开模型清单见 https://ai.space.opencsg.com/v1/models"
+    ],
+    "en": [
+      "Register an OpenCSG account via the invitation link https://opencsg.com/signup?invitationCode=S2KM2WN2EY",
+      "New-user promotional credits (currently advertised as ¥99) are granted after signup; check the console for the exact quota and validity",
+      "Create an API key in the console (the plaintext is shown only once — save it immediately)",
+      "Use https://ai.space.opencsg.com/v1 as the base URL with platform model ids (e.g. deepseek-v4.1-flash); the public model list is at https://ai.space.opencsg.com/v1/models"
+    ]
+  },
+  "protocol": "openai-chat",
+  "baseUrl": "https://ai.space.opencsg.com/v1",
+  "envKey": "OPENAI_API_KEY",
+  "models": [
+    { "id": "deepseek-v4.1-flash", "name": "DeepSeek-V4.1-Flash", "contextWindow": 1048576 },
+    { "id": "deepseek-v4-pro", "name": "DeepSeek-V4-Pro", "contextWindow": 1048576 },
+    { "id": "glm-5.3-flash", "name": "GLM-5.3-Flash" },
+    { "id": "qwen3.8-flash", "name": "Qwen3.8-Flash" },
+    { "id": "qwen3.8-max", "name": "Qwen3.8-Max" },
+    { "id": "qwen3.7-plus", "name": "Qwen3.7-Plus", "supportsVision": true }
+  ],
+  "verifiedAt": "2026-10-16",
+  "status": "approved"
+}
