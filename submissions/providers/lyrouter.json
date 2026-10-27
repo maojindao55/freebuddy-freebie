@@ -1,0 +1,61 @@
+{
+  "$schema": "../providers.schema.json",
+  "id": "lyrouter",
+  "name": "LYRouter",
+  "region": "cn",
+  "homepage": "https://platform.lyrouter.com",
+  "consoleUrl": "https://platform.lyrouter.com/ai_gateway/workspace/login?action=register&referral_code=42NFWZRJ8TT4&share_v=2",
+  "freeTierSummary": {
+    "zh-CN": "通过邀请链接注册并完成个人实名认证，可获赠最高 2,000 Credits（含 1,000 新用户实名奖励与 1,000 邀请奖励），积分可用于调用平台模型与智能路由，支持 OpenAI Chat Completions、Responses 及 Anthropic Messages 协议，具体额度与有效期以控制台为准。",
+    "en": "Sign up via the invite link and complete real-name verification to receive up to 2,000 Credits (1,000 signup verification bonus + 1,000 referral bonus). Credits apply to platform models and smart routing over OpenAI Chat Completions, Responses, and Anthropic Messages protocols. Quotas and validity are subject to console terms."
+  },
+  "claimGuide": {
+    "zh-CN": [
+      "通过邀请链接 https://platform.lyrouter.com/ai_gateway/workspace/login?action=register&referral_code=42NFWZRJ8TT4&share_v=2 注册 LYRouter 账号",
+      "30 天内完成个人实名认证，获得 1,000~2,000 Credits 体验额度",
+      "进入工作空间，在「API 密钥」页面创建 API Key，妥善保存生成的一次性明文密钥",
+      "Base URL 填写 https://api.lyrouter.com/v1（OpenAI 兼容）或 https://api.lyrouter.com（Anthropic 兼容），模型可选 deepseek/deepseek-v4-flash、lyrouter/auto 等"
+    ],
+    "en": [
+      "Sign up for an LYRouter account via the invite link https://platform.lyrouter.com/ai_gateway/workspace/login?action=register&referral_code=42NFWZRJ8TT4&share_v=2",
+      "Complete personal real-name verification within 30 days to claim 1,000-2,000 Credits",
+      "Enter the workspace, go to \"API Keys\", and create an API key, saving the one-time plaintext key securely",
+      "Set the Base URL to https://api.lyrouter.com/v1 (OpenAI compatible) or https://api.lyrouter.com (Anthropic compatible), and use models like deepseek/deepseek-v4-flash or lyrouter/auto"
+    ]
+  },
+  "protocol": "openai-chat",
+  "protocols": [
+    "openai-chat",
+    "openai-responses",
+    "anthropic"
+  ],
+  "baseUrl": "https://api.lyrouter.com/v1",
+  "envKey": "LYROUTER_API_KEY",
+  "models": [
+    {
+      "id": "deepseek/deepseek-v4-flash",
+      "name": "DeepSeek V4 Flash",
+      "contextWindow": 131072
+    },
+    {
+      "id": "deepseek/deepseek-v4-pro",
+      "name": "DeepSeek V4 Pro"
+    },
+    {
+      "id": "qwen/qwen3.7-plus",
+      "name": "Qwen 3.7 Plus",
+      "supportsVision": true
+    },
+    {
+      "id": "anthropic/claude-sonnet-4.6",
+      "name": "Claude Sonnet 4.6",
+      "supportsVision": true
+    },
+    {
+      "id": "lyrouter/auto",
+      "name": "LYRouter Auto (智能路由)"
+    }
+  ],
+  "verifiedAt": "2026-10-27",
+  "status": "approved"
+}
