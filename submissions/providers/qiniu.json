@@ -6,21 +6,21 @@
   "homepage": "https://www.qiniu.com",
   "consoleUrl": "https://s.qiniu.com/YrIRZn",
   "freeTierSummary": {
-    "zh-CN": "七牛云推出 Conatus Free 限免活动（截至 2026 年 11 月 30 日），实名认证用户每日可享 1 亿免费 Token（次日自动重置），超额直接拒绝、不扣账户余额。提供模型 qiniu/conatus-free，具备深度思考、工具调用与视觉识别能力，支持 1000K (1M) 上下文与 128K 输出。具体额度与有效期以控制台为准。",
-    "en": "Qiniu offers a limited-time Conatus Free promotion (through November 30, 2026). Real-name verified users receive 100M free tokens daily (reset daily at midnight), with hard stops upon quota exhaustion and no balance deductions. Features qiniu/conatus-free with deep reasoning, tool calls, vision, 1000K context, and 128K output. Quotas and validity are subject to console terms."
+    "zh-CN": "七牛云推出 Conatus Free 限免活动（截至 2026 年 11 月 30 日），实名认证用户每日可享 1 亿免费 Token（次日自动重置），超额直接拒绝、不扣账户余额。提供模型 qiniu/conatus-free 与 moonshotai/kimi-k3-free 等，具备深度思考、长上下文、工具调用与视觉识别能力。具体额度与有效期以控制台为准。",
+    "en": "Qiniu offers a limited-time Conatus Free promotion (through November 30, 2026). Real-name verified users receive 100M free tokens daily (reset daily at midnight), with hard stops upon quota exhaustion and no balance deductions. Features qiniu/conatus-free, moonshotai/kimi-k3-free, and more with deep reasoning, tool calls, and vision support. Quotas and validity are subject to console terms."
   },
   "claimGuide": {
     "zh-CN": [
       "打开邀请链接 https://s.qiniu.com/YrIRZn 注册七牛云账号并完成实名认证",
       "访问七牛云 AI 专区 Conatus Free 活动页面 https://www.qiniu.com/ai/free-models/conatus-2026 领取免费额度",
       "进入大模型控制台创建 API Key，明文仅展示一次，请妥善保存",
-      "客户端 Base URL 填 https://api.qnaigc.com/v1，模型名称填 qiniu/conatus-free 即可调用（每日 1 亿 Token 次日重置）"
+      "客户端 Base URL 填 https://api.qnaigc.com/v1，模型名称填 qiniu/conatus-free 或 moonshotai/kimi-k3-free 即可调用（每日 1 亿 Token 次日重置）"
     ],
     "en": [
       "Register a Qiniu account via the invite link https://s.qiniu.com/YrIRZn and complete real-name verification",
       "Visit the Conatus Free promo page at https://www.qiniu.com/ai/free-models/conatus-2026 to claim free quota",
       "Go to the LLM console to create an API key, saving the plaintext immediately",
-      "Set the base URL to https://api.qnaigc.com/v1 and model to qiniu/conatus-free to start making calls (100M daily tokens reset daily)"
+      "Set the base URL to https://api.qnaigc.com/v1 and model to qiniu/conatus-free or moonshotai/kimi-k3-free to start making calls (100M daily tokens reset daily)"
     ]
   },
   "protocol": "openai-chat",
@@ -35,6 +35,12 @@
       "id": "qiniu/conatus-free",
       "name": "Qiniu Conatus Free",
       "contextWindow": 1000000,
+      "supportsVision": true
+    },
+    {
+      "id": "moonshotai/kimi-k3-free",
+      "name": "Kimi K3 (限免)",
+      "contextWindow": 262144,
       "supportsVision": true
     }
   ],
