@@ -1,0 +1,43 @@
+{
+  "$schema": "../providers.schema.json",
+  "id": "longcat",
+  "name": "美团 LongCat 开放平台",
+  "icon": "longcat-color",
+  "region": "cn",
+  "homepage": "https://longcat.chat",
+  "consoleUrl": "https://longcat.chat/platform/product?inviteCode=6UAFA7H3",
+  "freeTierSummary": {
+    "zh-CN": "官方「邀请有礼」：邀请新用户完成实名认证，邀请人与受邀人各得 1000 万 Tokens，叠加平台实名赠送的 1000 万最高可得 2000 万，奖励 30 个自然日内有效、单账号最多邀请 50 个实名账号；受邀人首购返实付 5%，团长邀满 3 人返 10%、满 20 人返 50%。LongCat-2.5 支持 1M 上下文与图片/视频理解，兼容 OpenAI 与 Anthropic 协议；名额与细则以活动页为准。",
+    "en": "Official invite program: an invited new user who completes real-name verification gives both sides 10M tokens, stacking with the platform's own 10M gift for up to 20M (valid 30 days, max 50 invitees). First purchase rebates 5%; a group leader gets 10% at 3 invitees and 50% at 20. LongCat-2.5 has a 1M context and speaks OpenAI plus Anthropic; see the campaign page."
+  },
+  "claimGuide": {
+    "zh-CN": [
+      "通过邀请链接注册并登录 LongCat 开放平台（活动仅限个人新用户）",
+      "进入「账号信息及配置」完成个人实名认证，双方各得 1000 万 Tokens，可与平台实名赠送的 1000 万叠加至 2000 万",
+      "奖励以 Token 资源包实时到账，30 个自然日内有效；单账号最多邀请 50 个实名账号",
+      "购买资源包或充值按量付费即触发拼团返现：受邀人返实付 5%，团长邀满 3 人返 10%、满 20 人返 50%",
+      "前往「API Keys」创建密钥（仅创建时可见），接口地址填 https://api.longcat.chat/openai/v1，模型填 LongCat-2.5"
+    ],
+    "en": [
+      "Sign up and log in to LongCat through the invite link (the campaign is for new individual users only)",
+      "Complete personal real-name verification in Account info & settings: both sides get 10M tokens, stacking with the platform's own 10M gift for up to 20M",
+      "Rewards arrive as token packs valid for 30 days; one account can invite at most 50 verified users",
+      "Buying a token pack or topping up pay-as-you-go triggers the group rebate: 5% for the invitee, 10% for the leader at 3 invitees and 50% at 20",
+      "Create the key on the API Keys page (shown once) and use https://api.longcat.chat/openai/v1 with model LongCat-2.5"
+    ]
+  },
+  "protocol": "openai-chat",
+  "protocols": ["openai-chat", "openai-responses", "anthropic"],
+  "baseUrl": "https://api.longcat.chat/openai/v1",
+  "envKey": "LONGCAT_API_KEY",
+  "models": [
+    {
+      "id": "LongCat-2.5",
+      "name": "LongCat-2.5",
+      "contextWindow": 1048576,
+      "supportsVision": true
+    }
+  ],
+  "verifiedAt": "2026-11-03",
+  "status": "approved"
+}
