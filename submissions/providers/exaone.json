@@ -4,23 +4,23 @@
   "name": "LG EXAONE API Platform",
   "region": "global",
   "homepage": "https://docs.exaone.ai/en/docs/overview",
-  "consoleUrl": "https://docs.exaone.ai/en/login",
+  "consoleUrl": "https://id.exaone.ai/login",
   "freeTierSummary": {
     "zh-CN": "LG AI 研究院的 EXAONE API 平台于 2026-11-09 开放，官方明确「所有 API 当前免费」，未公布总额度或免费截止日期，仅按请求数限流（429 + 速率响应头）。旗舰 K-EXAONE 2.5 为 750B 总参数 / 31B 激活、512K 上下文（输入 + max_tokens ≤ 524,288）、知识截止 2026-01，OpenAI 兼容。限流：QPS 1、每分钟 60、每日 86,400；响应头 x-{second,minute,day}-rate-limit 可查余量。API Key 自签发起 30 天有效、到期需重建，明文仅显示一次。纯文本模型，官方标注仅支持韩语与英语；条款限定非商业用途，需 19 岁以上，输入输出默认可能被用于训练（可在平台选择退出）。条款与限制以官方为准。",
     "en": "LG AI Research's EXAONE API Platform opened 2026-11-09; the FAQ states all APIs are currently free, with no quota or end date published. K-EXAONE 2.5 is 750B/31B with a 512K context (input + max_tokens <= 524,288), text-only, OpenAI-compatible. Limits: 1/second, 60/minute, 86,400/day via x-{second,minute,day}-rate-limit headers. Keys last 30 days. Terms: non-commercial, 19+."
   },
   "claimGuide": {
     "zh-CN": [
-      "打开 https://docs.exaone.ai/en/login 注册 EXAONE ID（邮箱注册，注册时需选择所在国家/地区）",
-      "登录后进入 My Profile 的「API key」页面，点击 Create new API Key",
+      "打开 https://id.exaone.ai/signup 注册 EXAONE ID（邮箱注册，注册时需选择所在国家/地区）",
+      "登录后进入 My Profile 的「API key」页面（https://id.exaone.ai/mypage），点击 Create new API Key",
       "创建后立即复制并保存密钥——官方明确密钥只能看到一次，关掉就再也取不回",
       "以 OpenAI 兼容方式调用：Base URL 填 https://api.exaone.ai/v1，模型名填 k-exaone_v2.5，Authorization: Bearer <你的 Key>",
       "注意 Key 自签发起 30 天有效，到期前重新创建并替换；限流为 1 次/秒、60 次/分钟、86,400 次/日",
       "留意官方限制：仅支持韩语/英语、纯文本无多模态，条款限定非商业用途且需 19 岁以上"
     ],
     "en": [
-      "Sign up for an EXAONE ID at https://docs.exaone.ai/en/login (email signup; you pick your country/region during registration)",
-      "After signing in, open My Profile > API key and click Create new API Key",
+      "Sign up for an EXAONE ID at https://id.exaone.ai/signup (email signup; you pick your country/region during registration)",
+      "After signing in, open My Profile > API key at https://id.exaone.ai/mypage and click Create new API Key",
       "Copy the key immediately — the platform states the secret can never be viewed again",
       "Call it OpenAI-compatibly: base URL https://api.exaone.ai/v1, model k-exaone_v2.5, header Authorization: Bearer <key>",
       "Keys expire 30 days after issue, so recreate and swap before that; limits are 1/second, 60/minute and 86,400/day",

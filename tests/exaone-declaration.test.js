@@ -37,7 +37,7 @@ const DECLARATION = JSON.parse(readFileSync(DECLARATION_PATH, "utf8"));
 const SQL_LABEL = "-- submissions/providers/exaone.json";
 const BASE_URL = "https://api.exaone.ai/v1";
 const HOMEPAGE = "https://docs.exaone.ai/en/docs/overview";
-const CONSOLE_URL = "https://docs.exaone.ai/en/login";
+const CONSOLE_URL = "https://id.exaone.ai/login";
 /** Verified against https://docs.exaone.ai/en/docs/k-exaone-2.5 (model id) and /en/docs/models. */
 const VERIFIED_MODEL_IDS = ["k-exaone_v2.5"];
 const CONTEXT_WINDOW = 524288;
@@ -140,14 +140,24 @@ test("the languages, terms and age floor are quoted from the official pages", ()
   assert.match(zh, /训练/, "the terms allow input/output to be used for training, which must be disclosed");
 });
 
-test("URLs stay in the safe-https contract and every quoted host resolves", () => {
+test("URLs stay in the safe-https contract and the console entry is the real sign-in host", () => {
   for (const field of ["homepage", "consoleUrl", "baseUrl"]) {
     assert.ok(isSafeHttpsUrl(DECLARATION[field]), `${field} must be a safe https URL`);
   }
 
   assert.equal(new URL(DECLARATION.homepage).hostname, "docs.exaone.ai");
-  assert.equal(new URL(DECLARATION.consoleUrl).hostname, "docs.exaone.ai");
-  assert.equal(DECLARATION.consoleUrl, CONSOLE_URL, "the console entry is the documented sign-in page");
+
+  // The docs site has no server-rendered /login route (docs.exaone.ai/en/login is a 404); the
+  // header's "Log in" button points at the account host, which the docs expose as `accountUrl`.
+  assert.equal(CONSOLE_URL, "https://id.exaone.ai/login");
+  const consoleUrl = new URL(DECLARATION.consoleUrl);
+  assert.equal(consoleUrl.hostname, "id.exaone.ai", "the account console lives on id.exaone.ai");
+  assert.equal(DECLARATION.consoleUrl, CONSOLE_URL, "the console entry is the documented account host");
+  assert.doesNotMatch(
+    DECLARATION.consoleUrl,
+    /docs\.exaone\.ai\/(en|ko)\/(login|signup)/,
+    "the docs host serves 404 for locale-prefixed login/signup routes and must not be linked"
+  );
 
   const baseUrl = new URL(DECLARATION.baseUrl);
   assert.equal(baseUrl.hostname, "api.exaone.ai");
@@ -164,9 +174,14 @@ test("the claim guide walks through signup, key creation and the working endpoin
   }
 
   const zh = DECLARATION.claimGuide["zh-CN"].join("\n");
-  assert.match(zh, /docs\.exaone\.ai/, "the guide must link the official signup entry");
+  assert.match(zh, /id\.exaone\.ai\/signup/, "the guide must link the real signup entry");
   assert.match(zh, /API key/i, "the guide must explain where the key is created");
   assert.match(zh, /api\.exaone\.ai\/v1/, "the guide must hand over the working base URL");
+  assert.doesNotMatch(
+    zh,
+    /docs\.exaone\.ai\/[a-z-]*\/?(login|signup)/,
+    "the guide must not send users to the docs 404 routes"
+  );
   assert.ok(DECLARATION.claimGuide.en.some((step) => /api key/i.test(step)), "the en guide must mention the API key");
 });
 
