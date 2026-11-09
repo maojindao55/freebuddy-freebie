@@ -148,23 +148,67 @@ test("the claim guide walks through signup, token creation and the working endpo
   assert.ok(DECLARATION.claimGuide.en.some((step) => /api key/i.test(step)), "the en guide must mention the API key");
 });
 
-test("the free-tier summary keeps the limited-time launch offer honest", () => {
+test("the free-tier summary follows the post-upgrade monthly credit model", () => {
   assert.deepEqual(Object.keys(DECLARATION.freeTierSummary).sort(), ["en", "zh-CN"]);
   const zh = DECLARATION.freeTierSummary["zh-CN"];
 
-  // Figures verified on https://developer.ant-ling.com/zh-CN/docs/models/price/ and the FAQ.
+  // Verified on https://developer.ant-ling.com/zh-CN/docs/getting-started/changelog/billing-upgrade/
+  // (billing upgrade, unified switch 2026-10-31 23:59:59 Beijing time) and the pricing page.
   assert.match(zh, /Ling-3\.2-flash/, "the summary must name the promoted model");
   assert.match(zh, /2 周限时免费/, "the two-week free window must be quoted");
   assert.match(zh, /恢复按量计费|恢复原价/, "the summary must warn that billing resumes after the promo");
   assert.match(zh, /以官网定价页为准/, "the restored price must defer to the official pricing page");
-  assert.match(zh, /每日 50 万 tokens/, "the documented daily free quota must be quoted");
-  assert.match(zh, /QPS/, "the QPS cap the docs state must be quoted");
+  assert.match(zh, /20 元/, "the 20 CNY signup voucher stated by the upgrade notice must be quoted");
+  assert.match(zh, /每月 1 日/, "the monthly voucher issue date must be quoted");
+  assert.match(zh, /10 元/, "the 10 CNY monthly voucher must be quoted");
+  assert.match(zh, /QPS 限 2/, "the documented QPS cap must be quoted");
+
+  // The daily per-token grant was explicitly discontinued by the same notice. Mentioning that
+  // it ended is fine (and useful); presenting it as a current benefit is not.
+  const text = Object.values(DECLARATION.freeTierSummary).join("\n");
+  assert.doesNotMatch(
+    text,
+    /每日\s*50\s*万\s*tokens\s*免费额度|grants?\s+500K free tokens per day/i,
+    "the discontinued daily 500K-token grant must not be advertised as a current benefit"
+  );
+  assert.match(
+    DECLARATION.freeTierSummary["zh-CN"],
+    /已停止按日发放/,
+    "the retired daily grant must be explicitly marked as ended"
+  );
 
   const en = DECLARATION.freeTierSummary.en;
-  assert.match(en, /two-week free period/i, "the en summary must quote the same free window");
-  assert.match(en, /billing resumes/i, "the en summary must warn that billing resumes");
+  assert.match(en, /free for two weeks|two-week free period/i, "the en summary must quote the same free window");
+  assert.match(en, /then billed|billing resumes/i, "the en summary must warn that billing resumes");
   assert.match(en, /pricing page/i, "the en summary must defer the restored price to the pricing page");
-  assert.match(en, /500K free tokens per day/i, "the en summary must quote the same daily quota");
+  assert.match(en, /20 CNY/i, "the en summary must quote the same signup voucher");
+  assert.match(en, /10 CNY/i, "the en summary must quote the same monthly voucher");
+  assert.match(en, /QPS is capped at 2/i, "the en summary must quote the same QPS cap");
+});
+
+test("the rate-limit wording matches the official Rate Limits page", () => {
+  // https://developer.ant-ling.com/zh-CN/docs/api-reference/api-guide/queries-per-second/
+  // states a GLOBAL cap of 2 requests per second (no per-model, no RPM/TPM, no concurrency
+  // figure) plus a 90s timeout on synchronous calls; 429 is the documented over-limit error.
+  const zh = DECLARATION.freeTierSummary["zh-CN"];
+  const en = DECLARATION.freeTierSummary.en;
+  const guide = [...DECLARATION.claimGuide["zh-CN"], ...DECLARATION.claimGuide.en].join("\n");
+
+  assert.match(zh, /QPS 限 2/, "the zh summary must state the 2 QPS cap");
+  assert.match(zh, /90s 超时|90 秒超时/, "the zh summary must state the 90s sync timeout");
+  assert.match(zh, /429/, "the zh summary must name the documented over-limit error");
+  assert.match(en, /QPS is capped at 2/i, "the en summary must state the same cap");
+  assert.match(guide, /QPS 为 2/, "the claim guide must warn about the QPS cap");
+  assert.match(guide, /90 秒超时/, "the claim guide must warn about the sync timeout");
+
+  // Never invent figures the docs do not publish.
+  for (const unsupported of [/RPM/i, /TPM/i, /\d+\s*次\/分钟/]) {
+    assert.doesNotMatch(
+      Object.values(DECLARATION.freeTierSummary).join("\n"),
+      unsupported,
+      `no RPM/TPM figure is published, so ${unsupported} must not appear`
+    );
+  }
 });
 
 test("the real sync run turns the declaration into an approved upsert that the API serves", async (t) => {
