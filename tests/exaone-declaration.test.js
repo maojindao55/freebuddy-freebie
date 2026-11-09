@@ -126,6 +126,19 @@ test("the waitlist gate is stated: access is limited and approval is required be
   assert.match(guide, /Awaiting|待审批/, "the guide must explain the pending state");
   assert.match(guide, /Active|可用/, "the guide must explain the approved state");
 
+  // The button lives on /mypage/service-start; the ?tab=service list page has no button at all,
+  // which is exactly why users report "I can't find the apply button".
+  assert.match(
+    guide,
+    /showroom\.exaone\.ai\/en\/mypage\/service-start/,
+    "the guide must link the actual request page that carries the join button"
+  );
+  assert.doesNotMatch(
+    guide,
+    /https:\/\/showroom\.exaone\.ai\/en\/mypage\?tab=service/,
+    "the bare ?tab=service list page must not be presented as the place to click apply"
+  );
+
   // The exact symptom users hit: an approved-service gate, not a broken page.
   assert.match(
     zh,

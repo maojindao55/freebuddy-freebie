@@ -12,7 +12,7 @@
   "claimGuide": {
     "zh-CN": [
       "打开 https://id.exaone.ai/signup 注册 EXAONE ID（邮箱注册，注册时需选择国家/地区）",
-      "进入 https://showroom.exaone.ai/en/mypage?tab=service 的「My Services」，点 Join the Waitlist 申请 API 服务（该服务按内部政策限量，官方标注目前仅限韩国与美国）",
+      "打开申请页 https://showroom.exaone.ai/en/mypage/service-start 点 Join the Waitlist 申请 API 服务（注意不是 mypage?tab=service 那个列表页——那里只有已申请的服务，没有申请按钮；官方标注服务限量、目前仅限韩国与美国）",
       "等待审批：状态为 Awaiting（待审批），通过后会通过站内通知与邮件告知，变为 Active（可用）",
       "审批通过后再回到 My Services / API key 页面创建密钥——未通过时该页只显示「您尚未申请任何服务」，看不到任何 Key 入口",
       "创建后立即复制并保存密钥：官方明确密钥只能看到一次，且自签发起 30 天有效，到期需重建并替换",
@@ -21,7 +21,7 @@
     ],
     "en": [
       "Sign up for an EXAONE ID at https://id.exaone.ai/signup (email signup; you pick your country/region during registration)",
-      "Open My Services at https://showroom.exaone.ai/en/mypage?tab=service and click Join the Waitlist (access is limited by internal policy and officially restricted to Korea and the U.S.)",
+      "Open https://showroom.exaone.ai/en/mypage/service-start and click Join the Waitlist (limited by internal policy; Korea and the U.S. only). Not the ?tab=service list page — it has no button",
       "Wait for approval: the status reads Awaiting; once approved you are notified by on-site alert and email and it turns Active",
       "Only after approval, create the key in My Services > API key — before approval that page just says you have not requested any services and exposes no key entry",
       "Copy the key immediately: it is shown once, and it expires 30 days after issue, so recreate and swap it before then",
