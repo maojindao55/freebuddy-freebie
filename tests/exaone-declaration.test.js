@@ -87,7 +87,7 @@ test("the rate limits match the official Rate Limits page and are not a total qu
 
   // https://docs.exaone.ai/en/docs/rate-limits documents x-second/x-minute/x-day headers; the
   // sample 429 response exposes 1 / 60 / 86400 as the window maxima.
-  assert.match(zh, /QPS 1|每秒 1 次/, "the zh summary must state the 1 request/second limit");
+  assert.match(zh, /1 次\/秒|QPS 1|每秒 1 次/, "the zh summary must state the 1 request/second limit");
   assert.match(zh, /60/, "the zh summary must state the 60 requests/minute limit");
   assert.match(zh, /86,400/, "the zh summary must state the 86,400 requests/day limit");
   assert.match(en, /1\/second/, "the en summary must state the per-second limit");
@@ -107,6 +107,33 @@ test("the rate limits match the official Rate Limits page and are not a total qu
   assert.match(zh, /未公布/, "the summary must state that no total quota or end date was published");
 });
 
+test("the waitlist gate is stated: access is limited and approval is required before a key exists", () => {
+  // showroom.exaone.ai/en strings (the page users actually land on):
+  //   My Services: "Access to the service is currently limited due to internal policy."
+  //   serviceStart: "The service is currently limited to Korea and the United States."
+  //   status: "Awaiting" / "Active" / "Expired", submitText: "Join the Waitlist"
+  //   empty: "You haven't requested any services yet."
+  const zh = DECLARATION.freeTierSummary["zh-CN"];
+  const en = DECLARATION.freeTierSummary.en;
+  const guide = [...DECLARATION.claimGuide["zh-CN"], ...DECLARATION.claimGuide.en].join("\n");
+
+  assert.match(zh, /不是注册即用|须先加入候补名单|候补/, "the zh summary must warn that signup alone is not enough");
+  assert.match(en, /not sign-up-and-use|Waitlist/i, "the en summary must warn that signup alone is not enough");
+  assert.match(zh, /仅限韩国与美国/, "the docs limit availability to Korea and the U.S.");
+  assert.match(en, /Korea and the U\.S\./, "the en summary must quote the country restriction");
+
+  assert.match(guide, /Join the Waitlist|候补名单/, "the guide must tell users to join the waitlist");
+  assert.match(guide, /Awaiting|待审批/, "the guide must explain the pending state");
+  assert.match(guide, /Active|可用/, "the guide must explain the approved state");
+
+  // The exact symptom users hit: an approved-service gate, not a broken page.
+  assert.match(
+    zh,
+    /尚未申请任何服务/,
+    "the summary must explain the empty My Services page users see"
+  );
+});
+
 test("the free-tier wording is the platform's own 'currently free' claim, with the 30-day key lifetime surfaced", () => {
   // https://docs.exaone.ai/en/terms/faq : "All APIs on EXAONE API Platform are currently
   // available free of charge." and "API keys are valid for 30 days from the date of issue."
@@ -114,7 +141,7 @@ test("the free-tier wording is the platform's own 'currently free' claim, with t
   const en = DECLARATION.freeTierSummary.en;
 
   assert.match(zh, /免费/, "the zh summary must state that the service is free");
-  assert.match(en, /currently free/i, "the en summary must state that it is currently free");
+  assert.match(en, /all APIs free|currently free/i, "the en summary must state that it is currently free");
   assert.match(zh, /30 天/, "the 30-day key lifetime must be surfaced in the summary");
   assert.match(en, /30 days/i, "the 30-day key lifetime must be surfaced in the summary");
 
@@ -127,17 +154,19 @@ test("the free-tier wording is the platform's own 'currently free' claim, with t
   );
 
   // The docs cover Korean and English only; Chinese support is unverified and must not be sold.
-  assert.match(Object.values(DECLARATION.freeTierSummary).join("\n"), /韩语|Korean/i, "the docs' Korean support must be quoted");
+  const allText = [...Object.values(DECLARATION.freeTierSummary), ...DECLARATION.claimGuide["zh-CN"], ...DECLARATION.claimGuide.en].join("\n");
+  assert.match(allText, /韩语|Korean/i, "the docs' Korean support must be quoted");
   assert.doesNotMatch(zh, /支持中文|中文优化/, "no Chinese support may be claimed for this model");
 });
 
 test("the languages, terms and age floor are quoted from the official pages", () => {
   const zh = DECLARATION.freeTierSummary["zh-CN"];
+  const allText = [...Object.values(DECLARATION.freeTierSummary), ...DECLARATION.claimGuide["zh-CN"], ...DECLARATION.claimGuide.en].join("\n");
   // Models page: "Languages Korean / English". Terms: non-commercial only, 19 years or older.
-  assert.match(zh, /英语|English/i, "the docs' English support must be quoted");
-  assert.match(zh, /非商业|non-commercial/i, "the terms restrict use to non-commercial purposes");
-  assert.match(zh, /19/, "the terms require users to be 19 or older");
-  assert.match(zh, /训练/, "the terms allow input/output to be used for training, which must be disclosed");
+  assert.match(allText, /英语|English/i, "the docs' English support must be quoted");
+  assert.match(allText, /非商业|non-commercial/i, "the terms restrict use to non-commercial purposes");
+  assert.match(allText, /19/, "the terms require users to be 19 or older");
+  assert.match(allText, /训练|training/i, "the terms allow input/output to be used for training, which must be disclosed");
 });
 
 test("URLs stay in the safe-https contract and the console entry is the real sign-in host", () => {

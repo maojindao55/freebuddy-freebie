@@ -6,25 +6,27 @@
   "homepage": "https://docs.exaone.ai/en/docs/overview",
   "consoleUrl": "https://id.exaone.ai/login",
   "freeTierSummary": {
-    "zh-CN": "LG AI 研究院的 EXAONE API 平台于 2026-11-09 开放，官方明确「所有 API 当前免费」，未公布总额度或免费截止日期，仅按请求数限流（429 + 速率响应头）。旗舰 K-EXAONE 2.5 为 750B 总参数 / 31B 激活、512K 上下文（输入 + max_tokens ≤ 524,288）、知识截止 2026-01，OpenAI 兼容。限流：QPS 1、每分钟 60、每日 86,400；响应头 x-{second,minute,day}-rate-limit 可查余量。API Key 自签发起 30 天有效、到期需重建，明文仅显示一次。纯文本模型，官方标注仅支持韩语与英语；条款限定非商业用途，需 19 岁以上，输入输出默认可能被用于训练（可在平台选择退出）。条款与限制以官方为准。",
-    "en": "LG AI Research's EXAONE API Platform opened 2026-11-09; the FAQ states all APIs are currently free, with no quota or end date published. K-EXAONE 2.5 is 750B/31B with a 512K context (input + max_tokens <= 524,288), text-only, OpenAI-compatible. Limits: 1/second, 60/minute, 86,400/day via x-{second,minute,day}-rate-limit headers. Keys last 30 days. Terms: non-commercial, 19+."
+    "zh-CN": "重要：不是注册即用。LG 官方说明服务「因内部政策仅向有限人数提供」，且「目前仅限韩国与美国」。注册 EXAONE ID 后须先加入候补名单（Join the Waitlist），显示「待审批（Awaiting）」→ 审核通过变为「可用（Active）」后才能在 My Services/API key 取到 Key，未申请时页面只会显示「您尚未申请任何服务」。FAQ 称所有 API 当前免费，但未公布总额度与截止日期。K-EXAONE 2.5 为 750B/31B、512K 上下文、纯文本、OpenAI 兼容；限流 1 次/秒、60 次/分、86,400 次/日；Key 30 天有效。条款限非商业用途、需 19 岁以上。",
+    "en": "Important: not sign-up-and-use. LG says access is limited by internal policy and currently restricted to Korea and the U.S. You must Join the Waitlist and wait for approval before any API key exists. The FAQ calls all APIs free, with no quota or end date published. K-EXAONE 2.5: 750B/31B, 512K context, text-only, OpenAI-compatible; 1/second, 60/minute, 86,400/day; keys last 30 days."
   },
   "claimGuide": {
     "zh-CN": [
-      "打开 https://id.exaone.ai/signup 注册 EXAONE ID（邮箱注册，注册时需选择所在国家/地区）",
-      "登录后进入 My Profile 的「API key」页面（https://id.exaone.ai/mypage），点击 Create new API Key",
-      "创建后立即复制并保存密钥——官方明确密钥只能看到一次，关掉就再也取不回",
-      "以 OpenAI 兼容方式调用：Base URL 填 https://api.exaone.ai/v1，模型名填 k-exaone_v2.5，Authorization: Bearer <你的 Key>",
-      "注意 Key 自签发起 30 天有效，到期前重新创建并替换；限流为 1 次/秒、60 次/分钟、86,400 次/日",
-      "留意官方限制：仅支持韩语/英语、纯文本无多模态，条款限定非商业用途且需 19 岁以上"
+      "打开 https://id.exaone.ai/signup 注册 EXAONE ID（邮箱注册，注册时需选择国家/地区）",
+      "进入 https://showroom.exaone.ai/en/mypage?tab=service 的「My Services」，点 Join the Waitlist 申请 API 服务（该服务按内部政策限量，官方标注目前仅限韩国与美国）",
+      "等待审批：状态为 Awaiting（待审批），通过后会通过站内通知与邮件告知，变为 Active（可用）",
+      "审批通过后再回到 My Services / API key 页面创建密钥——未通过时该页只显示「您尚未申请任何服务」，看不到任何 Key 入口",
+      "创建后立即复制并保存密钥：官方明确密钥只能看到一次，且自签发起 30 天有效，到期需重建并替换",
+      "调用方式（OpenAI 兼容）：Base URL 填 https://api.exaone.ai/v1，模型名填 k-exaone_v2.5，请求头 Authorization: Bearer <你的 Key>；限流 1 次/秒、60 次/分、86,400 次/日",
+      "官方限制：纯文本模型、文档只标注韩语/英语支持；条款限非商业用途、需 19 岁以上，且输入输出默认可能被用于训练（可在平台退出）"
     ],
     "en": [
       "Sign up for an EXAONE ID at https://id.exaone.ai/signup (email signup; you pick your country/region during registration)",
-      "After signing in, open My Profile > API key at https://id.exaone.ai/mypage and click Create new API Key",
-      "Copy the key immediately — the platform states the secret can never be viewed again",
-      "Call it OpenAI-compatibly: base URL https://api.exaone.ai/v1, model k-exaone_v2.5, header Authorization: Bearer <key>",
-      "Keys expire 30 days after issue, so recreate and swap before that; limits are 1/second, 60/minute and 86,400/day",
-      "Mind the official constraints: Korean/English only, text-only (no multimodality), non-commercial use and age 19+"
+      "Open My Services at https://showroom.exaone.ai/en/mypage?tab=service and click Join the Waitlist (access is limited by internal policy and officially restricted to Korea and the U.S.)",
+      "Wait for approval: the status reads Awaiting; once approved you are notified by on-site alert and email and it turns Active",
+      "Only after approval, create the key in My Services > API key — before approval that page just says you have not requested any services and exposes no key entry",
+      "Copy the key immediately: it is shown once, and it expires 30 days after issue, so recreate and swap it before then",
+      "Call it OpenAI-compatibly: base URL https://api.exaone.ai/v1, model k-exaone_v2.5, header Authorization: Bearer <key>; limits are 1/second, 60/minute and 86,400/day",
+      "Official constraints: text-only, docs cover Korean/English only; terms allow non-commercial use by age 19+ and may use input/output for training unless you opt out"
     ]
   },
   "protocol": "openai-chat",
