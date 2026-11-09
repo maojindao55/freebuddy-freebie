@@ -1,0 +1,59 @@
+{
+  "$schema": "../providers.schema.json",
+  "id": "ant-ling",
+  "name": "蚂蚁百灵 Ant Ling",
+  "icon": "antgroup-color",
+  "region": "cn",
+  "homepage": "https://www.ant-ling.com",
+  "consoleUrl": "https://chat.ant-ling.com/open",
+  "freeTierSummary": {
+    "zh-CN": "新模型 Ling-3.2-flash 于 2026-11-05 上线，上线前 2 周限时免费，活动结束后恢复按量计费（恢复后的价格以官网定价页为准）。平台另有每日 50 万 tokens 免费额度（含输入与输出，每日 02:00 前自动发放、当日未用不结转），Ling-3.1-flash 2.5 折、Ling-3.0-flash 与 Ling-3.0-flash-VL 2.8 折优惠中。Ling-3.2-flash 为 1M 上下文原生多模态模型（图像/文本/视频输入），兼容 OpenAI 与 Anthropic 协议，全局 QPS 限 2；活动期限与折扣以官网定价页为准。",
+    "en": "Ling-3.2-flash launched 2026-11-05 with a two-week free period; billing resumes after it (restored price per the pricing page). The platform also grants 500K free tokens per day (input plus output, credited before 02:00, no rollover) and discounts Ling-3.1-flash / Ling-3.0-flash. Ling-3.2-flash is a 1M-context multimodal model (image, text, video) with OpenAI and Anthropic protocols; QPS is 2."
+  },
+  "claimGuide": {
+    "zh-CN": [
+      "前往 API 控制台 https://chat.ant-ling.com/open 注册并登录蚂蚁百灵账号",
+      "在控制台完成支付宝账户绑定并开通百灵模型服务（未绑定则超出免费额度后调用暂停）",
+      "点击「创建令牌」生成 API Key，明文只展示一次，请立即保存",
+      "Base URL 填 https://api.ant-ling.com/v1，模型填 Ling-3.2-flash 即可调用；Anthropic 协议用 https://api.ant-ling.com/anthropic",
+      "Ling-3.2-flash 上线前 2 周限时免费，另有每日 50 万 tokens 免费额度，额度与活动期限以控制台和官网定价页为准"
+    ],
+    "en": [
+      "Sign up and log in to Ant Ling on the API console at https://chat.ant-ling.com/open",
+      "Link an Alipay account and activate the model service in the console (without it, calls stop once the free quota is used up)",
+      "Click \"Create token\" to generate an API key — the plaintext is shown once, save it immediately",
+      "Use https://api.ant-ling.com/v1 as the base URL with model Ling-3.2-flash; the Anthropic protocol uses https://api.ant-ling.com/anthropic",
+      "Ling-3.2-flash is free for the first two weeks after launch and the platform grants 500K free tokens daily; quotas and the promo window follow the console and the official pricing page"
+    ]
+  },
+  "protocol": "openai-chat",
+  "protocols": ["openai-chat", "anthropic"],
+  "baseUrl": "https://api.ant-ling.com/v1",
+  "envKey": "ANT_LING_API_KEY",
+  "models": [
+    {
+      "id": "Ling-3.2-flash",
+      "name": "Ling-3.2-flash (原生多模态)",
+      "contextWindow": 1048576,
+      "supportsVision": true
+    },
+    {
+      "id": "Ling-3.1-flash",
+      "name": "Ling-3.1-flash",
+      "contextWindow": 1048576
+    },
+    {
+      "id": "Ling-3.0-flash-VL",
+      "name": "Ling-3.0-flash-VL",
+      "contextWindow": 262144,
+      "supportsVision": true
+    },
+    {
+      "id": "Ling-3.0-flash",
+      "name": "Ling-3.0-flash",
+      "contextWindow": 262144
+    }
+  ],
+  "verifiedAt": "2026-11-09",
+  "status": "approved"
+}
