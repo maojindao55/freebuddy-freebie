@@ -4,7 +4,7 @@
   "name": "LG EXAONE API Platform",
   "region": "global",
   "homepage": "https://docs.exaone.ai/en/docs/overview",
-  "consoleUrl": "https://id.exaone.ai/login",
+  "consoleUrl": "https://docs.exaone.ai/en/my-profile/api-key",
   "freeTierSummary": {
     "zh-CN": "重要：不是注册即用。LG 官方说明服务「因内部政策仅向有限人数提供」，且「目前仅限韩国与美国」。注册 EXAONE ID 后须先加入候补名单（Join the Waitlist），显示「待审批（Awaiting）」→ 审核通过变为「可用（Active）」后才能在 My Services/API key 取到 Key，未申请时页面只会显示「您尚未申请任何服务」。FAQ 称所有 API 当前免费，但未公布总额度与截止日期。K-EXAONE 2.5 为 750B/31B、512K 上下文、纯文本、OpenAI 兼容；限流 1 次/秒、60 次/分、86,400 次/日；Key 30 天有效。条款限非商业用途、需 19 岁以上。",
     "en": "Important: not sign-up-and-use. LG says access is limited by internal policy and currently restricted to Korea and the U.S. You must Join the Waitlist and wait for approval before any API key exists. The FAQ calls all APIs free, with no quota or end date published. K-EXAONE 2.5: 750B/31B, 512K context, text-only, OpenAI-compatible; 1/second, 60/minute, 86,400/day; keys last 30 days."
@@ -14,7 +14,7 @@
       "打开 https://id.exaone.ai/signup 注册 EXAONE ID（邮箱注册，注册时需选择国家/地区）",
       "打开申请页 https://showroom.exaone.ai/en/mypage/service-start 点 Join the Waitlist 申请 API 服务（注意不是 mypage?tab=service 那个列表页——那里只有已申请的服务，没有申请按钮；官方标注服务限量、目前仅限韩国与美国）",
       "等待审批：状态为 Awaiting（待审批），通过后会通过站内通知与邮件告知，变为 Active（可用）",
-      "审批通过后再回到 My Services / API key 页面创建密钥——未通过时该页只显示「您尚未申请任何服务」，看不到任何 Key 入口",
+      "审批通过后打开 https://docs.exaone.ai/en/my-profile/api-key （即 My Profile > API key），点 Create new API Key 生成密钥——未通过审批时这里同样取不到 Key",
       "创建后立即复制并保存密钥：官方明确密钥只能看到一次，且自签发起 30 天有效，到期需重建并替换",
       "调用方式（OpenAI 兼容）：Base URL 填 https://api.exaone.ai/v1，模型名填 k-exaone_v2.5，请求头 Authorization: Bearer <你的 Key>；限流 1 次/秒、60 次/分、86,400 次/日",
       "官方限制：纯文本模型、文档只标注韩语/英语支持；条款限非商业用途、需 19 岁以上，且输入输出默认可能被用于训练（可在平台退出）"
@@ -23,7 +23,7 @@
       "Sign up for an EXAONE ID at https://id.exaone.ai/signup (email signup; you pick your country/region during registration)",
       "Open https://showroom.exaone.ai/en/mypage/service-start and click Join the Waitlist (limited by internal policy; Korea and the U.S. only). Not the ?tab=service list page — it has no button",
       "Wait for approval: the status reads Awaiting; once approved you are notified by on-site alert and email and it turns Active",
-      "Only after approval, create the key in My Services > API key — before approval that page just says you have not requested any services and exposes no key entry",
+      "Once approved, open https://docs.exaone.ai/en/my-profile/api-key (My Profile > API key) and click Create new API Key — it is unavailable before approval",
       "Copy the key immediately: it is shown once, and it expires 30 days after issue, so recreate and swap it before then",
       "Call it OpenAI-compatibly: base URL https://api.exaone.ai/v1, model k-exaone_v2.5, header Authorization: Bearer <key>; limits are 1/second, 60/minute and 86,400/day",
       "Official constraints: text-only, docs cover Korean/English only; terms allow non-commercial use by age 19+ and may use input/output for training unless you opt out"

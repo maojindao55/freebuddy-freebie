@@ -37,7 +37,7 @@ const DECLARATION = JSON.parse(readFileSync(DECLARATION_PATH, "utf8"));
 const SQL_LABEL = "-- submissions/providers/exaone.json";
 const BASE_URL = "https://api.exaone.ai/v1";
 const HOMEPAGE = "https://docs.exaone.ai/en/docs/overview";
-const CONSOLE_URL = "https://id.exaone.ai/login";
+const CONSOLE_URL = "https://docs.exaone.ai/en/my-profile/api-key";
 /** Verified against https://docs.exaone.ai/en/docs/k-exaone-2.5 (model id) and /en/docs/models. */
 const VERIFIED_MODEL_IDS = ["k-exaone_v2.5"];
 const CONTEXT_WINDOW = 524288;
@@ -182,23 +182,26 @@ test("the languages, terms and age floor are quoted from the official pages", ()
   assert.match(allText, /训练|training/i, "the terms allow input/output to be used for training, which must be disclosed");
 });
 
-test("URLs stay in the safe-https contract and the console entry is the real sign-in host", () => {
+test("URLs stay in the safe-https contract and the console entry is the documented API key page", () => {
   for (const field of ["homepage", "consoleUrl", "baseUrl"]) {
     assert.ok(isSafeHttpsUrl(DECLARATION[field]), `${field} must be a safe https URL`);
   }
 
   assert.equal(new URL(DECLARATION.homepage).hostname, "docs.exaone.ai");
 
-  // The docs site has no server-rendered /login route (docs.exaone.ai/en/login is a 404); the
-  // header's "Log in" button points at the account host, which the docs expose as `accountUrl`.
-  assert.equal(CONSOLE_URL, "https://id.exaone.ai/login");
+  // FAQ: "After signing in, you can get an API Key by going to My Profile > API key.
+  // On that page, click the 'Create new API Key' button." This URL is that page: it answers
+  // 200 and bounces through id.exaone.ai OAuth, landing back on the key screen. It is far more
+  // precise than a bare sign-in link, which is what an earlier revision wrongly used.
+  assert.equal(CONSOLE_URL, "https://docs.exaone.ai/en/my-profile/api-key");
   const consoleUrl = new URL(DECLARATION.consoleUrl);
-  assert.equal(consoleUrl.hostname, "id.exaone.ai", "the account console lives on id.exaone.ai");
-  assert.equal(DECLARATION.consoleUrl, CONSOLE_URL, "the console entry is the documented account host");
+  assert.equal(consoleUrl.hostname, "docs.exaone.ai");
+  assert.equal(consoleUrl.pathname, "/en/my-profile/api-key", "the console entry is the key page itself");
+  assert.equal(DECLARATION.consoleUrl, CONSOLE_URL, "the console entry is the documented My Profile > API key page");
   assert.doesNotMatch(
     DECLARATION.consoleUrl,
-    /docs\.exaone\.ai\/(en|ko)\/(login|signup)/,
-    "the docs host serves 404 for locale-prefixed login/signup routes and must not be linked"
+    /docs\.exaone\.ai\/(en|ko)\/(login|signup)|id\.exaone\.ai\/login$/,
+    "a generic sign-in page must not stand in for the key page"
   );
 
   const baseUrl = new URL(DECLARATION.baseUrl);
