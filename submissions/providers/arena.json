@@ -1,0 +1,42 @@
+{
+  "$schema": "../providers.schema.json",
+  "id": "arena",
+  "name": "Arena API",
+  "region": "global",
+  "homepage": "https://arena.ai",
+  "consoleUrl": "https://platform.arena.ai/dashboard/keys",
+  "freeTierSummary": {
+    "zh-CN": "Arena（原 LMArena/Chatbot Arena）API 开发者预览：爆料称发放 $50 试用券/促销余额；官方公开页只写「首充 $250 双倍」且为邀请制（无邀请可候补），是否到账、额度与有效期以控制台为准。OpenAI 兼容端点 https://api.arena.ai/v1，支持 chat/completions、responses、messages。余额分「Arena Router」与「All models」两类：仅有 Router 促销余额请用 coding-router-preview；直连 Claude/GPT 等需 All models 余额，否则 402。",
+    "en": "Arena (formerly LMArena) API preview: a $50 trial voucher is reported, but public signup only shows a 2x first-$250 bonus and invite-only access; actual credit is per the console. OpenAI-compatible at https://api.arena.ai/v1. Balance splits into Arena Router (promo) and All models: Router-only funds need coding-router-preview; direct models need All models funds (else 402)."
+  },
+  "claimGuide": {
+    "zh-CN": [
+      "打开 https://platform.arena.ai/signup 用 Google 或邮箱注册/登录 Arena API 开发者预览；目前为邀请制，无邀请可点 Join the waitlist 加入候补名单",
+      "在 https://platform.arena.ai/dashboard/keys 创建 API Key（明文只显示一次，立即保存）；$50 试用券是否到账以该控制台余额为准",
+      "OpenAI 兼容配置：Base URL 填 https://api.arena.ai/v1，model 填 coding-router-preview，请求头 Authorization: Bearer <你的 Key>",
+      "余额分两类：Arena Router（促销余额）与 All models（付费/促销）。若只有 Router 余额，请用 coding-router-preview 或 claude-coding-router-preview",
+      "直连 claude-opus-5-5 等模型需要 All models 非零余额，否则返回 402 paid_credits_required；模型清单以 https://api.arena.ai/v1/models（需 Key）与控制台为准"
+    ],
+    "en": [
+      "Sign up or log in at https://platform.arena.ai/signup with Google or email; the developer preview is invite-only (Join the waitlist if you have no invite)",
+      "Create a key at https://platform.arena.ai/dashboard/keys (shown once — save it); whether the reported $50 voucher lands is shown in that console",
+      "OpenAI-compatible setup: base URL https://api.arena.ai/v1, model coding-router-preview, header Authorization: Bearer <key>",
+      "Balance is split into Arena Router (promo) and All models. With only Router funds, use coding-router-preview or claude-coding-router-preview",
+      "Direct models such as claude-opus-5-5 need a nonzero All models balance or return 402 paid_credits_required; check https://api.arena.ai/v1/models (key required) and the console for the live list"
+    ]
+  },
+  "protocol": "openai-chat",
+  "protocols": ["openai-chat", "openai-responses", "anthropic"],
+  "baseUrl": "https://api.arena.ai/v1",
+  "envKey": "ARENA_API_KEY",
+  "models": [
+    { "id": "coding-router-preview", "name": "Arena Router · Coding", "contextWindow": 1000000, "supportsVision": true },
+    { "id": "claude-coding-router-preview", "name": "Arena Router · Claude", "supportsVision": true },
+    { "id": "claude-fable-5-1", "name": "Claude Fable 5.1" },
+    { "id": "claude-opus-5-5", "name": "Claude Opus 5.5" },
+    { "id": "claude-sonnet-5-5", "name": "Claude Sonnet 5.5" },
+    { "id": "claude-haiku-5-5", "name": "Claude Haiku 5.5" }
+  ],
+  "verifiedAt": "2026-11-24",
+  "status": "approved"
+}
